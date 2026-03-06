@@ -1,0 +1,40 @@
+# Dashboard Update Plan
+
+## Goal Description
+Fix the layout matching the uploaded pictures, and add new specific breaking news sources (Sky News Arabia, Alarabiya, specific Twitter accounts, and a new Telegram channel), along with their custom logos.
+
+## Proposed Changes
+
+### Configuration
+#### [MODIFY] [grid.js](file:///c:/Users/abady/Downloads/%D8%B1%D8%A7%D8%B3%20%D9%85%D8%B1%D9%82%D8%A7%D8%A8/src/grid.js)
+- Update `widgetDefs` with exact coordinates matching the screenshots:
+  - `live-tv`: `w: 4`, `h: 4`
+  - `gold-silver`: `x: 4`, `y: 0`, `w: 3`, `h: 2`
+  - `market-overview`: `x: 4`, `y: 2`, `w: 3`, `h: 2`
+  - `world-clock`: `x: 7`, `y: 0`, `w: 2`, `h: 4`
+  - `breaking-news`: `x: 9`, `y: 0`, `w: 3`, `h: 4`
+
+### Proxy Updates
+#### [MODIFY] [proxy.js](file:///c:/Users/abady/Downloads/%D8%B1%D8%A7%D8%B3%20%D9%85%D8%B1%D9%82%D8%A7%D8%A8/proxy.js)
+- Build a new `/alarabiya` scraping endpoint to hit `https://www.alarabiya.net/breaking-news` (extracting `.item-title` and `<time>`).
+- Build a new `/skynews` endpoint to hit `https://www.skynewsarabia.com/breaking-news-%D8%A7%D9%84%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1-%D8%A7%D9%84%D8%B9%D8%A7%D8%AC%D9%84%D8%A9` or its RSS feed.
+
+### Frontend Widget Updates
+#### [MODIFY] [breaking-news.js](file:///c:/Users/abady/Downloads/%D8%B1%D8%A7%D8%B3%20%D9%85%D8%B1%D9%82%D8%A7%D8%A8/src/widgets/breaking-news.js)
+- Override the hardcoded sources:
+  - Remove Telegram `AhmedBassam1991`.
+  - Add Telegram `ajanews`.
+  - Add new Twitter accounts: `AsharqNewsBrk`, `Alhadath_Brk`, `modgovksa`, `AJELNEWS24`, `alrougui`, `NewsNow4USA`.
+- Update `hasMedia` / avatar logic to inject custom profile logos for the specified Twitter accounts and web channels (Aljazeera, Alarabiya, Sky News).
+- Add new endpoints (`/alarabiya`, `/skynews`) to [fetchAllFeeds()](file:///c:/Users/abady/Downloads/%D8%B1%D8%A7%D8%B3%20%D9%85%D8%B1%D9%82%D8%A7%D8%A8/src/widgets/breaking-news.js#199-236).
+
+## Verification Plan
+### Automated Tests
+- Restart [proxy.js](file:///c:/Users/abady/Downloads/%D8%B1%D8%A7%D8%B3%20%D9%85%D8%B1%D9%82%D8%A7%D8%A8/proxy.js) and test endpoints locally using browser or `curl`.
+- Send a request to `/alarabiya` and `/skynews` checking if 200 OK and valid JSON array is returned.
+
+### Manual Verification
+- User will review the live dashboard at port 8080 to visually verify:
+  1. The new layout matches the 4-column structure (Live TV, Gold+Market, Clock, News).
+  2. Breaking news entries populate with custom logos (Sky News Arabia, Alarabiya, Aljazeera, Twitter account avatars).
+  3. The proxy successfully provides background feed polling.

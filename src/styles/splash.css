@@ -1,0 +1,126 @@
+/* ═══════════════════════════════════════════════
+   SPLASH SCREEN
+   ═══════════════════════════════════════════════ */
+
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #050508;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+#splash-screen.fade-out {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.splash-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translateX(-50%) translateY(-50%);
+  z-index: 0;
+  object-fit: cover;
+  opacity: 0.6;
+  /* Dim the video slightly to make content pop */
+}
+
+.splash-content {
+  text-align: center;
+  z-index: 1;
+  animation: splashAppear 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes splashAppear {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(30px);
+    filter: blur(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+.splash-logo {
+  width: min(800px, 80vw);
+  height: auto;
+  filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.8));
+  animation: logoGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes logoGlow {
+  0% {
+    filter: drop-shadow(0 0 30px rgba(230, 126, 34, 0.3)) drop-shadow(0 0 60px rgba(230, 126, 34, 0.1));
+  }
+
+  100% {
+    filter: drop-shadow(0 0 50px rgba(230, 126, 34, 0.5)) drop-shadow(0 0 100px rgba(230, 126, 34, 0.2));
+  }
+}
+
+.splash-tagline {
+  font-family: 'Tajawal', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: rgba(230, 200, 160, 0.8);
+  margin-top: 24px;
+  letter-spacing: 2px;
+  animation: taglineFade 1s 0.6s ease both;
+}
+
+@keyframes taglineFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.splash-loader {
+  width: 200px;
+  height: 2px;
+  background: rgba(230, 126, 34, 0.15);
+  border-radius: 2px;
+  margin: 32px auto 0;
+  overflow: hidden;
+  animation: taglineFade 1s 0.8s ease both;
+}
+
+.splash-loader-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #e67e22, #ff9f43);
+  border-radius: 2px;
+  animation: loaderFill 2.5s 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: 0 0 10px rgba(230, 126, 34, 0.6);
+}
+
+@keyframes loaderFill {
+  0% {
+    width: 0%;
+  }
+
+  60% {
+    width: 70%;
+  }
+
+  100% {
+    width: 100%;
+  }
+}

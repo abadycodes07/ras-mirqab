@@ -185,7 +185,7 @@
                     '</div>' +
                     '<div class="setting-group">' +
                     '  <label>رابط الخادم الوسيط (Proxy Server URL)</label>' +
-                    '  <input type="text" id="setting-proxy-url" placeholder="http://localhost:3001" style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-en); direction:ltr;" />' +
+                    '  <input type="text" id="setting-proxy-url" placeholder="https://ras-mirqab.onrender.com" style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-en); direction:ltr;" />' +
                     '</div>' +
                     '<div class="setting-group">' +
                     '  <label>تحديث البيانات (ثانية)</label>' +
@@ -230,7 +230,7 @@
 
                 var proxyInput = document.getElementById('setting-proxy-url');
                 if (proxyInput) {
-                    proxyInput.value = localStorage.getItem('rasmirqab_proxy') || 'http://localhost:3001';
+                    proxyInput.value = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab.onrender.com';
                     proxyInput.addEventListener('change', function () { 
                         localStorage.setItem('rasmirqab_proxy', this.value); 
                         window.location.reload(); // Reload to apply new proxy

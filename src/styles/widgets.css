@@ -233,30 +233,70 @@
     direction: ltr;
 }
 
-/* Hover tooltip for breaking news media/links */
-.bn-tooltip {
-    display: none;
-    position: absolute;
-    bottom: 100%;
-    left: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.95);
-    border: 1px solid rgba(230, 126, 34, 0.5);
-    border-radius: 8px;
-    padding: 10px;
-    z-index: 200;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
-    pointer-events: none;
+.news-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
 }
 
-.news-item:hover .bn-tooltip {
+/* ─── News Hover Popup ─── */
+.bn-hover-popup {
+    position: fixed;
+    z-index: 10000;
+    width: 400px;
+    background: #0a0a0a;
+    border: 1px solid #e67e22;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.9), 0 0 30px rgba(230, 126, 34, 0.2);
+    pointer-events: none;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    direction: rtl;
+    font-family: var(--font-ar);
+}
+
+.bn-hover-popup.active {
+    display: block;
+    opacity: 1;
+}
+
+.bn-popup-header {
+    font-size: 0.8rem;
+    color: #e67e22;
+    font-weight: 800;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 5px;
+}
+
+.bn-popup-image {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid #222;
+    display: none;
+}
+
+.bn-popup-image.has-img {
     display: block;
 }
 
-.news-item:hover {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 6px;
-    text-align: right;
+.bn-popup-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #fff;
+    font-weight: 500;
+}
+
+.bn-popup-meta {
+    margin-top: 12px;
+    font-size: 0.7rem;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
 }
 
 /* ═══════════════════════════════════════════════

@@ -11,8 +11,8 @@ var RasMirqabGrid = (function () {
         // Top row (Totals 12 width)
         { id: 'live-tv', module: LiveTVWidget, x: 0, y: 0, w: 4, h: 4, title: 'البث المباشر' },
         { id: 'gold-silver', module: GoldSilverWidget, x: 4, y: 0, w: 2, h: 4, title: 'الذهب والفضة' },
-        { id: 'world-clock', module: WorldClockWidget, x: 6, y: 0, w: 3, h: 4, title: 'الساعة العالمية' },
-        { id: 'breaking-news', module: BreakingNewsWidget, x: 9, y: 0, w: 3, h: 4, title: 'عاجل' },
+        { id: 'world-clock', module: WorldClockWidget, x: 6, y: 0, w: 2, h: 4, title: 'الساعة العالمية' },
+        { id: 'breaking-news', module: BreakingNewsWidget, x: 8, y: 0, w: 4, h: 4, title: 'عاجل' },
 
         // Second row
         { id: 'market-overview', module: MarketOverviewWidget, x: 0, y: 4, w: 4, h: 2, title: 'الأسواق' },

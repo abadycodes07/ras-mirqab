@@ -6,9 +6,9 @@
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
     var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab.onrender.com';
-    var settingsOpen = false;
-    var refreshTimer = null;
     var isProxyLive = false;
+    var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
+    var popupEl = null;
 
     function getSources() {
         try {
@@ -40,18 +40,13 @@ var BreakingNewsWidget = (function () {
                 '  <div style="font-size:12px; color:#e67e22; font-weight:700; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:5px;">إعدادات متقدمة / ADVANCED</div>' +
                 
                 '  <div style="margin-bottom:12px;">' +
-                '    <label style="display:block; font-size:10px; color:#888; margin-bottom:4px;">رابط تليجرام المباشر (Telegram)</label>' +
-                '    <input type="text" id="bn-tg-url" placeholder="https://t.me/..." style="width:100%; padding:6px; border-radius:4px; border:1px solid #333; background:#000; color:#fff; font-size:11px; direction:ltr;" />' +
-                '  </div>' +
-                
-                '  <div style="margin-bottom:12px;">' +
-                '    <label style="display:block; font-size:10px; color:#888; margin-bottom:4px;">حساب تويتر (X)</label>' +
-                '    <input type="text" id="bn-x-url" placeholder="https://x.com/..." style="width:100%; padding:6px; border-radius:4px; border:1px solid #333; background:#000; color:#fff; font-size:11px; direction:ltr;" />' +
-                '  </div>' +
-
-                '  <div style="margin-bottom:15px;">' +
-                '    <label style="display:block; font-size:10px; color:#888; margin-bottom:4px;">رابط الخادم الوسيط (Proxy URL)</label>' +
-                '    <input type="text" id="bn-proxy-url" placeholder="https://..." style="width:100%; padding:6px; border-radius:4px; border:1px solid #333; background:#000; color:#fff; font-size:11px; direction:ltr;" />' +
+                '    <label style="display:flex; justify-content:space-between; align-items:center; font-size:10px; color:#888;">' +
+                '      <span>تفعيل المعاينة عند الحوم (Hover)</span>' +
+                '      <label class="switch" style="width:30px; height:16px;">' +
+                '        <input type="checkbox" id="bn-toggle-hover" ' + (hoverEnabled ? 'checked' : '') + '>' +
+                '        <span class="slider round" style="border-radius:16px;"></span>' +
+                '      </label>' +
+                '    </label>' +
                 '  </div>' +
 
                 '  <div style="font-size:12px; color:#e67e22; font-weight:700; margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:5px;">مصادر إضافية / SOURCES</div>' +
@@ -84,14 +79,20 @@ var BreakingNewsWidget = (function () {
                     e.preventDefault();
                     addSource(input.value.trim());
                     input.value = '';
-                }
-            });
+        // Create Popup element
+        if (!document.getElementById('bn-hover-popup')) {
+            popupEl = document.createElement('div');
+            popupEl.id = 'bn-hover-popup';
+            popupEl.className = 'bn-hover-popup';
+            document.body.appendChild(popupEl);
+        } else {
+            popupEl = document.getElementById('bn-hover-popup');
         }
 
-        // Handle new fields (Telegram, X, Proxy)
+        // Handle new fields (Telegram, X)
         var tgInput = document.getElementById('bn-tg-url');
         var xInput = document.getElementById('bn-x-url');
-        var proxyInput = document.getElementById('bn-proxy-url');
+        var hoverToggle = document.getElementById('bn-toggle-hover');
 
         if (tgInput) {
             tgInput.value = localStorage.getItem('rasmirqab_tg') || '';
@@ -101,11 +102,10 @@ var BreakingNewsWidget = (function () {
             xInput.value = localStorage.getItem('rasmirqab_x') || '';
             xInput.addEventListener('change', function () { localStorage.setItem('rasmirqab_x', this.value); });
         }
-        if (proxyInput) {
-            proxyInput.value = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab.onrender.com';
-            proxyInput.addEventListener('change', function () { 
-                localStorage.setItem('rasmirqab_proxy', this.value); 
-                window.location.reload(); 
+        if (hoverToggle) {
+            hoverToggle.addEventListener('change', function () {
+                hoverEnabled = this.checked;
+                localStorage.setItem('rasmirqab_bn_hover', this.checked);
             });
         }
 
@@ -124,7 +124,7 @@ var BreakingNewsWidget = (function () {
             panel.style.display = settingsOpen ? 'block' : 'none';
         }
         renderSourceList();
-        checkProxyStatus();
+        // checkProxyStatus(); // Removed as we are hiding proxy status to keep it clean
     }
 
     function checkProxyStatus() {
@@ -310,25 +310,13 @@ var BreakingNewsWidget = (function () {
     }
 
     function renderItems(container, items) {
-        var html = '';
+        container.innerHTML = '';
         items.forEach(function (item, i) {
             var sClass = 'source-' + (item.source || 'rss');
             var sLabel = item.source === 'telegram' ? 'TG' : item.source === 'twitter' ? '𝕏' : (item.sourceName || 'RSS');
             var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
 
-            var tooltip = '';
-            if (item.hasMedia || (item.extraLinks && item.extraLinks.length > 0)) {
-                tooltip = '<div class="bn-tooltip">';
-                if (item.mediaUrl) tooltip += '<img src="' + item.mediaUrl + '" style="width:100%; border-radius:4px; margin-bottom:5px;" />';
-                if (item.extraLinks && item.extraLinks.length > 0) {
-                    tooltip += '<div style="font-size:9px; color:#e67e22;">' + item.extraLinks[0].substring(0, 30) + '...</div>';
-                }
-                tooltip += '</div>';
-            }
-
-            var mediaIcon = item.hasMedia ? '<span style="color:#1DA1F2; margin-right:3px;">📎</span>' : '';
-
-            // Custom Avatar Logic injected into rendering
+            // Custom Avatar Logic
             var customAvatarHtml = '';
             if (item.customAvatar) {
                 customAvatarHtml = '<img src="' + item.customAvatar + '" style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover; margin-left: 8px; border: 1px solid #444;" />';
@@ -340,9 +328,15 @@ var BreakingNewsWidget = (function () {
             else if (item.source === 'skynews') borderColor = '#c0392b';
 
             var highlightClass = item.isNew ? ' news-item-new' : '';
+            var mediaIcon = item.hasMedia ? '<span style="color:#1DA1F2; margin-right:3px;">📎</span>' : '';
 
-            html +=
-                '<div class="news-item' + highlightClass + '" style="border-left: 2px solid ' + borderColor + '; padding-left:8px; cursor:pointer;" onclick="window.open(\'' + item.link + '\', \'_blank\')">' +
+            // Create the news item element
+            var itemEl = document.createElement('div');
+            itemEl.className = 'news-item' + highlightClass;
+            itemEl.style = 'border-left: 2px solid ' + borderColor + '; padding-left:8px; cursor:pointer; display:flex; padding:8px; margin-bottom:4px; transition:background 0.2s;';
+            itemEl.onclick = function() { window.open(item.link, '_blank'); };
+
+            itemEl.innerHTML =
                 '  <div style="display:flex; justify-content:space-between; width:100%;">' +
                 '    <div style="display:flex; align-items:flex-start;">' +
                 '      <span class="news-source-badge ' + sClass + '">' + sLabel + '</span>' +
@@ -352,11 +346,50 @@ var BreakingNewsWidget = (function () {
                 '      </div>' +
                 '    </div>' +
                 '    <div style="flex-shrink:0;">' + customAvatarHtml + '</div>' +
-                '  </div>' +
-                tooltip +
-                '</div>';
+                '  </div>';
+
+            // HOVER PREVIEW LOGIC
+            itemEl.addEventListener('mouseenter', function (e) {
+                if (!hoverEnabled || !popupEl) return;
+                
+                var rect = itemEl.getBoundingClientRect();
+                var winW = window.innerWidth;
+                var winH = window.innerHeight;
+
+                // Populate popup
+                var imgHtml = item.mediaUrl ? '<img src="' + item.mediaUrl + '" class="bn-popup-image has-img" />' : '';
+                popupEl.innerHTML = 
+                    '<div class="bn-popup-header">🚨 معاينة الخبر العاجل</div>' +
+                    imgHtml +
+                    '<div class="bn-popup-text">' + item.title + '</div>' +
+                    '<div class="bn-popup-meta">' +
+                    '  <span>المصدر: ' + (item.customName || item.sourceName || item.source) + '</span>' +
+                    '  <span>الوقت: ' + timeStr + '</span>' +
+                    '</div>';
+
+                popupEl.classList.add('active');
+
+                // Positioning
+                var pW = popupEl.offsetWidth || 400;
+                var pH = popupEl.offsetHeight || 200;
+
+                var left = rect.left - pW - 20;
+                if (left < 20) left = rect.right + 20; // Flip to right
+
+                var top = rect.top + (rect.height / 2) - (pH / 2);
+                if (top < 20) top = 20;
+                if (pH > 0 && top + pH > winH - 20) top = winH - pH - 20;
+
+                popupEl.style.left = left + 'px';
+                popupEl.style.top = top + 'px';
+            });
+
+            itemEl.addEventListener('mouseleave', function () {
+                if (popupEl) popupEl.classList.remove('active');
+            });
+
+            container.appendChild(itemEl);
         });
-        container.innerHTML = html;
     }
 
     return { render: render, init: init, removeSource: removeSource };

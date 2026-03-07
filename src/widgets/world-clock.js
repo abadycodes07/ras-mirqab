@@ -76,7 +76,7 @@ var WorldClockWidget = (function () {
                 '    <span>إدارة التوقيتات / WORLD CLOCKS</span>' +
                 '    <span style="cursor:pointer;" onclick="WorldClockWidget.toggleSettings()">✕</span>' +
                 '  </div>' +
-                '  <div id="clock-selection-list" style="max-height:200px; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>' +
+                '  <div id="clock-selection-list" style="max-height:180px; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>' +
                 '</div>' +
                 '<div class="widget-body"><div class="clock-grid" id="clock-grid"></div></div>',
         };
@@ -129,7 +129,7 @@ var WorldClockWidget = (function () {
     function toggleCity(name, tz) {
         var idx = selectedCities.findIndex(function(s) { return s.tz === tz && s.name === name; });
         if (idx > -1) {
-            selectedCities.splice(idx, 1);
+            if (selectedCities.length > 1) selectedCities.splice(idx, 1);
         } else {
             selectedCities.push({ name: name, tz: tz });
         }
@@ -146,33 +146,30 @@ var WorldClockWidget = (function () {
         var now = new Date();
 
         selectedCities.forEach(function (city) {
-            var timeStr = now.toLocaleTimeString('en-US', {
+            var formatter = new Intl.DateTimeFormat('en-US', {
                 timeZone: city.tz,
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit',
-                hour12: is12Hour,
+                hour12: is12Hour
             });
+            var timeStr = formatter.format(now);
+            
             var dateStr = now.toLocaleDateString('ar-SA', {
                 timeZone: city.tz,
                 weekday: 'short',
                 day: 'numeric',
-                month: 'short',
+                month: 'short'
             });
 
             html +=
-                '<div class="clock-cell" style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); text-align:center;">' +
-                '  <div class="clock-city" style="color: #f1c40f; font-weight: bold; font-size: 0.8rem;">' + city.name + '</div>' +
-                '  <div class="clock-time" style="font-family: monospace; font-size: 1rem; margin: 2px 0; color:#fff;">' + timeStr + '</div>' +
-                '  <div class="clock-date" style="font-size: 0.65rem; color: #aaa;">' + dateStr + '</div>' +
+                '<div class="clock-cell">' +
+                '  <div class="clock-city">' + city.name + '</div>' +
+                '  <div class="clock-time">' + timeStr + '</div>' +
+                '  <div class="clock-date">' + dateStr + '</div>' +
                 '</div>';
         });
 
-        // Responsive grid adjustment
-        var cols = selectedCities.length > 2 ? '1fr 1fr' : '1fr';
-        container.style.display = 'grid';
-        container.style.gridTemplateColumns = cols;
-        container.style.gap = '8px';
         container.innerHTML = html;
     }
 

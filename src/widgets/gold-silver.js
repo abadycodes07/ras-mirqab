@@ -43,10 +43,14 @@ var GoldSilverWidget = (function () {
             body: 
                 '<div id="gold-settings-panel" style="display:none; padding:12px; background:rgba(10,10,10,0.98); border:1px solid #f1c40f; border-radius:8px; z-index:1000; position:relative; margin:10px;">' +
                 '  <div style="font-size:11px; color:#f1c40f; font-weight:700; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px; display:flex; justify-content:space-between;">' +
-                '    <span>اختر الأصول للمتابعة / ASSETS</span>' +
+                '    <span>إدارة الأصول والبحث / ASSETS</span>' +
                 '    <span style="cursor:pointer;" onclick="GoldSilverWidget.toggleSettings()">✕</span>' +
                 '  </div>' +
-                '  <div id="gold-selection-list" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>' +
+                '  <div style="margin-bottom:10px;">' +
+                '    <input type="text" id="gold-search-input" placeholder="بحث عن رمز (e.g. BTCUSD, AAPL)..." ' +
+                '      style="width:100%; padding:6px; background:#000; border:1px solid #444; color:#fff; font-size:10px; border-radius:4px; box-sizing:border-box;" />' +
+                '  </div>' +
+                '  <div id="gold-selection-list" style="display:grid; grid-template-columns:1fr; gap:6px; max-height:150px; overflow-y:auto;"></div>' +
                 '</div>' +
                 '<div class="widget-body" id="gold-silver-body" style="padding:0; display:flex; flex-direction:column; height:100%; overflow:hidden;"></div>',
         };
@@ -58,6 +62,16 @@ var GoldSilverWidget = (function () {
         var settingsBtn = document.getElementById('gold-silver-settings-btn');
         if (settingsBtn) {
             settingsBtn.addEventListener('click', toggleSettings);
+        }
+
+        var searchInput = document.getElementById('gold-search-input');
+        if (searchInput) {
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && this.value.trim()) {
+                    toggleAsset(this.value.trim().toUpperCase(), this.value.trim().toUpperCase());
+                    this.value = '';
+                }
+            });
         }
 
         updateWidgets();
@@ -85,6 +99,17 @@ var GoldSilverWidget = (function () {
                     '<span>' + asset.icon + ' ' + asset.name + '</span>' +
                     (isSelected ? '<span>✔</span>' : '') + '</div>';
         });
+
+        // Show custom added assets that aren't in ALL_ASSETS
+        selectedAssets.forEach(function(s) {
+            if (!ALL_ASSETS.some(function(a) { return a.symbol === s.symbol; })) {
+                html += '<div style="background:#f1c40f; color:#000; padding:8px; border-radius:4px; font-size:11px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:0.2s;" ' +
+                        'onclick="GoldSilverWidget.toggleAsset(\'' + s.name + '\',\'' + s.symbol + '\')">' +
+                        '<span>🔍 ' + s.name + '</span>' +
+                        '<span>✔</span></div>';
+            }
+        });
+
         container.innerHTML = html;
     }
 
@@ -111,7 +136,7 @@ var GoldSilverWidget = (function () {
             wrapper.className = 'tradingview-widget-container tv-asset-' + i;
             wrapper.style.flex = '1';
             wrapper.style.minHeight = (100 / selectedAssets.length) + '%';
-            if (i > 0) wrapper.style.borderTop = '1px solid rgba(255,255,255,0.05)';
+            if (i > 0) wrapper.style.borderTop = '1px solid rgba(255,255,255,0.1)';
             wrapper.innerHTML = '<div class="tradingview-widget-container__widget" style="height:100%;width:100%;"></div>';
             
             var script = document.createElement('script');

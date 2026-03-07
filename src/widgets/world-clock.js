@@ -9,9 +9,35 @@ var WorldClockWidget = (function () {
 
     var ALL_CITIES = [
         { name: 'الرياض', tz: 'Asia/Riyadh', country: 'السعودية' },
+        { name: 'مكة المكرمة', tz: 'Asia/Riyadh', country: 'السعودية' },
         { name: 'أبو ظبي', tz: 'Asia/Dubai', country: 'الإمارات' },
+        { name: 'دبي', tz: 'Asia/Dubai', country: 'الإمارات' },
         { name: 'الكويت', tz: 'Asia/Kuwait', country: 'الكويت' },
-        { name: 'نيويورك', tz: 'America/New_York', country: 'أمريكا' }
+        { name: 'الدوحة', tz: 'Asia/Qatar', country: 'قطر' },
+        { name: 'مسقط', tz: 'Asia/Muscat', country: 'عمان' },
+        { name: 'المنامة', tz: 'Asia/Bahrain', country: 'البحرين' },
+        { name: 'عمان', tz: 'Asia/Amman', country: 'الأردن' },
+        { name: 'القاهرة', tz: 'Africa/Cairo', country: 'مصر' },
+        { name: 'إسطنبول', tz: 'Europe/Istanbul', country: 'تركيا' },
+        { name: 'لندن', tz: 'Europe/London', country: 'بريطانيا' },
+        { name: 'باريس', tz: 'Europe/Paris', country: 'فرنسا' },
+        { name: 'برلين', tz: 'Europe/Berlin', country: 'ألمانيا' },
+        { name: 'موسكو', tz: 'Europe/Moscow', country: 'روسيا' },
+        { name: 'نيويورك', tz: 'America/New_York', country: 'أمريكا' },
+        { name: 'واشنطن العاصمة', tz: 'America/New_York', country: 'أمريكا' },
+        { name: 'لوس أنجلوس', tz: 'America/Los_Angeles', country: 'أمريكا' },
+        { name: 'شيكاغو', tz: 'America/Chicago', country: 'أمريكا' },
+        { name: 'تورونتو', tz: 'America/Toronto', country: 'كندا' },
+        { name: 'بكين', tz: 'Asia/Shanghai', country: 'الصين' },
+        { name: 'شنغهاي', tz: 'Asia/Shanghai', country: 'الصين' },
+        { name: 'طوكيو', tz: 'Asia/Tokyo', country: 'اليابان' },
+        { name: 'سول', tz: 'Asia/Seoul', country: 'كوريا الجنوبية' },
+        { name: 'هونغ كونغ', tz: 'Asia/Hong_Kong', country: 'الصين' },
+        { name: 'سنغافورة', tz: 'Asia/Singapore', country: 'سنغافورة' },
+        { name: 'مومباي', tz: 'Asia/Kolkata', country: 'الهند' },
+        { name: 'سيدني', tz: 'Australia/Sydney', country: 'أستراليا' },
+        { name: 'ساو باولو', tz: 'America/Sao_Paulo', country: 'البرازيل' },
+        { name: 'مكسيكو سيتي', tz: 'America/Mexico_City', country: 'المكسيك' }
     ];
 
     function getSelected() {

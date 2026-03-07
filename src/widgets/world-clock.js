@@ -6,6 +6,7 @@ var WorldClockWidget = (function () {
     var is12Hour = localStorage.getItem('rasmirqab_clock_12h') !== 'false';
     var selectedCities = [];
     var settingsOpen = false;
+    var searchQuery = '';
 
     var ALL_CITIES = [
         { name: 'الرياض', tz: 'Asia/Riyadh', country: 'السعودية' },
@@ -76,13 +77,6 @@ var WorldClockWidget = (function () {
                 '  </div>' +
                 '</div>',
             body: 
-                '<div id="clock-settings-panel" style="display:none; padding:15px; background:rgba(10,10,10,0.98); border:1px solid var(--accent); border-radius:8px; z-index:1000; position:relative; margin:10px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">' +
-                '  <div style="font-size:12px; color:var(--accent); font-weight:700; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:5px; display:flex; justify-content:space-between;">' +
-                '    <span>إدارة التوقيتات / WORLD CLOCKS</span>' +
-                '    <span style="cursor:pointer;" onclick="WorldClockWidget.toggleSettings()">✕</span>' +
-                '  </div>' +
-                '  <div id="clock-selection-list" style="max-height:180px; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>' +
-                '</div>' +
                 '<div class="widget-body"><div class="clock-grid" id="clock-grid"></div></div>',
         };
     }
@@ -104,37 +98,69 @@ var WorldClockWidget = (function () {
             settingsBtn.addEventListener('click', toggleSettings);
         }
 
+        // Modal Events
+        var closeBtn = document.getElementById('close-world-clock-modal');
+        if (closeBtn) {
+            closeBtn.onclick = function() {
+                document.getElementById('world-clock-modal').classList.add('hidden');
+                settingsOpen = false;
+            };
+        }
+
+        var searchInput = document.getElementById('city-search');
+        if (searchInput) {
+            searchInput.oninput = function(e) {
+                searchQuery = e.target.value.toLowerCase();
+                renderSettings();
+            };
+        }
+
         updateClocks();
         setInterval(updateClocks, 1000);
     }
 
     function toggleSettings() {
         settingsOpen = !settingsOpen;
-        var panel = document.getElementById('clock-settings-panel');
-        if (panel) panel.style.display = settingsOpen ? 'block' : 'none';
-        if (settingsOpen) renderSettings();
+        var modal = document.getElementById('world-clock-modal');
+        if (modal) {
+            if (settingsOpen) {
+                modal.classList.remove('hidden');
+                renderSettings();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
     }
 
     function renderSettings() {
-        var container = document.getElementById('clock-selection-list');
-        if (!container) return;
+        var grid = document.getElementById('available-cities-grid');
+        if (!grid) return;
+
+        var filtered = ALL_CITIES.filter(function(city) {
+            var searchLower = searchQuery.toLowerCase();
+            return city.name.toLowerCase().includes(searchLower) || 
+                   city.country.toLowerCase().includes(searchLower);
+        });
 
         var html = '';
-        ALL_CITIES.forEach(function(city) {
+        filtered.forEach(function(city) {
             var isSelected = selectedCities.some(function(s) { return s.tz === city.tz && s.name === city.name; });
             
-            // Greyed out vs Green style
-            var style = isSelected 
-                ? 'background:rgba(0, 255, 127, 0.2); border:1px solid #00ff7f; color:#fff;' 
-                : 'background:rgba(255,255,255,0.05); border:1px solid #444; color:#666;';
-            
-            var checkMark = isSelected ? '<span style="color:#00ff7f; margin-left:5px;">✓</span>' : '<span style="color:#444; margin-left:5px;">□</span>';
-
-            html += '<div class="city-opt" style="' + style + ' padding:8px; border-radius:4px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:0.2s; margin-bottom:2px;" ' +
-                    'onclick="WorldClockWidget.toggleCity(\'' + city.name + '\',\'' + city.tz + '\')">' +
-                    '<span>' + city.name + '</span>' + checkMark + '</div>';
+            html +=
+                '<div class="channel-card ' + (isSelected ? 'selected' : '') + '" onclick="WorldClockWidget.toggleCity(\'' + city.name + '\',\'' + city.tz + '\')">' +
+                '  <div class="channel-card-info">' +
+                '    <div class="channel-avatar">' + city.name[0] + '</div>' +
+                '    <div class="channel-name-v">' +
+                '      <span class="ch-title">' + city.name + '</span>' +
+                '      <span class="ch-handle">' + city.country.toUpperCase() + '</span>' +
+                '    </div>' +
+                '  </div>' +
+                '  <div class="ch-status-icon">' +
+                (isSelected ? '<span class="ch-check">✓</span>' : '<span class="ch-add-icon">+</span>') +
+                '  </div>' +
+                '</div>';
         });
-        container.innerHTML = html;
+        grid.innerHTML = html;
     }
 
     function toggleCity(name, tz) {
@@ -142,7 +168,8 @@ var WorldClockWidget = (function () {
         if (idx > -1) {
             if (selectedCities.length > 1) selectedCities.splice(idx, 1);
         } else {
-            selectedCities.push({ name: name, tz: tz });
+            var city = ALL_CITIES.find(function(c) { return c.tz === tz && c.name === name; });
+            if (city) selectedCities.push(city);
         }
         saveSelected(selectedCities);
         renderSettings();

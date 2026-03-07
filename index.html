@@ -217,6 +217,30 @@
       </div>
     </div>
 
+    <!-- ─── WORLD CLOCK MODAL ─── -->
+    <div id="world-clock-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content world-clock-modal-content">
+        <div class="modal-header">
+          <h3>إدارة التوقيتات / WORLD CLOCKS</h3>
+          <button class="modal-close" id="close-world-clock-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="channels-search-bar">
+            <input type="text" id="city-search" placeholder="بحث عن مدينة... / Search City..." />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+          </div>
+
+          <div class="channels-grid" id="available-cities-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ═══════════════ SCRIPTS ═══════════════ -->

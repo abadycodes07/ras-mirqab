@@ -9,48 +9,20 @@ var WorldClockWidget = (function () {
 
     var ALL_CITIES = [
         { name: 'الرياض', tz: 'Asia/Riyadh', country: 'السعودية' },
-        { name: 'مكة المكرمة', tz: 'Asia/Riyadh', country: 'السعودية' },
-        { name: 'دبي', tz: 'Asia/Dubai', country: 'الإمارات' },
         { name: 'أبو ظبي', tz: 'Asia/Dubai', country: 'الإمارات' },
         { name: 'الكويت', tz: 'Asia/Kuwait', country: 'الكويت' },
-        { name: 'الدوحة', tz: 'Asia/Qatar', country: 'قطر' },
-        { name: 'القاهرة', tz: 'Africa/Cairo', country: 'مصر' },
-        { name: 'عمان', tz: 'Asia/Amman', country: 'الأردن' },
-        { name: 'بيروت', tz: 'Asia/Beirut', country: 'لبنان' },
-        { name: 'بغداد', tz: 'Asia/Baghdad', country: 'العراق' },
-        { name: 'إسطنبول', tz: 'Europe/Istanbul', country: 'تركيا' },
-        { name: 'نيويورك', tz: 'America/New_York', country: 'أمريكا' },
-        { name: 'واشنطن', tz: 'America/New_York', country: 'أمريكا' },
-        { name: 'لندن', tz: 'Europe/London', country: 'بريطانيا' },
-        { name: 'باريس', tz: 'Europe/Paris', country: 'فرنسا' },
-        { name: 'برلين', tz: 'Europe/Berlin', country: 'ألمانيا' },
-        { name: 'موسكو', tz: 'Europe/Moscow', country: 'روسيا' },
-        { name: 'بكين', tz: 'Asia/Shanghai', country: 'الصين' },
-        { name: 'طوكيو', tz: 'Asia/Tokyo', country: 'اليابان' },
-        { name: 'سول', tz: 'Asia/Seoul', country: 'كوريا الجنوبية' },
-        { name: 'نيودلهي', tz: 'Asia/Kolkata', country: 'الهند' },
-        { name: 'سنغافورة', tz: 'Asia/Singapore', country: 'سنغافورة' },
-        { name: 'سيدني', tz: 'Australia/Sydney', country: 'أستراليا' },
-        { name: 'طهران', tz: 'Asia/Tehran', country: 'إيران' },
-        { name: 'تل أبيب', tz: 'Asia/Jerusalem', country: 'فلسطين' },
-        { name: 'كييف', tz: 'Europe/Kiev', country: 'أوكرانيا' },
-        { name: 'بروكسل', tz: 'Europe/Brussels', country: 'بلجيكا' },
-        { name: 'جنيف', tz: 'Europe/Zurich', country: 'سويسرا' },
-        { name: 'روما', tz: 'Europe/Rome', country: 'إيطاليا' },
-        { name: 'مدريد', tz: 'Europe/Madrid', country: 'إسبانيا' }
+        { name: 'نيويورك', tz: 'America/New_York', country: 'أمريكا' }
     ];
 
     function getSelected() {
         try {
             var raw = localStorage.getItem('rasmirqab_selected_clocks');
-            if (raw) return JSON.parse(raw);
+            if (raw) {
+                var parsed = JSON.parse(raw);
+                if (parsed.length > 0) return parsed;
+            }
         } catch(e) {}
-        return [
-            { name: 'الرياض', tz: 'Asia/Riyadh' },
-            { name: 'أبو ظبي', tz: 'Asia/Dubai' },
-            { name: 'الكويت', tz: 'Asia/Kuwait' },
-            { name: 'نيويورك', tz: 'America/New_York' }
-        ];
+        return ALL_CITIES; // Default to all 4
     }
 
     function saveSelected(arr) {

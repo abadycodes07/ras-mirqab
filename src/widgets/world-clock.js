@@ -71,8 +71,8 @@ var WorldClockWidget = (function () {
                 '  </div>' +
                 '</div>',
             body: 
-                '<div id="clock-settings-panel" style="display:none; padding:15px; background:rgba(10,10,10,0.98); border:1px solid #f1c40f; border-radius:8px; z-index:1000; position:relative; margin:10px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">' +
-                '  <div style="font-size:12px; color:#f1c40f; font-weight:700; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:5px; display:flex; justify-content:space-between;">' +
+                '<div id="clock-settings-panel" style="display:none; padding:15px; background:rgba(10,10,10,0.98); border:1px solid var(--accent); border-radius:8px; z-index:1000; position:relative; margin:10px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">' +
+                '  <div style="font-size:12px; color:var(--accent); font-weight:700; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:5px; display:flex; justify-content:space-between;">' +
                 '    <span>إدارة التوقيتات / WORLD CLOCKS</span>' +
                 '    <span style="cursor:pointer;" onclick="WorldClockWidget.toggleSettings()">✕</span>' +
                 '  </div>' +
@@ -117,7 +117,7 @@ var WorldClockWidget = (function () {
         var html = '';
         ALL_CITIES.forEach(function(city) {
             var isSelected = selectedCities.some(function(s) { return s.tz === city.tz && s.name === city.name; });
-            var activeClass = isSelected ? 'background:#f1c40f; color:#000;' : 'background:#222; color:#888;';
+            var activeClass = isSelected ? 'background:var(--accent); color:#000;' : 'background:#222; color:#888;';
             
             html += '<div class="city-opt" style="' + activeClass + ' padding:6px; border-radius:4px; font-size:10px; cursor:pointer; text-align:center; transition:0.2s;" ' +
                     'onclick="WorldClockWidget.toggleCity(\'' + city.name + '\',\'' + city.tz + '\')">' +

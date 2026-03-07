@@ -2,6 +2,7 @@
    GOLD & SILVER vs DOLLAR WIDGET
    ═══════════════════════════════════════════════ */
 
+var GoldSilverWidget = (function () {
     var selectedAssets = [];
     var ALL_ASSETS = [
         { name: 'الذهب (XAU/USD)', symbol: 'OANDA:XAUUSD', icon: '🥇' },
@@ -41,7 +42,10 @@
                 '</div>',
             body: 
                 '<div id="gold-settings-panel" style="display:none; padding:12px; background:rgba(10,10,10,0.98); border:1px solid #f1c40f; border-radius:8px; z-index:1000; position:relative; margin:10px;">' +
-                '  <div style="font-size:11px; color:#f1c40f; font-weight:700; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">اختر الأصول للمتابعة / ASSETS</div>' +
+                '  <div style="font-size:11px; color:#f1c40f; font-weight:700; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px; display:flex; justify-content:space-between;">' +
+                '    <span>اختر الأصول للمتابعة / ASSETS</span>' +
+                '    <span style="cursor:pointer;" onclick="GoldSilverWidget.toggleSettings()">✕</span>' +
+                '  </div>' +
                 '  <div id="gold-selection-list" style="display:grid; grid-template-columns:1fr; gap:6px;"></div>' +
                 '</div>' +
                 '<div class="widget-body" id="gold-silver-body" style="padding:0; display:flex; flex-direction:column; height:100%; overflow:hidden;"></div>',
@@ -130,5 +134,5 @@
         });
     }
 
-    return { render: render, init: init, toggleAsset: toggleAsset };
+    return { render: render, init: init, toggleAsset: toggleAsset, toggleSettings: toggleSettings };
 })();

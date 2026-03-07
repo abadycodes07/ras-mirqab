@@ -5,6 +5,8 @@
 var WorldClockWidget = (function () {
     var is12Hour = localStorage.getItem('rasmirqab_clock_12h') !== 'false';
     var selectedCities = [];
+    var settingsOpen = false;
+
     var ALL_CITIES = [
         { name: 'الرياض', tz: 'Asia/Riyadh', country: 'السعودية' },
         { name: 'مكة المكرمة', tz: 'Asia/Riyadh', country: 'السعودية' },
@@ -30,7 +32,7 @@ var WorldClockWidget = (function () {
         { name: 'سنغافورة', tz: 'Asia/Singapore', country: 'سنغافورة' },
         { name: 'سيدني', tz: 'Australia/Sydney', country: 'أستراليا' },
         { name: 'طهران', tz: 'Asia/Tehran', country: 'إيران' },
-        { name: 'تل أبيب', tz: 'Asia/Jerusalem', country: 'فلسطين المحتلة' },
+        { name: 'تل أبيب', tz: 'Asia/Jerusalem', country: 'فلسطين' },
         { name: 'كييف', tz: 'Europe/Kiev', country: 'أوكرانيا' },
         { name: 'بروكسل', tz: 'Europe/Brussels', country: 'بلجيكا' },
         { name: 'جنيف', tz: 'Europe/Zurich', country: 'سويسرا' },
@@ -69,9 +71,12 @@ var WorldClockWidget = (function () {
                 '  </div>' +
                 '</div>',
             body: 
-                '<div id="clock-settings-panel" style="display:none; padding:15px; background:rgba(10,10,10,0.98); border:1px solid var(--accent); border-radius:8px; z-index:1000; position:relative; margin:10px;">' +
-                '  <div style="font-size:12px; color:var(--accent); font-weight:700; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:5px;">إدارة التوقيتات / WORLD CLOCKS</div>' +
-                '  <div id="clock-selection-list" style="max-height:250px; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>' +
+                '<div id="clock-settings-panel" style="display:none; padding:15px; background:rgba(10,10,10,0.98); border:1px solid #f1c40f; border-radius:8px; z-index:1000; position:relative; margin:10px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">' +
+                '  <div style="font-size:12px; color:#f1c40f; font-weight:700; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:5px; display:flex; justify-content:space-between;">' +
+                '    <span>إدارة التوقيتات / WORLD CLOCKS</span>' +
+                '    <span style="cursor:pointer;" onclick="WorldClockWidget.toggleSettings()">✕</span>' +
+                '  </div>' +
+                '  <div id="clock-selection-list" style="max-height:200px; overflow-y:auto; display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>' +
                 '</div>' +
                 '<div class="widget-body"><div class="clock-grid" id="clock-grid"></div></div>',
         };
@@ -98,7 +103,6 @@ var WorldClockWidget = (function () {
         setInterval(updateClocks, 1000);
     }
 
-    var settingsOpen = false;
     function toggleSettings() {
         settingsOpen = !settingsOpen;
         var panel = document.getElementById('clock-settings-panel');
@@ -113,7 +117,7 @@ var WorldClockWidget = (function () {
         var html = '';
         ALL_CITIES.forEach(function(city) {
             var isSelected = selectedCities.some(function(s) { return s.tz === city.tz && s.name === city.name; });
-            var activeClass = isSelected ? 'background:var(--accent); color:#000;' : 'background:#222; color:#888;';
+            var activeClass = isSelected ? 'background:#f1c40f; color:#000;' : 'background:#222; color:#888;';
             
             html += '<div class="city-opt" style="' + activeClass + ' padding:6px; border-radius:4px; font-size:10px; cursor:pointer; text-align:center; transition:0.2s;" ' +
                     'onclick="WorldClockWidget.toggleCity(\'' + city.name + '\',\'' + city.tz + '\')">' +
@@ -157,10 +161,10 @@ var WorldClockWidget = (function () {
             });
 
             html +=
-                '<div class="clock-cell" style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05); text-align:center;">' +
-                '  <div class="clock-city" style="color: var(--accent); font-weight: bold; font-size: 0.8rem;">' + city.name + '</div>' +
-                '  <div class="clock-time" style="font-family: var(--font-mono); font-size: 1rem; margin: 2px 0; color:#fff;">' + timeStr + '</div>' +
-                '  <div class="clock-date" style="font-size: 0.65rem; color: var(--text-secondary);">' + dateStr + '</div>' +
+                '<div class="clock-cell" style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.05); text-align:center;">' +
+                '  <div class="clock-city" style="color: #f1c40f; font-weight: bold; font-size: 0.8rem;">' + city.name + '</div>' +
+                '  <div class="clock-time" style="font-family: monospace; font-size: 1rem; margin: 2px 0; color:#fff;">' + timeStr + '</div>' +
+                '  <div class="clock-date" style="font-size: 0.65rem; color: #aaa;">' + dateStr + '</div>' +
                 '</div>';
         });
 
@@ -172,5 +176,5 @@ var WorldClockWidget = (function () {
         container.innerHTML = html;
     }
 
-    return { render: render, init: init, toggleCity: toggleCity };
+    return { render: render, init: init, toggleCity: toggleCity, toggleSettings: toggleSettings };
 })();

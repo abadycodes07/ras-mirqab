@@ -48,7 +48,13 @@ var WorldClockWidget = (function () {
                 if (parsed.length > 0) return parsed;
             }
         } catch(e) {}
-        return ALL_CITIES; // Default to all 4
+        // Default to: Riyadh, Abu Dhabi, Kuwait, New York
+        return [
+            ALL_CITIES[0],  // الرياض
+            ALL_CITIES[2],  // أبو ظبي
+            ALL_CITIES[4],  // الكويت
+            ALL_CITIES[15]  // نيويورك
+        ];
     }
 
     function saveSelected(arr) {
@@ -116,11 +122,17 @@ var WorldClockWidget = (function () {
         var html = '';
         ALL_CITIES.forEach(function(city) {
             var isSelected = selectedCities.some(function(s) { return s.tz === city.tz && s.name === city.name; });
-            var activeClass = isSelected ? 'background:var(--accent); color:#000;' : 'background:#222; color:#888;';
             
-            html += '<div class="city-opt" style="' + activeClass + ' padding:6px; border-radius:4px; font-size:10px; cursor:pointer; text-align:center; transition:0.2s;" ' +
+            // Greyed out vs Green style
+            var style = isSelected 
+                ? 'background:rgba(0, 255, 127, 0.2); border:1px solid #00ff7f; color:#fff;' 
+                : 'background:rgba(255,255,255,0.05); border:1px solid #444; color:#666;';
+            
+            var checkMark = isSelected ? '<span style="color:#00ff7f; margin-left:5px;">✓</span>' : '<span style="color:#444; margin-left:5px;">□</span>';
+
+            html += '<div class="city-opt" style="' + style + ' padding:8px; border-radius:4px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:0.2s; margin-bottom:2px;" ' +
                     'onclick="WorldClockWidget.toggleCity(\'' + city.name + '\',\'' + city.tz + '\')">' +
-                    city.name + ' (' + city.country + ')</div>';
+                    '<span>' + city.name + '</span>' + checkMark + '</div>';
         });
         container.innerHTML = html;
     }

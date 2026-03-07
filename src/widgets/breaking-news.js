@@ -228,14 +228,25 @@ var BreakingNewsWidget = (function () {
 
         if (isProxyLive) {
             var targetSources = [
+                { type: 'telegram', handle: 'SABQ_NEWS', avatar: 'public/logos/sabq.png' },
+                { type: 'telegram', handle: 'AjelNews24', avatar: 'public/logos/ajelnews.jpg' },
+                { type: 'telegram', handle: 'Alarabiya_brk', avatar: 'public/logos/alarabiya.png' },
+                { type: 'telegram', handle: 'SkyNewsArabia_Breaking', avatar: 'public/logos/skynews.png' },
+                { type: 'telegram', handle: 'RT_Arabic', avatar: 'public/logos/rt.png' },
+                { type: 'telegram', handle: 'AlMayadeenLive', avatar: 'public/logos/almayadeen.png' },
+                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png' },
                 { type: 'twitter', handle: 'alrougui', avatar: 'public/logos/alrougui.jpg' },
-                { type: 'twitter', handle: 'NewsNow4USA', avatar: 'public/logos/newsnow.jpg' },
-                { type: 'twitter', handle: 'AJELNEWS24', avatar: 'public/logos/ajelnews.jpg' },
-                { type: 'twitter', handle: 'AsharqNewsBrk', avatar: 'public/logos/asharq2.jpg' },
-                { type: 'twitter', handle: 'Alhadath_Brk', avatar: 'public/logos/alhadath3.png' },
-                { type: 'twitter', handle: 'modgovksa', avatar: 'public/logos/modgovksa2.png' },
-                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png' }
+                { type: 'twitter', handle: 'NewsNow4USA', avatar: 'public/logos/newsnow.jpg' }
             ];
+
+            // Add user-added sources
+            var userSources = getSources();
+            userSources.forEach(function(us) {
+                if (!targetSources.some(function(ts) { return ts.handle === us.handle; })) {
+                    targetSources.push(us);
+                }
+            });
+
             var proxyPromises = targetSources.map(function (s) {
                 var url = PROXY_BASE + (s.type === 'telegram' ? '/telegram?channel=' : '/twitter?user=') + encodeURIComponent(s.handle);
                 return fetch(url).then(r => r.json()).then(d => {

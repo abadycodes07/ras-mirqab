@@ -71,13 +71,16 @@ async function scrapeAll() {
     const all = [];
 
     const sources = [
+        { type: 'telegram', handle: 'SABQ_NEWS', avatar: 'public/logos/sabq.png', name: 'صحيفة سبق' },
+        { type: 'telegram', handle: 'AjelNews24', avatar: 'public/logos/ajelnews.jpg', name: 'عاجل السعودية' },
+        { type: 'telegram', handle: 'Alarabiya_brk', avatar: 'public/logos/alarabiya.png', name: 'العربية عاجل' },
+        { type: 'telegram', handle: 'SkyNewsArabia_Breaking', avatar: 'public/logos/skynews.png', name: 'سكاي نيوز عاجل' },
+        { type: 'telegram', handle: 'RT_Arabic', avatar: 'public/logos/rt.png', name: 'RT العربية' },
+        { type: 'telegram', handle: 'AlMayadeenLive', avatar: 'public/logos/almayadeen.png', name: 'الميادين' },
+        { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png', name: 'الجزيرة عاجل' },
         { type: 'twitter', handle: 'alrougui', avatar: 'public/logos/alrougui.jpg' },
         { type: 'twitter', handle: 'NewsNow4USA', avatar: 'public/logos/newsnow.jpg' },
-        { type: 'twitter', handle: 'AJELNEWS24', avatar: 'public/logos/ajelnews.jpg' },
-        { type: 'twitter', handle: 'AsharqNewsBrk', avatar: 'public/logos/asharq2.jpg' },
-        { type: 'twitter', handle: 'Alhadath_Brk', avatar: 'public/logos/alhadath3.png' },
-        { type: 'twitter', handle: 'modgovksa', avatar: 'public/logos/modgovksa2.png', name: 'وزارة الدفاع السعودية' },
-        { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png' }
+        { type: 'twitter', handle: 'modgovksa', avatar: 'public/logos/modgovksa2.png', name: 'وزارة الدفاع السعودية' }
     ];
 
     for (const s of sources) {

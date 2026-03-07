@@ -10,21 +10,21 @@ var RasMirqabGrid = (function () {
     var widgetDefs = [
         // Top row (Totals 12 width)
         { id: 'live-tv', module: LiveTVWidget, x: 0, y: 0, w: 4, h: 5, title: 'البث المباشر' },
-        { id: 'gold-silver', module: GoldSilverWidget, x: 4, y: 0, w: 3, h: 5, title: 'الذهب والعملات' },
+        { id: 'gold-silver', module: GoldSilverWidget, x: 4, y: 0, w: 3, h: 5, title: 'الأصول والعملات' },
         { id: 'world-clock', module: WorldClockWidget, x: 7, y: 0, w: 1, h: 5, title: 'توقيت العالم' },
         { id: 'breaking-news', module: BreakingNewsWidget, x: 8, y: 0, w: 4, h: 5, title: 'عاجل' },
 
-        // Second row
-        { id: 'market-overview', module: MarketOverviewWidget, x: 0, y: 4, w: 4, h: 2, title: 'الأسواق' },
-        { id: 'live-webcams', module: LiveWebcamsWidget, x: 4, y: 4, w: 5, h: 6, title: 'الكاميرات المباشرة' },
-        { id: 'conflict-monitor', module: ConflictMonitorWidget, x: 9, y: 4, w: 3, h: 3, title: 'رصد النزاعات' },
+        // Second row (Starting after h=5)
+        { id: 'market-overview', module: MarketOverviewWidget, x: 0, y: 5, w: 4, h: 2, title: 'الأسواق' },
+        { id: 'live-webcams', module: LiveWebcamsWidget, x: 4, y: 5, w: 5, h: 6, title: 'الكاميرات المباشرة' },
+        { id: 'conflict-monitor', module: ConflictMonitorWidget, x: 9, y: 5, w: 3, h: 3, title: 'رصد النزاعات' },
 
         // Third row and beyond
-        { id: 'commodities', module: CommoditiesWidget, x: 0, y: 6, w: 4, h: 2, title: 'السلع' },
-        { id: 'sanctions-trade', module: SanctionsTradeWidget, x: 0, y: 8, w: 4, h: 2, title: 'العقوبات والتجارة' },
-        { id: 'military-aircraft', module: MilitaryAircraftWidget, x: 9, y: 7, w: 3, h: 3, title: 'الطائرات العسكرية' },
-        { id: 'cyber-intel', module: CyberIntelWidget, x: 4, y: 10, w: 4, h: 2, title: 'الاستخبارات السيبرانية' },
-        { id: 'health-bio', module: HealthBioWidget, x: 8, y: 10, w: 4, h: 2, title: 'الصحة والأمن الحيوي' },
+        { id: 'commodities', module: CommoditiesWidget, x: 0, y: 7, w: 4, h: 2, title: 'السلع' },
+        { id: 'sanctions-trade', module: SanctionsTradeWidget, x: 0, y: 9, w: 4, h: 2, title: 'العقوبات والتجارة' },
+        { id: 'military-aircraft', module: MilitaryAircraftWidget, x: 9, y: 8, w: 3, h: 3, title: 'الطائرات العسكرية' },
+        { id: 'cyber-intel', module: CyberIntelWidget, x: 4, y: 11, w: 4, h: 2, title: 'الاستخبارات السيبرانية' },
+        { id: 'health-bio', module: HealthBioWidget, x: 8, y: 11, w: 4, h: 2, title: 'الصحة والأمن الحيوي' },
     ];
 
     function init() {

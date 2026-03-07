@@ -121,7 +121,7 @@ var WorldClockWidget = (function () {
         selectedCities.forEach(function (city) {
             var formatter = new Intl.DateTimeFormat('en-US', {
                 timeZone: city.tz,
-                hour: '2-digit',
+                hour: 'numeric',
                 minute: '2-digit',
                 second: '2-digit',
                 hour12: is12Hour

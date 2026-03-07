@@ -175,18 +175,7 @@
                     '    <option value="tactical">تكتيكي</option>' +
                     '  </select>' +
                     '</div>' +
-                    '<div class="setting-group">' +
-                    '  <label>رابط قناة تليجرام المباشر (عاجل)</label>' +
-                    '  <input type="text" id="setting-tg-url" placeholder="https://t.me/..." style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-en); direction:ltr;" />' +
-                    '</div>' +
-                    '<div class="setting-group">' +
-                    '  <label>حساب تويتر (X) (عاجل)</label>' +
-                    '  <input type="text" id="setting-x-url" placeholder="https://x.com/..." style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-en); direction:ltr;" />' +
-                    '</div>' +
-                    '<div class="setting-group">' +
-                    '  <label>رابط الخادم الوسيط (Proxy Server URL)</label>' +
-                    '  <input type="text" id="setting-proxy-url" placeholder="https://ras-mirqab.onrender.com" style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-en); direction:ltr;" />' +
-                    '</div>' +
+
                     '<div class="setting-group">' +
                     '  <label>تحديث البيانات (ثانية)</label>' +
                     '  <select id="setting-refresh">' +
@@ -215,27 +204,7 @@
                     });
                 }
 
-                // Custom breaking news sources
-                var tgInput = document.getElementById('setting-tg-url');
-                var xInput = document.getElementById('setting-x-url');
 
-                if (tgInput) {
-                    tgInput.value = localStorage.getItem('rasmirqab_tg') || '';
-                    tgInput.addEventListener('change', function () { localStorage.setItem('rasmirqab_tg', this.value); });
-                }
-                if (xInput) {
-                    xInput.value = localStorage.getItem('rasmirqab_x') || '';
-                    xInput.addEventListener('change', function () { localStorage.setItem('rasmirqab_x', this.value); });
-                }
-
-                var proxyInput = document.getElementById('setting-proxy-url');
-                if (proxyInput) {
-                    proxyInput.value = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab.onrender.com';
-                    proxyInput.addEventListener('change', function () { 
-                        localStorage.setItem('rasmirqab_proxy', this.value); 
-                        window.location.reload(); // Reload to apply new proxy
-                    });
-                }
             }
         });
 

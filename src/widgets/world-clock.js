@@ -47,8 +47,9 @@ var WorldClockWidget = (function () {
         } catch(e) {}
         return [
             { name: 'الرياض', tz: 'Asia/Riyadh' },
-            { name: 'نيويورك', tz: 'America/New_York' },
-            { name: 'لندن', tz: 'Europe/London' }
+            { name: 'أبو ظبي', tz: 'Asia/Dubai' },
+            { name: 'الكويت', tz: 'Asia/Kuwait' },
+            { name: 'نيويورك', tz: 'America/New_York' }
         ];
     }
 

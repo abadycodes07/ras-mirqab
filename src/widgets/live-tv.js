@@ -12,8 +12,7 @@ var LiveTVWidget = (function () {
         { key: 'alhadath', name: 'الحدث', videoId: 'xWXpl7azI8k', region: 'me' },
     ];
 
-    var allChannelsPool = [
-        ...defaultChannels,
+    var allChannelsPool = defaultChannels.concat([
         { key: 'aljazeera-en', name: 'Al Jazeera English', videoId: '-jvLzK_OasE', region: 'me' },
         { key: 'cnn', name: 'CNN International', videoId: 'mI47H66z5Sg', region: 'na' },
         { key: 'msnbc', name: 'MSNBC', videoId: 'm47Y9-L6Czk', region: 'na' },
@@ -21,7 +20,7 @@ var LiveTVWidget = (function () {
         { key: 'trt', name: 'TRT World', videoId: 'p0m0h94C0f8', region: 'me' },
         { key: 'asharq', name: 'اقتصاد الشرق', videoId: 'S_fU10Q7lXg', region: 'me' },
         { key: 'bloomberg', name: 'Bloomberg TV', videoId: 'dp8PhLsUcFE', region: 'na' }
-    ];
+    ]);
 
     var channels = JSON.parse(localStorage.getItem('ras-mirqab-tv-channels')) || defaultChannels;
     var currentChannel = 0;

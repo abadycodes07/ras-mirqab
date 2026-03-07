@@ -17,6 +17,9 @@
 
         // Start radar audio right away
         playRadarSound();
+        
+        // Start booting in the background immediately!
+        if (callback) callback();
 
         // Wait for the loader animation to finish (3 seconds)
         setTimeout(function () {
@@ -28,10 +31,10 @@
                     app.classList.remove('app-hidden');
                     app.classList.add('app-visible');
                 }
-                if (callback) callback();
             }, 800);
         }, 3000);
     }
+
 
     /* ─── AUDIO ─── */
     function playRadarSound() {
@@ -181,6 +184,10 @@
                     '  <input type="text" id="setting-x-url" placeholder="https://x.com/..." style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-en); direction:ltr;" />' +
                     '</div>' +
                     '<div class="setting-group">' +
+                    '  <label>رابط الخادم الوسيط (Proxy Server URL)</label>' +
+                    '  <input type="text" id="setting-proxy-url" placeholder="http://localhost:3001" style="width:100%; padding:6px; border-radius:4px; border:1px solid var(--border); background:var(--bg-secondary); color:var(--text-primary); font-family:var(--font-en); direction:ltr;" />' +
+                    '</div>' +
+                    '<div class="setting-group">' +
                     '  <label>تحديث البيانات (ثانية)</label>' +
                     '  <select id="setting-refresh">' +
                     '    <option value="30">30 ثانية</option>' +
@@ -219,6 +226,15 @@
                 if (xInput) {
                     xInput.value = localStorage.getItem('rasmirqab_x') || '';
                     xInput.addEventListener('change', function () { localStorage.setItem('rasmirqab_x', this.value); });
+                }
+
+                var proxyInput = document.getElementById('setting-proxy-url');
+                if (proxyInput) {
+                    proxyInput.value = localStorage.getItem('rasmirqab_proxy') || 'http://localhost:3001';
+                    proxyInput.addEventListener('change', function () { 
+                        localStorage.setItem('rasmirqab_proxy', this.value); 
+                        window.location.reload(); // Reload to apply new proxy
+                    });
                 }
             }
         });

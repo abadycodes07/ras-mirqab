@@ -7,17 +7,20 @@ var RasMirqabGlobe = (function () {
     var map = null;
     var is3D = true;
     var activeLayers = {};
-
-    // dynamically initialize active layers from default states
-    if (window.RasMirqabData && RasMirqabData.categories) {
-        Object.keys(RasMirqabData.categories).forEach(function (k) {
-            activeLayers[k] = RasMirqabData.categories[k].default;
-        });
-    }
+    var intenseWarZones = ['ISR', 'UKR', 'IRN', 'SDN'];
+    var conflictCountries = ['LBN', 'YEM', 'SYR', 'IRQ'];
+    var airspaceClosedCountries = ['UKR', 'ISR', 'IRN', 'LBN', 'YEM'];
 
     function init() {
+        // dynamically initialize active layers from default states
+        if (window.RasMirqabData && RasMirqabData.categories) {
+            Object.keys(RasMirqabData.categories).forEach(function (k) {
+                activeLayers[k] = RasMirqabData.categories[k].default;
+            });
+        }
+
         initGlobe3D();
-        initDimensionToggle(); // Add this
+        initDimensionToggle();
         initLayerToggles();
         initLegend();
     }
@@ -107,9 +110,6 @@ var RasMirqabGlobe = (function () {
                 }, 60000);
             });
 
-            // Load and display conflict countries
-            loadConflictCountries();
-
             // Add animated arcs between conflict zones
             addConflictArcs();
 
@@ -151,112 +151,22 @@ var RasMirqabGlobe = (function () {
             initFallbackGlobe();
         }
     }
-
-    function loadConflictCountries() {
-        fetch('src/assets/countries.geojson')
-            .then(function (res) { return res.json(); })
-            .then(function (countries) {
-                // Countries strictly at war (Transparent Red on surface, intense red border)
-                var conflictCountries = ['IRN', 'ISR', 'PSE', 'UKR', 'SDN', 'SYR', 'YEM', 'RUS', 'LBN'];
-
-                // Specific War Zones for intense styling
-                var intenseWarZones = ['IRN', 'ISR', 'UKR', 'SDN'];
-
-                // Countries with severely restricted/closed airspace (3D Vertical Red Wall)
-                var airspaceClosedCountries = ['UKR', 'SDN', 'SYR', 'YEM', 'LBN', 'PSE', 'ISR', 'IRN', 'IRQ'];
-
-                globe.polygonsData(countries.features)
-                    .polygonAltitude(function (d) {
-                        var iso = d.properties.ISO_A3;
-                        if (iso === 'PSE') return 0.005; // Gaza/Palestine small but visible
-                        if (airspaceClosedCountries.indexOf(iso) !== -1) return 0.08;
-                        if (intenseWarZones.indexOf(iso) !== -1) return 0.02;
-                        if (conflictCountries.indexOf(iso) !== -1) return 0.01;
-                        return 0.002;
-                    })
-                    .polygonCapColor(function (d) {
-                        var iso = d.properties.ISO_A3;
-                        var isConflict = conflictCountries.indexOf(iso) !== -1;
-                        var isIntense = intenseWarZones.indexOf(iso) !== -1;
-                        var isAirspaceClosed = airspaceClosedCountries.indexOf(iso) !== -1;
-
-                        if (isIntense) {
-                            return 'rgba(255, 0, 0, 0.45)'; // Stronger red for requested countries
-                        }
-                        if (isAirspaceClosed || isConflict) {
-                            return 'rgba(231, 76, 60, 0.15)'; // Very transparent red cap
-                        }
-                        return 'rgba(0,0,0,0)';
-                    })
-                    .polygonSideColor(function (d) {
-                        var isAirspaceClosed = airspaceClosedCountries.indexOf(d.properties.ISO_A3) !== -1;
-                        // Extrude solid glowing red wall for closed airspace
-                        if (isAirspaceClosed) {
-                            return 'rgba(231, 76, 60, 0.25)';
-                        }
-                        return 'rgba(0,0,0,0)';
-                    })
-                    .polygonStrokeColor(function (d) {
-                        var iso = d.properties.ISO_A3;
-                        var isConflict = conflictCountries.indexOf(iso) !== -1;
-                        var isAirspaceClosed = airspaceClosedCountries.indexOf(iso) !== -1;
-                        var isIntense = intenseWarZones.indexOf(iso) !== -1;
-
-                        if (isIntense) return '#ff0000'; // Pure intense red for war zones
-                        if (isConflict || isAirspaceClosed) {
-                            return '#ff1100'; // Thin intense red border
-                        }
-                        return 'rgba(255,255,255,0.1)';
-                    })
-                    .onPolygonHover(function (hoverD) {
-                        globe.polygonCapColor(function (d) {
-                            var isConflict = conflictCountries.indexOf(d.properties.ISO_A3) !== -1;
-                            var isAirspaceClosed = airspaceClosedCountries.indexOf(d.properties.ISO_A3) !== -1;
-
-                            if (hoverD === d && (isConflict || isAirspaceClosed)) {
-                                return 'rgba(231, 76, 60, 0.5)';
-                            }
-                            if (isAirspaceClosed || isConflict) return 'rgba(231, 76, 60, 0.15)';
-                            return 'rgba(0,0,0,0)';
-                        })
-                            .polygonStrokeColor(function (d) {
-                                var isConflict = conflictCountries.indexOf(d.properties.ISO_A3) !== -1;
-                                var isAirspaceClosed = airspaceClosedCountries.indexOf(d.properties.ISO_A3) !== -1;
-
-                                if (hoverD === d && (isConflict || isAirspaceClosed)) {
-                                    return '#ffffff';
-                                }
-                                if (isConflict || isAirspaceClosed) return '#ff1100';
-                                return 'rgba(255,255,255,0.1)';
-                            });
-                    })
-                    .polygonLabel(function (d) {
-                        var isConflict = conflictCountries.indexOf(d.properties.ISO_A3) !== -1;
-                        var isAirspaceClosed = airspaceClosedCountries.indexOf(d.properties.ISO_A3) !== -1;
-
-                        if (isConflict || isAirspaceClosed) {
-                            var status = isAirspaceClosed && isConflict ? 'منطقة صراع + مجال جوي مغلق' :
-                                (isAirspaceClosed ? 'مجال جوي مغلق' : 'منطقة صراع');
-
-                            return '<div style="background: rgba(0,0,0,0.9); border: 1px solid #e74c3c; border-radius: 6px; padding: 10px; font-family: var(--font-ar), sans-serif; min-width: 150px;">' +
-                                '<div style="color: #e74c3c; font-weight: bold; margin-bottom: 5px; font-size: 13px;">🔴 ' + status + ': ' + (d.properties.ADMIN || 'دولة') + '</div>' +
-                                '<div style="color: #fff; font-size: 11px; white-space: normal;">تطورات أمنية وعسكرية متسارعة</div>' +
-                                '</div>';
-                        }
-                        return '';
-                    });
-            })
-            .catch(function (err) {
-                console.warn("GeoJSON not loaded: " + err);
-            });
-    }
-
     function addConflictArcs() {
         var arcsData = [
-            // 🚀 3D Rockets (Translucent & Glowy)
-            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 31.7683, endLng: 35.2137, color: 'rgba(255, 100, 0, 0.4)' }, // Iran to Israel
-            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 25.11, endLng: 51.31, color: 'rgba(255, 100, 0, 0.4)' },   // Iran to US Base Qatar
-            { type: 'rocket', startLat: 15.3694, startLng: 44.1910, endLat: 20.0, endLng: 38.0, color: 'rgba(255, 50, 50, 0.4)' }       // Yemen to Red Sea
+            // 🟦 Blue Projectiles
+            { type: 'rocket', startLat: 31.7683, startLng: 35.2137, endLat: 35.6892, endLng: 51.3890, color: 'rgba(0, 100, 255, 0.15)' }, // Israel to Iran
+            { type: 'rocket', startLat: 20.0, startLng: 62.0, endLat: 33.0, endLng: 53.0, color: 'rgba(0, 100, 255, 0.15)' }, // US Carrier to Iran
+            
+            // 🟥 Red Projectiles (From Iran)
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 29.3759, endLng: 47.9774, color: 'rgba(255, 0, 0, 0.15)' }, // Kuwait
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 26.0667, endLng: 50.5577, color: 'rgba(255, 0, 0, 0.15)' }, // Bahrain
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 25.2854, endLng: 51.5310, color: 'rgba(255, 0, 0, 0.15)' }, // Qatar
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 24.4539, endLng: 54.3773, color: 'rgba(255, 0, 0, 0.15)' }, // UAE
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 23.5859, endLng: 58.4059, color: 'rgba(255, 0, 0, 0.15)' }, // Oman
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 24.7136, endLng: 46.6753, color: 'rgba(255, 0, 0, 0.15)' }, // Saudi
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 33.3128, endLng: 44.3615, color: 'rgba(255, 0, 0, 0.15)' }, // Iraq
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 39.9334, endLng: 32.8597, color: 'rgba(255, 0, 0, 0.15)' }, // Turkey
+            { type: 'rocket', startLat: 35.6892, startLng: 51.3890, endLat: 40.4093, endLng: 49.8671, color: 'rgba(255, 0, 0, 0.15)' }, // Azerbaijan
         ];
 
         // 🚢 Straits / Blockades (Surface Level) dynamically from intelligence.js
@@ -286,7 +196,8 @@ var RasMirqabGlobe = (function () {
             .arcDashInitialGap(function () { return Math.random(); })
             .arcDashAnimateTime(function (d) { return d.type === 'rocket' ? 1200 : 2500; })
             .arcAltitude(function (d) { return d.type === 'rocket' ? 0.4 : 0.001; }) // Rockets fly high
-            .arcStroke(function (d) { return d.type === 'rocket' ? 1.8 : 2.5; }); // Thicker rockets for glow effect
+            .arcStroke(function (d) { return d.type === 'rocket' ? 0.6 : 2.0; }); // Thinner rockets and high transparency
+
     }
 
     function generateEmojiTexture(emoji, color, name) {
@@ -373,7 +284,9 @@ var RasMirqabGlobe = (function () {
                     var spr = new THREE.Sprite(mat);
                     spr.scale.set(1.5, 1.5, 1);
                     // Jets fly exactly at altitude 0.05
-                    Object.assign(spr.position, globe.getCoords(d.lat, d.lng, 0.05));
+                    spr.position.x = globe.getCoords(d.lat, d.lng, 0.05).x;
+                    spr.position.y = globe.getCoords(d.lat, d.lng, 0.05).y;
+                    spr.position.z = globe.getCoords(d.lat, d.lng, 0.05).z;
                     spr.__data = d;
                     return spr;
                 }
@@ -391,7 +304,10 @@ var RasMirqabGlobe = (function () {
                 sprite.scale.set(scaleSize, scaleSize, 1);
 
                 // Initialize coords exactly once. Altitude 0.012 sits perfectly on the crust.
-                Object.assign(sprite.position, globe.getCoords(d.lat, d.lng, 0.012));
+                var pos = globe.getCoords(d.lat, d.lng, 0.012);
+                sprite.position.x = pos.x;
+                sprite.position.y = pos.y;
+                sprite.position.z = pos.z;
 
                 // Store object data for raycaster tooltips
                 return sprite;
@@ -459,6 +375,8 @@ var RasMirqabGlobe = (function () {
                 return '<div style="background:rgba(0,0,0,0.8); padding:5px; border-radius:4px; border:1px solid ' + d.color + '; color:#fff; font-size:12px;">' + d.name + '</div>';
             });
     }
+
+
 
     /* ─── 2D MAP (Leaflet) ─── */
     function initMap2D() {
@@ -573,6 +491,9 @@ var RasMirqabGlobe = (function () {
                 if (is3D) {
                     updateGlobeMarkers();
                     updateGlobePaths();
+                    if (key === 'conflict_borders') {
+                        // Borders removed for stability
+                    }
                 }
                 else updateMapMarkers();
             });

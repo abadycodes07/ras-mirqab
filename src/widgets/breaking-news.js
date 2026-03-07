@@ -5,7 +5,7 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    var PROXY_BASE = 'http://localhost:3001';
+    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'http://localhost:3001';
     var settingsOpen = false;
     var refreshTimer = null;
     var isProxyLive = false;

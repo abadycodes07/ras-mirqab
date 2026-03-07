@@ -1,42 +1,46 @@
-﻿/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
    COMPREHENSIVE GEOPOLITICAL SEED DATA
    ═══════════════════════════════════════════════ */
 
 var RasMirqabData = window.RasMirqabData || {};
 
 // All categories requested by the user
-RasMirqabData.categories = {
-  'iran_attacks': { id: 'iran_attacks', labelAr: 'ضربات إيران', labelEn: 'Iran Attacks', emoji: '🎯', color: '#ff1100', default: true },
-  'intel': { id: 'intel', labelAr: 'نقاط استخباراتية', labelEn: 'Intel Hotspots', emoji: '🎯', color: '#3498db', default: true },
-  'conflict': { id: 'conflict', labelAr: 'مناطق النزاع', labelEn: 'Conflict Zones', emoji: '⚔', color: '#e74c3c', default: true },
-  'bases': { id: 'bases', labelAr: 'قواعد عسكرية', labelEn: 'Military Bases', emoji: '🏛', color: '#9b59b6', default: true },
-  'us_bases': { id: 'us_bases', labelAr: 'القواعد الأمريكية', labelEn: 'US Military Bases', emoji: '🦅', color: '#ff7675', default: true },
-  'nuclear': { id: 'nuclear', labelAr: 'مواقع نووية', labelEn: 'Nuclear Sites', emoji: '☢', color: '#e67e22', default: false },
-  'gamma': { id: 'gamma', labelAr: 'مشعات غاما', labelEn: 'Gamma Irradiators', emoji: '⚠', color: '#f39c12', default: false },
-  'spaceports': { id: 'spaceports', labelAr: 'موانئ فضائية', labelEn: 'Spaceports', emoji: '🚀', color: '#ecf0f1', default: false },
-  'cables': { id: 'cables', labelAr: 'كابلات بحرية', labelEn: 'Undersea Cables', emoji: '🔌', color: '#00cec9', default: false },
-  'pipelines': { id: 'pipelines', labelAr: 'انابيب نفط', labelEn: 'Pipelines', emoji: '🛢', color: '#55efc4', default: false },
-  'ai_data': { id: 'ai_data', labelAr: 'مراكز بيانات ذكاء اصطناعي', labelEn: 'AI Data Centers', emoji: '🖥', color: '#0984e3', default: false },
-  'military_activity': { id: 'military_activity', labelAr: 'نشاط عسكري', labelEn: 'Military Activity', emoji: '✈', color: '#d63031', default: false },
-  'navies': { id: 'navies', labelAr: 'أساطيل وبارجات', labelEn: 'Naval Fleets', emoji: '🛳', color: '#0984e3', default: true },
-  'ship_traffic': { id: 'ship_traffic', labelAr: 'حركة السفن', labelEn: 'Ship Traffic', emoji: '🚢', color: '#74b9ff', default: false },
-  'trade_routes': { id: 'trade_routes', labelAr: 'طرق التجارة', labelEn: 'Trade Routes', emoji: '⚓', color: '#ffeaa7', default: false },
-  'aviation': { id: 'aviation', labelAr: 'طيران', labelEn: 'Aviation', emoji: '✈', color: '#81ecec', default: false },
-  'protests': { id: 'protests', labelAr: 'احتجاجات', labelEn: 'Protests', emoji: '📢', color: '#fdcb6e', default: false },
-  'armed_conflict': { id: 'armed_conflict', labelAr: 'أحداث نزاع مسلح', labelEn: 'Armed Conflict Events', emoji: '⚔', color: '#d63031', default: true },
-  'displacement': { id: 'displacement', labelAr: 'موجات نزوح', labelEn: 'Displacement Flows', emoji: '👥', color: '#a29bfe', default: false },
-  'climate': { id: 'climate', labelAr: 'شذوذ مناخي', labelEn: 'Climate Anomalies', emoji: '🌫', color: '#b2bec3', default: false },
-  'weather': { id: 'weather', labelAr: 'تنبيهات طقس', labelEn: 'Weather Alerts', emoji: '⛈', color: '#00b894', default: false },
-  'internet_outage': { id: 'internet_outage', labelAr: 'انقطاع الإنترنت', labelEn: 'Internet Outages', emoji: '📡', color: '#ff7675', default: true },
-  'cyber': { id: 'cyber', labelAr: 'تهديدات سيبرانية', labelEn: 'Cyber Threats', emoji: '🛡', color: '#6ab04c', default: true },
-  'natural_events': { id: 'natural_events', labelAr: 'أحداث طبيعية', labelEn: 'Natural Events', emoji: '🌋', color: '#e17055', default: false },
-  'fires': { id: 'fires', labelAr: 'حرائق', labelEn: 'Fires', emoji: '🔥', color: '#d35400', default: false },
-  'straits': { id: 'straits', labelAr: 'ممرات مائية استراتيجية', labelEn: 'Strategic Waterways', emoji: '⚓', color: '#0984e3', default: true },
-  'econ_centers': { id: 'econ_centers', labelAr: 'مراكز اقتصادية', labelEn: 'Economic Centers', emoji: '💰', color: '#f1c40f', default: true },
-  'minerals': { id: 'minerals', labelAr: 'معادن حرجة', labelEn: 'Critical Minerals', emoji: '💎', color: '#9b59b6', default: false },
-  'gps_jamming': { id: 'gps_jamming', labelAr: 'تشويش جي بي إس', labelEn: 'GPS JAMMING', emoji: '📡', color: '#e74c3c', default: true },
-  'cii_instability': { id: 'cii_instability', labelAr: 'عدم استقرار CII', labelEn: 'CII Instability', emoji: '🌎', color: '#f39c12', default: false },
-};
+RasMirqabData.categories = RasMirqabData.categories || {};
+(function() {
+  var newCats = {
+    'iran_attacks': { id: 'iran_attacks', labelAr: 'ضربات إيران', labelEn: 'Iran Attacks', emoji: '🎯', color: '#ff1100', default: true },
+    'intel': { id: 'intel', labelAr: 'نقاط استخباراتية', labelEn: 'Intel Hotspots', emoji: '🎯', color: '#3498db', default: true },
+    'conflict': { id: 'conflict', labelAr: 'مناطق النزاع', labelEn: 'Conflict Zones', emoji: '⚔', color: '#e74c3c', default: true },
+    'bases': { id: 'bases', labelAr: 'قواعد عسكرية', labelEn: 'Military Bases', emoji: '🏛', color: '#9b59b6', default: true },
+    'us_bases': { id: 'us_bases', labelAr: 'القواعد الأمريكية', labelEn: 'US Military Bases', emoji: '🦅', color: '#ff7675', default: true },
+    'nuclear': { id: 'nuclear', labelAr: 'مواقع نووية', labelEn: 'Nuclear Sites', emoji: '☢', color: '#e67e22', default: false },
+    'gamma': { id: 'gamma', labelAr: 'مشعات غاما', labelEn: 'Gamma Irradiators', emoji: '⚠', color: '#f39c12', default: false },
+    'spaceports': { id: 'spaceports', labelAr: 'موانئ فضائية', labelEn: 'Spaceports', emoji: '🚀', color: '#ecf0f1', default: false },
+    'cables': { id: 'cables', labelAr: 'كابلات بحرية', labelEn: 'Undersea Cables', emoji: '🔌', color: '#00cec9', default: false },
+    'pipelines': { id: 'pipelines', labelAr: 'انابيب نفط', labelEn: 'Pipelines', emoji: '🛢', color: '#55efc4', default: false },
+    'ai_data': { id: 'ai_data', labelAr: 'مراكز بيانات ذكاء اصطناعي', labelEn: 'AI Data Centers', emoji: '🖥', color: '#0984e3', default: false },
+    'military_activity': { id: 'military_activity', labelAr: 'نشاط عسكري', labelEn: 'Military Activity', emoji: '✈', color: '#d63031', default: false },
+    'navies': { id: 'navies', labelAr: 'أساطيل وبارجات', labelEn: 'Naval Fleets', emoji: '🛳', color: '#0984e3', default: true },
+    'ship_traffic': { id: 'ship_traffic', labelAr: 'حركة السفن', labelEn: 'Ship Traffic', emoji: '🚢', color: '#74b9ff', default: false },
+    'trade_routes': { id: 'trade_routes', labelAr: 'طرق التجارة', labelEn: 'Trade Routes', emoji: '⚓', color: '#ffeaa7', default: false },
+    'aviation': { id: 'aviation', labelAr: 'طيران', labelEn: 'Aviation', emoji: '✈', color: '#81ecec', default: false },
+    'protests': { id: 'protests', labelAr: 'احتجاجات', labelEn: 'Protests', emoji: '📢', color: '#fdcb6e', default: false },
+    'armed_conflict': { id: 'armed_conflict', labelAr: 'أحداث نزاع مسلح', labelEn: 'Armed Conflict Events', emoji: '⚔', color: '#d63031', default: true },
+    'displacement': { id: 'displacement', labelAr: 'موجات نزوح', labelEn: 'Displacement Flows', emoji: '👥', color: '#a29bfe', default: false },
+    'climate': { id: 'climate', labelAr: 'شذوذ مناخي', labelEn: 'Climate Anomalies', emoji: '🌫', color: '#b2bec3', default: false },
+    'weather': { id: 'weather', labelAr: 'تنبيهات طقس', labelEn: 'Weather Alerts', emoji: '⛈', color: '#00b894', default: false },
+    'internet_outage': { id: 'internet_outage', labelAr: 'انقطاع الإنترنت', labelEn: 'Internet Outages', emoji: '📡', color: '#ff7675', default: true },
+    'cyber': { id: 'cyber', labelAr: 'تهديدات سيبرانية', labelEn: 'Cyber Threats', emoji: '🛡', color: '#6ab04c', default: true },
+    'natural_events': { id: 'natural_events', labelAr: 'أحداث طبيعية', labelEn: 'Natural Events', emoji: '🌋', color: '#e17055', default: false },
+    'fires': { id: 'fires', labelAr: 'حرائق', labelEn: 'Fires', emoji: '🔥', color: '#d35400', default: false },
+    'straits': { id: 'straits', labelAr: 'ممرات مائية استراتيجية', labelEn: 'Strategic Waterways', emoji: '⚓', color: '#0984e3', default: true },
+    'econ_centers': { id: 'econ_centers', labelAr: 'مراكز اقتصادية', labelEn: 'Economic Centers', emoji: '💰', color: '#f1c40f', default: true },
+    'minerals': { id: 'minerals', labelAr: 'معادن حرجة', labelEn: 'Critical Minerals', emoji: '💎', color: '#9b59b6', default: false },
+    'gps_jamming': { id: 'gps_jamming', labelAr: 'تشويش جي بي إس', labelEn: 'GPS JAMMING', emoji: '📡', color: '#e74c3c', default: true },
+    'cii_instability': { id: 'cii_instability', labelAr: 'عدم استقرار CII', labelEn: 'CII Instability', emoji: '🌎', color: '#f39c12', default: false },
+  };
+  for (var k in newCats) { RasMirqabData.categories[k] = newCats[k]; }
+})();
 
 // Unified points array mapped to categories
 RasMirqabData.points = [

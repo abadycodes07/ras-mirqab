@@ -133,7 +133,7 @@ body {
 }
 
 .header-logo {
-    height: 48px;
+    height: 64px; /* Increased from 48px */
     width: auto;
     filter: drop-shadow(0 0 8px rgba(230, 126, 34, 0.3));
 }

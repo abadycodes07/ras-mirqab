@@ -54,7 +54,7 @@
 }
 
 .splash-logo {
-  width: min(800px, 80vw);
+  width: min(1000px, 95vw); /* Increased from 800px, 80vw */
   height: auto;
   filter: drop-shadow(0 0 20px rgba(0, 0, 0, 0.8));
   animation: logoGlow 2s ease-in-out infinite alternate;

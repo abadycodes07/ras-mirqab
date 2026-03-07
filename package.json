@@ -1,0 +1,13 @@
+{
+  "name": "ras-mirqab-proxy",
+  "version": "1.0.0",
+  "description": "CORS Proxy and Scraper for Ras Mirqab",
+  "main": "proxy.js",
+  "scripts": {
+    "start": "node proxy.js"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

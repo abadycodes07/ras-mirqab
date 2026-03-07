@@ -36,12 +36,30 @@ var BreakingNewsWidget = (function () {
                 '  </div>' +
                 '</div>',
             body:
-                '<div id="bn-settings-panel" style="display:none; padding:8px 10px; background:rgba(0,0,0,0.95); border-bottom:1px solid #e67e22; z-index:1000; position:relative;">' +
-                '  <div style="font-size:11px; color:#fff; margin-bottom:6px; text-align:right;">رابط X أو تليجرام + Enter ↵</div>' +
-                '  <input type="text" id="bn-add-source" placeholder="https://x.com/..." ' +
-                '    style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #e67e22; background:#000; color:#fff; font-size:12px; direction:ltr; box-sizing:border-box;" />' +
-                '  <div id="bn-source-list" style="margin-top:8px; max-height:100px; overflow-y:auto; border-top:1px solid #333; padding-top:5px;"></div>' +
-                '  <div id="bn-proxy-status" style="font-size:9px; margin-top:6px; text-align:center;"></div>' +
+                '<div id="bn-settings-panel" style="display:none; padding:15px; background:rgba(10,10,10,0.98); border:1px solid #e67e22; border-radius:8px; z-index:1000; position:relative; margin:10px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">' +
+                '  <div style="font-size:12px; color:#e67e22; font-weight:700; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:5px;">إعدادات متقدمة / ADVANCED</div>' +
+                
+                '  <div style="margin-bottom:12px;">' +
+                '    <label style="display:block; font-size:10px; color:#888; margin-bottom:4px;">رابط تليجرام المباشر (Telegram)</label>' +
+                '    <input type="text" id="bn-tg-url" placeholder="https://t.me/..." style="width:100%; padding:6px; border-radius:4px; border:1px solid #333; background:#000; color:#fff; font-size:11px; direction:ltr;" />' +
+                '  </div>' +
+                
+                '  <div style="margin-bottom:12px;">' +
+                '    <label style="display:block; font-size:10px; color:#888; margin-bottom:4px;">حساب تويتر (X)</label>' +
+                '    <input type="text" id="bn-x-url" placeholder="https://x.com/..." style="width:100%; padding:6px; border-radius:4px; border:1px solid #333; background:#000; color:#fff; font-size:11px; direction:ltr;" />' +
+                '  </div>' +
+
+                '  <div style="margin-bottom:15px;">' +
+                '    <label style="display:block; font-size:10px; color:#888; margin-bottom:4px;">رابط الخادم الوسيط (Proxy URL)</label>' +
+                '    <input type="text" id="bn-proxy-url" placeholder="https://..." style="width:100%; padding:6px; border-radius:4px; border:1px solid #333; background:#000; color:#fff; font-size:11px; direction:ltr;" />' +
+                '  </div>' +
+
+                '  <div style="font-size:12px; color:#e67e22; font-weight:700; margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:5px;">مصادر إضافية / SOURCES</div>' +
+                '  <div style="font-size:10px; color:#666; margin-bottom:6px; text-align:right;">أدخل رابط X أو تليجرام + Enter ↵</div>' +
+                '  <input type="text" id="bn-add-source" placeholder="إضافة رابط جديد..." ' +
+                '    style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #444; background:#000; color:#fff; font-size:12px; direction:ltr; box-sizing:border-box;" />' +
+                '  <div id="bn-source-list" style="margin-top:8px; max-height:100px; overflow-y:auto; border-top:1px solid #222; padding-top:5px;"></div>' +
+                '  <div id="bn-proxy-status" style="font-size:9px; margin-top:10px; text-align:center; padding-top:8px; border-top:1px solid #222;"></div>' +
                 '</div>' +
                 '<div class="widget-body" id="breaking-news-body" style="scroll-behavior:smooth;">' +
                 '  <div style="color:#888; text-align:center; padding:40px; font-size:12px;">جاري الاتصال بمحرك الرصد...</div>' +
@@ -67,6 +85,27 @@ var BreakingNewsWidget = (function () {
                     addSource(input.value.trim());
                     input.value = '';
                 }
+            });
+        }
+
+        // Handle new fields (Telegram, X, Proxy)
+        var tgInput = document.getElementById('bn-tg-url');
+        var xInput = document.getElementById('bn-x-url');
+        var proxyInput = document.getElementById('bn-proxy-url');
+
+        if (tgInput) {
+            tgInput.value = localStorage.getItem('rasmirqab_tg') || '';
+            tgInput.addEventListener('change', function () { localStorage.setItem('rasmirqab_tg', this.value); });
+        }
+        if (xInput) {
+            xInput.value = localStorage.getItem('rasmirqab_x') || '';
+            xInput.addEventListener('change', function () { localStorage.setItem('rasmirqab_x', this.value); });
+        }
+        if (proxyInput) {
+            proxyInput.value = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab.onrender.com';
+            proxyInput.addEventListener('change', function () { 
+                localStorage.setItem('rasmirqab_proxy', this.value); 
+                window.location.reload(); 
             });
         }
 

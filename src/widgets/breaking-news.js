@@ -270,44 +270,64 @@ var BreakingNewsWidget = (function () {
     function renderItems(container, items) {
         container.innerHTML = '';
         items.forEach(function (item) {
-            var sClass = 'source-' + (item.source || 'rss');
-            var sLabel = item.source === 'telegram' ? 'TG' : item.source === 'twitter' ? '𝕏' : (item.sourceName || 'RSS');
             var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-
-            var avatarHtml = item.customAvatar ? '<img src="' + item.customAvatar + '" style="width:25px;height:25px;border-radius:50%;object-fit:cover;margin-left:8px;border:1px solid #444;" />' : '';
-            var borderColor = item.source === 'twitter' ? '#1DA1F2' : (item.source === 'telegram' ? '#0088cc' : '#f1c40f');
             var highlightClass = item.isNew ? ' news-item-new' : '';
+            
+            // Premium Platform Icons
+            var twitterIcon = '<svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.045 4.126H5.078z"/></svg>';
+            var telegramIcon = '<svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.46-.42-1.4-.88.03-.24.36-.49.99-.75 3.84-1.67 6.41-2.77 7.7-3.3 3.66-1.51 4.42-1.77 4.92-1.78.11 0 .35.03.51.15.13.11.17.25.19.35.02.13.02.26.01.39z"/></svg>';
+            var platformIcon = item.source === 'twitter' ? twitterIcon : (item.source === 'telegram' ? telegramIcon : '');
+            var platformColor = item.source === 'twitter' ? '#ffffff' : (item.source === 'telegram' ? '#24a1de' : '#666');
 
             var itemEl = document.createElement('div');
             itemEl.className = 'news-item' + highlightClass;
-            itemEl.style = 'border-left: 2px solid ' + borderColor + '; padding:8px; margin-bottom:4px; cursor:pointer; display:flex;';
+            itemEl.style = 'padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; display:flex; flex-direction:row-reverse; align-items:center; gap:12px; transition: background 0.2s;';
             itemEl.onclick = function() { window.open(item.link, '_blank'); };
+            
+            // Hover effect
+            itemEl.onmouseenter = function() { itemEl.style.background = 'rgba(255,255,255,0.04)'; };
+            itemEl.onmouseleave = function() { itemEl.style.background = 'transparent'; if (popupEl) popupEl.classList.remove('active'); };
 
-            itemEl.innerHTML =
-                '  <div style="display:flex; justify-content:space-between; width:100%;">' +
-                '    <div style="display:flex; align-items:flex-start;">' +
-                '      <span class="news-source-badge ' + sClass + '">' + sLabel + '</span>' +
-                '      <div style="flex:1;">' +
-                '        <div class="news-text">' + (item.title || item.text || '') + '</div>' +
-                '        <div class="news-time">' + timeStr + ' • ' + (item.customName || item.sourceName || '') + '</div>' +
-                '      </div>' +
-                '    </div>' +
-                '    <div style="flex-shrink:0;">' + avatarHtml + '</div>' +
-                '  </div>';
+            // [RIGHT] Thumbnail
+            var thumbnailPath = item.localMedia || 'src/assets/no-img-placeholder.png';
+            var thumbnailHtml = '<div style="width:75px; height:75px; flex-shrink:0; border-radius:10px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">' +
+                '<img src="' + thumbnailPath + '" style="width:100%; height:100%; object-fit:cover;" onerror="this.src=\'src/assets/no-img-placeholder.png\'; this.style.opacity=0.2;" />' +
+                '</div>';
 
+            // [CENTER] Text Content
+            var contentHtml = '<div style="flex:1; direction:rtl; text-align:right;">' +
+                '<div style="font-size:13px; line-height:1.45; color:#fff; font-weight:500; margin-bottom:6px; max-height:2.9em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; font-family:\'Tajawal\', sans-serif;">' + (item.title || '') + '</div>' +
+                '<div style="font-size:10px; color:#777; font-family:\'Inter\', sans-serif; letter-spacing:0.5px;">' +
+                '<span style="color:#e67e22; font-weight:600; margin-left:8px;">' + (item.customName || item.sourceName || '') + '</span>' +
+                '</div>' +
+                '</div>';
+
+            // [LEFT] Logo, Badge and Time
+            var avatarPath = item.customAvatar || 'public/logos/default.png';
+            var logoHtml = '<div style="display:flex; flex-direction:column; align-items:center; gap:8px; min-width:45px; flex-shrink:0;">' +
+                '<div style="position:relative; width:34px; height:34px;">' +
+                '<img src="' + avatarPath + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.1);" onerror="this.src=\'public/logos/aljazeera.png\'" />' +
+                '<div style="position:absolute; bottom:-4px; right:-4px; width:15px; height:15px; border-radius:50%; background:#111; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:' + platformColor + ';">' + platformIcon + '</div>' +
+                '</div>' +
+                '<div style="font-size:10px; color:#555; font-weight:600; font-family:\'Orbitron\', sans-serif;">' + timeStr + '</div>' +
+                '</div>';
+
+            itemEl.innerHTML = thumbnailHtml + contentHtml + logoHtml;
+
+            // Hover preview support (on larger screen)
             itemEl.addEventListener('mouseenter', function (e) {
                 if (!hoverEnabled || !popupEl) return;
                 var rect = itemEl.getBoundingClientRect();
                 var media = item.localMedia || item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
-                var imgHtml = media ? '<img src="' + media + '" class="bn-popup-image has-img" style="max-width:100%; border-radius:4px; margin:8px 0;" />' : '';
+                var imgHtml = media ? '<img src="' + media + '" class="bn-popup-image has-img" style="max-width:100%; border-radius:6px; margin:8px 0; border:1px solid #444;" />' : '';
                 
                 popupEl.innerHTML = 
-                    '<div class="bn-popup-header" style="color:#e67e22; font-weight:700; font-size:12px; margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:4px;">🚨 معاينة الخبر العاجل</div>' +
+                    '<div class="bn-popup-header" style="color:#e67e22; font-weight:800; font-size:11px; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:6px; letter-spacing:1px;">🚨 BREAKING LIVE</div>' +
                     imgHtml +
-                    '<div class="bn-popup-text" style="font-size:13px; line-height:1.5; margin-bottom:8px;">' + (item.title || item.text || '') + '</div>' +
-                    '<div class="bn-popup-meta" style="font-size:10px; color:#888; display:flex; justify-content:space-between;">' +
-                    '  <span>المصدر: ' + (item.customName || item.sourceName || item.source) + '</span>' +
-                    '  <span>الوقت: ' + timeStr + '</span>' +
+                    '<div class="bn-popup-text" style="font-size:13.5px; line-height:1.6; margin-bottom:10px; color:#fff; font-family:\'Tajawal\', sans-serif;">' + (item.title || item.text || '') + '</div>' +
+                    '<div class="bn-popup-meta" style="font-size:9px; color:#666; display:flex; justify-content:space-between; font-family:\'Inter\', sans-serif; text-transform:uppercase;">' +
+                    '  <span>Source: ' + (item.customName || item.sourceName || item.source) + '</span>' +
+                    '  <span>' + timeStr + '</span>' +
                     '</div>';
                 
                 popupEl.classList.add('active');
@@ -321,10 +341,6 @@ var BreakingNewsWidget = (function () {
                 
                 popupEl.style.left = left + 'px';
                 popupEl.style.top = top + 'px';
-            });
-
-            itemEl.addEventListener('mouseleave', function () {
-                if (popupEl) popupEl.classList.remove('active');
             });
 
             container.appendChild(itemEl);

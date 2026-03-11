@@ -8,6 +8,7 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 4
     permissions:
       contents: write
     steps:
@@ -20,7 +21,7 @@ jobs:
           node-version: '20'
 
       - name: Run Scraper
-        run: node scripts/scrape.js
+        run: timeout 180 node scripts/scrape.js || echo "⚠️ Scraper timed out but continuing with partial data"
 
       - name: Commit and Push Changes
         run: |

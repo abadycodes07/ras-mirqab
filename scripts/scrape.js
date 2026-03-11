@@ -9,6 +9,9 @@ const https = require('https');
 const path = require('path');
 const crypto = require('crypto');
 
+// Hard timeout: kill process after 2.5 minutes to prevent hanging GitHub Actions
+setTimeout(() => { console.log('⏰ Global timeout reached — exiting.'); process.exit(0); }, 150000);
+
 const OUTPUT_FILE = path.join(__dirname, '../public/data/news-live.json');
 const MEDIA_DIR = path.join(__dirname, '../public/data/media');
 

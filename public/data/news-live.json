@@ -1,7 +1,40 @@
 {
-  "updated": "2026-03-11T19:06:04.845Z",
+  "updated": "2026-03-11T19:08:19.956Z",
   "count": 109,
   "items": [
+    {
+      "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي مجددا في المطلة في شمال إسرائيل",
+      "source": "telegram",
+      "sourceName": "الجزيرة عاجل",
+      "handle": "ajanews",
+      "pubDate": "2026-03-11T19:08:04.000Z",
+      "link": "https://t.me/AjaNews/466230",
+      "mediaUrl": null,
+      "customAvatar": "public/logos/aljazeera.png",
+      "customName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | القناة 12 الإسرائيلية عن مصادر: التهديد مفاده أن إسرائيل ستهاجم بنى تحتية لبنانية إذا لم يتم كبح جماح #حزب_الله",
+      "source": "telegram",
+      "sourceName": "الجزيرة عاجل",
+      "handle": "ajanews",
+      "pubDate": "2026-03-11T19:07:34.000Z",
+      "link": "https://t.me/AjaNews/466229",
+      "mediaUrl": null,
+      "customAvatar": "public/logos/aljazeera.png",
+      "customName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | القناة 12 الإسرائيلية عن مصادر: إسرائيل أرسلت تهديدا صريحا إلى #لبنان عبر دول غربية",
+      "source": "telegram",
+      "sourceName": "الجزيرة عاجل",
+      "handle": "ajanews",
+      "pubDate": "2026-03-11T19:06:04.000Z",
+      "link": "https://t.me/AjaNews/466228",
+      "mediaUrl": null,
+      "customAvatar": "public/logos/aljazeera.png",
+      "customName": "الجزيرة عاجل"
+    },
     {
       "title": "#الشرق_عاجل وزير خارجية إيران: تم قصف فرع لأقدم بنك في إيران بينما كان ممتلئا بالموظفين",
       "source": "twitter",
@@ -10,7 +43,7 @@
       "pubDate": "2026-03-11T19:05:11.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031808674864222301#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJvOP_XsAEv5Uh.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_1348aef849acb4f752fbeddf4cde9b4a.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
     },
@@ -66,7 +99,7 @@
       "pubDate": "2026-03-11T19:03:48.000Z",
       "link": "http://nitter.perennialte.ch/AlArabiya_Brk/status/2031808323280912606#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJu5lPXMAEJ30U.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_e0efda7185d452e2acf5567c614eff0c.jpg",
       "customAvatar": "public/logos/alarabiya.png",
       "customName": "AlArabiya_Brk"
     },
@@ -89,7 +122,7 @@
       "pubDate": "2026-03-11T19:02:52.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031808089276465197#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJusH1WcAEv4y-.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_55cebcef234ed8c4eae06c136ff095d7.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
     },
@@ -145,7 +178,7 @@
       "pubDate": "2026-03-11T19:02:00.000Z",
       "link": "http://nitter.perennialte.ch/RTonline_ar/status/2031807871340384642#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/amplify_video_thumb%2F2031806156071391232%2Fimg%2FPewum1MB6pbv4Fu5.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": null,
       "customAvatar": "public/logos/aljazeera.png",
       "customName": "RTonline_ar"
     },
@@ -179,7 +212,7 @@
       "pubDate": "2026-03-11T19:00:00.000Z",
       "link": "http://nitter.perennialte.ch/AlHadath/status/2031807369215111355#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/card_img%2F2031807374994874368%2F0YseGroy%3Fformat%3Djpg%26name%3D600x314",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": null,
       "customAvatar": "public/logos/alhadath.png",
       "customName": "AlHadath"
     },
@@ -191,7 +224,7 @@
       "pubDate": "2026-03-11T18:59:57.000Z",
       "link": "http://nitter.perennialte.ch/AlHadath/status/2031807358012203473#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/amplify_video_thumb%2F2031807303721119744%2Fimg%2F3nkbmOWgwYh-vJaj.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": null,
       "customAvatar": "public/logos/alhadath.png",
       "customName": "AlHadath"
     },
@@ -269,7 +302,7 @@
       "pubDate": "2026-03-11T18:58:01.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031806871456170103#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJtlP7WwAA_-lU.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_bb5dc67ea4509bdca5b46993687f0fc2.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
     },
@@ -281,7 +314,7 @@
       "pubDate": "2026-03-11T18:58:00.000Z",
       "link": "http://nitter.perennialte.ch/AlHadath/status/2031806865441452058#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/card_img%2F2030956261596942336%2FkGl2-6_V%3Fformat%3Djpg%26name%3D600x314",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": null,
       "customAvatar": "public/logos/alhadath.png",
       "customName": "AlHadath"
     },
@@ -293,7 +326,7 @@
       "pubDate": "2026-03-11T18:57:46.000Z",
       "link": "http://nitter.perennialte.ch/AlHadath/status/2031806804728873305#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJthPEWwAAWviU.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_a7a8e2a4df74597a86fca74f2a9b622e.jpg",
       "customAvatar": "public/logos/alhadath.png",
       "customName": "AlHadath"
     },
@@ -316,7 +349,7 @@
       "pubDate": "2026-03-11T18:57:25.000Z",
       "link": "http://nitter.perennialte.ch/NewsNow4USA/status/2031806716812067002#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/amplify_video_thumb%2F2031806620032761856%2Fimg%2Fnb_3itu3-ym84WES.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": null,
       "customAvatar": "public/logos/newsnow.jpg",
       "customName": "NewsNow4USA"
     },
@@ -328,7 +361,7 @@
       "pubDate": "2026-03-11T18:56:28.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031806480224022556#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJtOfBWAAAlDME.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_63dcf2513236a560c549845597130685.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
     },
@@ -351,20 +384,9 @@
       "pubDate": "2026-03-11T18:55:43.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031806289328636366#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJtDZDXQAAUA_9.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_557d08fda0f1b2f3c98a3f54f7abadb9.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
-    },
-    {
-      "title": "عاجل | ترمب: الحرب بالنسبة لنا سهلة ودمرنا مصانع المسيرات ووجهنا ضربات لنحو 28 زورقا إيرانيا لزرع الألغام",
-      "source": "telegram",
-      "sourceName": "الجزيرة عاجل",
-      "handle": "ajanews",
-      "pubDate": "2026-03-11T18:55:33.000Z",
-      "link": "https://t.me/AjaNews/466220",
-      "mediaUrl": null,
-      "customAvatar": "public/logos/aljazeera.png",
-      "customName": "الجزيرة عاجل"
     },
     {
       "title": "وزير الخارجية ووزيرة خارجية رومانيا يبحثان هاتفيا تطورات الأوضاع الراهنة في المنطقة والجهود المبذولة حيالها",
@@ -396,7 +418,7 @@
       "pubDate": "2026-03-11T18:54:59.000Z",
       "link": "http://nitter.perennialte.ch/AlHadath/status/2031806104242459029#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/amplify_video_thumb%2F2031806062395834368%2Fimg%2FKyzJJsCD67s8Rq8i.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": null,
       "customAvatar": "public/logos/alhadath.png",
       "customName": "AlHadath"
     },
@@ -419,7 +441,7 @@
       "pubDate": "2026-03-11T18:54:46.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031806051775926422#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJs1h3WwAAuGE2.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_07a2a1b0184567637a61f4584b4bbfe4.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
     },
@@ -431,7 +453,7 @@
       "pubDate": "2026-03-11T18:54:42.000Z",
       "link": "http://nitter.perennialte.ch/ajmubasher/status/2031806036407898407#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJsz1aWcAAvDrc.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_f9b2bfd402f38f6c7690a00711960281.jpg",
       "customAvatar": "public/logos/aljazeera.png",
       "customName": "ajmubasher"
     },
@@ -443,7 +465,7 @@
       "pubDate": "2026-03-11T18:54:18.000Z",
       "link": "http://nitter.perennialte.ch/AlHadath/status/2031805934683492588#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJsuguWEAAPuoj.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_c6786225fd8c544dec1a5e41cf23df4e.jpg",
       "customAvatar": "public/logos/alhadath.png",
       "customName": "AlHadath"
     },
@@ -466,7 +488,7 @@
       "pubDate": "2026-03-11T18:54:12.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031805910092226927#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJstP9X0AENXBQ.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_e24f3438318223969b29f784670d1094.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
     },
@@ -511,31 +533,9 @@
       "pubDate": "2026-03-11T18:53:37.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031805763249652207#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJskw1XwAAZgWS.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_1ea9a54e4645be48ad2df7c0b784196f.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
-    },
-    {
-      "title": "عاجل | ترمب: أسواق المال على ما يرام وسنخفض أسعار النفط",
-      "source": "telegram",
-      "sourceName": "الجزيرة عاجل",
-      "handle": "ajanews",
-      "pubDate": "2026-03-11T18:53:37.000Z",
-      "link": "https://t.me/AjaNews/466219",
-      "mediaUrl": null,
-      "customAvatar": "public/logos/aljazeera.png",
-      "customName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | ترمب: العملية القصيرة في #إيران ستبعدنا عن خوض حرب",
-      "source": "telegram",
-      "sourceName": "الجزيرة عاجل",
-      "handle": "ajanews",
-      "pubDate": "2026-03-11T18:53:32.000Z",
-      "link": "https://t.me/AjaNews/466218",
-      "mediaUrl": null,
-      "customAvatar": "public/logos/aljazeera.png",
-      "customName": "الجزيرة عاجل"
     },
     {
       "title": "المتحدث باسم القوات المسلحة الإيرانية: \nكافة الموانئ في المنطقة ستصبح هدفا مشروعا لنا في حال تهديد الموانئ والأرصفة البحرية الإيرانية \n-  قواتنا المسلحة أقوى من أن تضطر للتواجد في أماكن سكنية أو مراكز اقتصادية \n#الجزيرة_مباشر",
@@ -545,7 +545,7 @@
       "pubDate": "2026-03-11T18:53:26.000Z",
       "link": "http://nitter.perennialte.ch/ajmubasher/status/2031805715841437811#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJsdDqW8AA3WcX.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_ea6ce52dde704ccaa367623a80004d2b.jpg",
       "customAvatar": "public/logos/aljazeera.png",
       "customName": "ajmubasher"
     },
@@ -590,7 +590,7 @@
       "pubDate": "2026-03-11T18:52:25.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031805459179442204#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJsTDAXsAAdZ43.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_bbb1c02cf006213ec00d3c58114cfaaa.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
     },
@@ -624,7 +624,7 @@
       "pubDate": "2026-03-11T18:50:20.000Z",
       "link": "http://nitter.perennialte.ch/NewsNow4USA/status/2031804935625466237#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJr0KGXcAABDW3.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_0bcb6d0b67e1c1ec14e4b3a3e53359e3.jpg",
       "customAvatar": "public/logos/newsnow.jpg",
       "customName": "NewsNow4USA"
     },
@@ -647,7 +647,7 @@
       "pubDate": "2026-03-11T18:46:56.000Z",
       "link": "http://nitter.perennialte.ch/AsharqNewsBrk/status/2031804080998285665#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/media%2FHDJrC1eXoAAn3Ey.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": "public/data/media/news_3e7333c1777da1a76f9c6eab2df12957.jpg",
       "customAvatar": "public/logos/asharq.png",
       "customName": "AsharqNewsBrk"
     },
@@ -670,7 +670,7 @@
       "pubDate": "2026-03-11T18:46:00.000Z",
       "link": "http://nitter.perennialte.ch/RTonline_ar/status/2031803844263624936#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/amplify_video_thumb%2F2031802242702114816%2Fimg%2FY-tufLezsIdK1JUc.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": null,
       "customAvatar": "public/logos/aljazeera.png",
       "customName": "RTonline_ar"
     },
@@ -682,7 +682,7 @@
       "pubDate": "2026-03-11T18:45:03.000Z",
       "link": "http://nitter.perennialte.ch/NewsNow4USA/status/2031803607301890090#m",
       "mediaUrl": "http://nitter.perennialte.ch/pic/amplify_video_thumb%2F2031803538876043264%2Fimg%2Fg37hQYR1rteATfnU.jpg",
-      "localMedia": "public/data/media/news_aHR0cDovL25p.jpg",
+      "localMedia": null,
       "customAvatar": "public/logos/newsnow.jpg",
       "customName": "NewsNow4USA"
     }

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   Ras Mirqab - High-Speed Cloud Scraper (Refined)
+   Ras Mirqab - High-Speed Cloud Scraper (Final)
    Saves aggregated news to public/data/news-live.json
    ═══════════════════════════════════════════════ */
 
@@ -7,6 +7,7 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const path = require('path');
+const crypto = require('crypto');
 
 const OUTPUT_FILE = path.join(__dirname, '../public/data/news-live.json');
 const MEDIA_DIR = path.join(__dirname, '../public/data/media');
@@ -81,12 +82,14 @@ async function downloadMedia(url, filename) {
 
         if (fs.existsSync(filePath)) return `public/data/media/${finalFilename}`;
 
-        // Attempt to convert Nitter image URL to direct Twitter CDN for better reliability
         let targetUrl = url;
-        if (url.includes('/pic/media%2F') || url.includes('/pic/media/')) {
-            const match = url.match(/\/pic\/media(?:%2F|\/)([^.?% ]+)/);
+        // Optimization: Convert Nitter media URLs to direct Twitter CDN
+        if (url.includes('/pic/media') || url.includes('/pic/amplify_video_thumb') || url.includes('/pic/card_img')) {
+            const match = url.match(/\/pic\/(?:media|amplify_video_thumb|card_img)(?:%2F|\/)([^.?%& ]+)/);
             if (match && match[1]) {
                 targetUrl = `https://pbs.twimg.com/media/${match[1]}?format=jpg&name=small`;
+            } else if (url.startsWith('//')) {
+                targetUrl = 'https:' + url;
             }
         }
 
@@ -95,8 +98,10 @@ async function downloadMedia(url, filename) {
         return new Promise((resolve) => {
             const options = {
                 headers: { 
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                }
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+                },
+                timeout: 10000
             };
             const req = protocol.get(targetUrl, options, (res) => {
                 if (res.statusCode === 200) {
@@ -109,17 +114,18 @@ async function downloadMedia(url, filename) {
                 } else if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
                     downloadMedia(res.headers.location, filename).then(resolve);
                 } else {
-                    console.error(`[Download] Failed for ${targetUrl}: Status ${res.statusCode}`);
+                    console.error(`[Download] Failed (${res.statusCode}): ${targetUrl.substring(0, 80)}`);
                     resolve(null);
                 }
             });
             req.on('error', (err) => {
-                console.error(`[Download] Error for ${targetUrl}: ${err.message}`);
+                console.error(`[Download] Error: ${err.message}`);
                 resolve(null);
             });
+            req.setTimeout(10000, () => { req.destroy(); resolve(null); });
         });
     } catch (e) {
-        console.error(`[Download] Exception for ${url}: ${e.message}`);
+        console.error(`[Download] Exception: ${e.message}`);
         return null;
     }
 }
@@ -132,7 +138,7 @@ async function scrapeTwitterList() {
         const url = `${instance}/i/lists/${TWITTER_LIST_ID}/rss`;
         return fetchWithTimeout(url, 15000).then(html => {
             if (html.length < 1000) throw new Error('Short');
-            if (html.includes('bot') && html.includes('challenge')) throw new Error('Bot challenge');
+            if (html.includes('bot') && html.includes('challenge')) throw new Error('Challenge');
             if (!html.includes('<item>')) throw new Error('No items');
             console.log(`✅ Winner Mirror: ${instance}`);
             return { html, instance };
@@ -176,7 +182,7 @@ function parseNitterRSS(rss) {
                 handle: handle,
                 pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
                 link: linkMatch ? linkMatch[1] : '',
-                mediaUrl: imgMatch ? imgMatch[1] : null // Twitter news DOES include images
+                mediaUrl: imgMatch ? imgMatch[1] : null 
             });
         }
     }
@@ -191,7 +197,6 @@ async function scrapeTelegram(handle, name) {
         const blocks = html.split('tgme_widget_message_wrap');
         blocks.shift();
 
-        // Check if this is the Al Jazeera channel to apply specific rules
         const isAlJazeera = handle.toLowerCase() === 'ajanews';
 
         for (const block of blocks) {
@@ -225,7 +230,6 @@ async function scrapeTelegram(handle, name) {
 async function scrapeAll() {
     console.log('--- Starting Enhanced Hybrid Scrape ---');
     
-    // Explicitly fetching requested sources
     const results = await Promise.all([
         scrapeTwitterList(),
         scrapeTelegram('ajanews', 'الجزيرة عاجل'),
@@ -238,14 +242,13 @@ async function scrapeAll() {
     
     const processed = [];
     for (const item of allItems) {
-        const hash = Buffer.from(item.link || item.title).toString('base64').substring(0, 12).replace(/[/+]/g, '_');
+        // Use MD5 of link for stable unique filenames
+        const hash = crypto.createHash('md5').update(item.link || item.title).digest('hex');
         
-        // Media download logic
         if (item.mediaUrl) {
             item.localMedia = await downloadMedia(item.mediaUrl, `news_${hash}`);
         }
         
-        // Avatar/Logo mapping
         const logoFile = LOGO_MAP[item.handle];
         item.customAvatar = logoFile ? `public/logos/${logoFile}` : `public/logos/aljazeera.png`;
         item.customName = item.sourceName;

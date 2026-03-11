@@ -289,7 +289,12 @@ var BreakingNewsWidget = (function () {
             itemEl.onmouseleave = function() { itemEl.style.background = 'transparent'; if (popupEl) popupEl.classList.remove('active'); };
 
             // [RIGHT] Thumbnail
-            var thumbnailPath = item.localMedia || 'src/assets/no-img-placeholder.png';
+            var thumbnailPath = item.localMedia;
+            if (!thumbnailPath && item.handle === 'ajanews') {
+                thumbnailPath = item.customAvatar;
+            }
+            if (!thumbnailPath) thumbnailPath = 'src/assets/no-img-placeholder.png';
+            
             var thumbnailHtml = '<div style="width:75px; height:75px; flex-shrink:0; border-radius:10px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">' +
                 '<img src="' + thumbnailPath + '" style="width:100%; height:100%; object-fit:cover;" onerror="this.src=\'src/assets/no-img-placeholder.png\'; this.style.opacity=0.2;" />' +
                 '</div>';

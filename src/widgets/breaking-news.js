@@ -106,7 +106,7 @@ var BreakingNewsWidget = (function () {
         loadNews();
 
         if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(loadNews, 1500);
+        refreshTimer = setInterval(loadNews, 1000);
         
         checkProxyStatus();
     }

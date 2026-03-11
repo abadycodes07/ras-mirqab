@@ -4,7 +4,7 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab.onrender.com';
+    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab-proxy.onrender.com';
     var isProxyLive = false;
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
@@ -230,12 +230,6 @@ var BreakingNewsWidget = (function () {
         // Always attempt proxy fetch — don't gate on health check (cold starts cause false negatives)
         {
             var targetSources = [
-                { type: 'telegram', handle: 'SABQ_NEWS', avatar: 'public/logos/sabq.png' },
-                { type: 'telegram', handle: 'AjelNews24', avatar: 'public/logos/ajelnews.jpg' },
-                { type: 'telegram', handle: 'Alarabiya_brk', avatar: 'public/logos/alarabiya.png' },
-                { type: 'telegram', handle: 'SkyNewsArabia_Breaking', avatar: 'public/logos/skynews.png' },
-                { type: 'telegram', handle: 'RT_Arabic', avatar: 'public/logos/rt.png' },
-                { type: 'telegram', handle: 'AlMayadeenLive', avatar: 'public/logos/almayadeen.png' },
                 { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png', name: 'الجزيرة عاجل' },
                 { type: 'twitter', handle: 'alrougui', avatar: 'public/logos/alrougui.jpg' },
                 { type: 'twitter', handle: 'NewsNow4USA', avatar: 'public/logos/newsnow.jpg' }

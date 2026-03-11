@@ -235,13 +235,7 @@ async function scrapeAll() {
     
     const results = await Promise.all([
         scrapeTwitterList(),
-        scrapeTelegram('ajanews', 'الجزيرة عاجل', 40),
-        scrapeTelegram('AjelNews24', 'عاجل السعودية'),
-        scrapeTelegram('Alarabiya_brk', 'العربية عاجل'),
-        scrapeTelegram('skynewsarabia_breaking', 'سكاي نيوز عاجل'),
-        scrapeTelegram('RT_Arabic', 'آر تي عربي'),
-        scrapeTelegram('AlMayadeenLive', 'الميادين'),
-        scrapeTelegram('SABQ_NEWS', 'سبق')
+        scrapeTelegram('ajanews', 'الجزيرة عاجل', 40)
     ]);
 
     const allItems = results.flat();

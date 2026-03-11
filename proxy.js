@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3001;
 
 // ══════ In-Memory Telegram Cache (instant responses) ══════
 const telegramCache = {};  // { handle: { data, timestamp } }
-const CACHE_TTL = 10000;   // 10 seconds — refresh interval
+const CACHE_TTL = 5000;   // 5 seconds — ultra-fast refresh
 
 function getCachedTelegram(handle) {
     const entry = telegramCache[handle.toLowerCase()];

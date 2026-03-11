@@ -298,7 +298,7 @@ var BreakingNewsWidget = (function () {
             itemEl.addEventListener('mouseenter', function (e) {
                 if (!hoverEnabled || !popupEl) return;
                 var rect = itemEl.getBoundingClientRect();
-                var media = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
+                var media = item.localMedia || item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
                 var imgHtml = media ? '<img src="' + media + '" class="bn-popup-image has-img" style="max-width:100%; border-radius:4px; margin:8px 0;" />' : '';
                 
                 popupEl.innerHTML = 

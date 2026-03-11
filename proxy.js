@@ -11,29 +11,26 @@ const url = require('url');
 
 const PORT = process.env.PORT || 3001;
 
-// ══════ In-Memory Telegram Cache (instant responses) ══════
-const telegramCache = {};  // { handle: { data, timestamp } }
-const CACHE_TTL = 5000;   // 5 seconds — ultra-fast refresh
-
-function getCachedTelegram(handle) {
-    const entry = telegramCache[handle.toLowerCase()];
-    if (entry && (Date.now() - entry.timestamp < CACHE_TTL)) return entry.data;
-    return null;
-}
+// ══════ Nonstop Telegram Cache (always instant) ══════
+const telegramCache = {};  // { handle: posts[] }
 
 function setCachedTelegram(handle, data) {
-    telegramCache[handle.toLowerCase()] = { data, timestamp: Date.now() };
+    telegramCache[handle.toLowerCase()] = data;
 }
 
-// Background auto-refresh for core channels
-async function refreshTelegramCache(handle) {
-    try {
-        const html = await fetchPage('https://t.me/s/' + handle, 8000);
-        const posts = parseTelegram(html, handle);
-        if (posts.length > 0) setCachedTelegram(handle, posts);
-        console.log(`[Cache] ✅ ${handle}: ${posts.length} items refreshed`);
-    } catch (e) {
-        console.log(`[Cache] ⚠️ ${handle}: refresh failed — ${e.message}`);
+function getCachedTelegram(handle) {
+    return telegramCache[handle.toLowerCase()] || null;
+}
+
+// Nonstop background loop: fetch → 2s pause → fetch → repeat forever
+async function telegramLoop(handle) {
+    while (true) {
+        try {
+            const html = await fetchPage('https://t.me/s/' + handle, 6000);
+            const posts = parseTelegram(html, handle);
+            if (posts.length > 0) setCachedTelegram(handle, posts);
+        } catch (e) { /* silent — cache keeps last good data */ }
+        await new Promise(r => setTimeout(r, 2000)); // 2s pause between fetches
     }
 }
 
@@ -171,7 +168,7 @@ const server = http.createServer(async (req, res) => {
     const parsed = url.parse(req.url, true);
 
     try {
-        // ─── Telegram endpoint (cache-first for speed) ───
+        // ─── Telegram endpoint (ALWAYS instant from cache) ───
         if (parsed.pathname === '/telegram') {
             const handle = parsed.query.channel;
             if (!handle) {
@@ -180,20 +177,14 @@ const server = http.createServer(async (req, res) => {
                 return;
             }
 
-            // Serve from cache instantly if available
             const cached = getCachedTelegram(handle);
             if (cached) {
                 res.writeHead(200);
-                res.end(JSON.stringify({ ok: true, count: cached.length, items: cached, cached: true }));
-                return;
+                res.end(JSON.stringify({ ok: true, count: cached.length, items: cached }));
+            } else {
+                res.writeHead(200);
+                res.end(JSON.stringify({ ok: true, count: 0, items: [], warming: true }));
             }
-
-            // No cache — fetch live (first request or cold start)
-            const html = await fetchPage('https://t.me/s/' + handle, 8000);
-            const posts = parseTelegram(html, handle);
-            setCachedTelegram(handle, posts);
-            res.writeHead(200);
-            res.end(JSON.stringify({ ok: true, count: posts.length, items: posts }));
             return;
         }
 
@@ -379,10 +370,7 @@ server.listen(PORT, () => {
     console.log('    /health');
     console.log('═══════════════════════════════════════');
 
-    // ── Warm up cache immediately on boot ──
-    console.log('[Cache] 🔥 Warming up @AjaNews cache...');
-    refreshTelegramCache('ajanews');
-
-    // ── Background refresh every 10 seconds ──
-    setInterval(() => refreshTelegramCache('ajanews'), CACHE_TTL);
+    // ── Start nonstop @AjaNews loop ──
+    console.log('[Loop] 🔥 Starting nonstop @AjaNews refresh (every ~2s)...');
+    telegramLoop('ajanews');
 });

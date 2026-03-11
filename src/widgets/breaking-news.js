@@ -227,7 +227,8 @@ var BreakingNewsWidget = (function () {
             }
         } catch (e) {}
 
-        if (isProxyLive) {
+        // Always attempt proxy fetch — don't gate on health check (cold starts cause false negatives)
+        {
             var targetSources = [
                 { type: 'telegram', handle: 'SABQ_NEWS', avatar: 'public/logos/sabq.png' },
                 { type: 'telegram', handle: 'AjelNews24', avatar: 'public/logos/ajelnews.jpg' },

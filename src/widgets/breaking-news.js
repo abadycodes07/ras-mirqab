@@ -106,7 +106,7 @@ var BreakingNewsWidget = (function () {
         loadNews();
 
         if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(loadNews, 4000);
+        refreshTimer = setInterval(loadNews, 1500);
         
         checkProxyStatus();
     }
@@ -200,7 +200,8 @@ var BreakingNewsWidget = (function () {
 
         var newCount = 0;
         items.forEach(function (item) {
-            var id = item.link + (item.title ? item.title.substring(0, 20) : item.pubDate);
+            // Using a longer title slice + pubDate for a more robust unique ID
+            var id = (item.link || '') + (item.title ? item.title.substring(0, 50) : item.pubDate);
             if (!seenIds.has(id)) {
                 if (!isFirstLoad) { newCount++; item.isNew = true; }
                 seenIds.add(id);
@@ -234,7 +235,7 @@ var BreakingNewsWidget = (function () {
                 { type: 'telegram', handle: 'SkyNewsArabia_Breaking', avatar: 'public/logos/skynews.png' },
                 { type: 'telegram', handle: 'RT_Arabic', avatar: 'public/logos/rt.png' },
                 { type: 'telegram', handle: 'AlMayadeenLive', avatar: 'public/logos/almayadeen.png' },
-                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png' },
+                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png', name: 'الجزيرة عاجل' },
                 { type: 'twitter', handle: 'alrougui', avatar: 'public/logos/alrougui.jpg' },
                 { type: 'twitter', handle: 'NewsNow4USA', avatar: 'public/logos/newsnow.jpg' }
             ];
@@ -248,10 +249,17 @@ var BreakingNewsWidget = (function () {
             });
 
             var proxyPromises = targetSources.map(function (s) {
+                // High-speed fetch for core sources (ajanews)
+                var isCore = s.handle === 'ajanews';
                 var url = PROXY_BASE + (s.type === 'telegram' ? '/telegram?channel=' : '/twitter?user=') + encodeURIComponent(s.handle);
+                if (isCore) url += '&fast=true';
+                
                 return fetch(url).then(r => r.json()).then(d => {
                     var fetched = d.items || [];
-                    fetched.forEach(item => { item.customAvatar = s.avatar; item.customName = s.handle; });
+                    fetched.forEach(item => { 
+                        item.customAvatar = s.avatar; 
+                        item.customName = s.name || s.handle; 
+                    });
                     return fetched;
                 }).catch(() => []);
             });
@@ -288,10 +296,11 @@ var BreakingNewsWidget = (function () {
             itemEl.onmouseenter = function() { itemEl.style.background = 'rgba(255,255,255,0.04)'; };
             itemEl.onmouseleave = function() { itemEl.style.background = 'transparent'; if (popupEl) popupEl.classList.remove('active'); };
 
-            // [RIGHT] Thumbnail
+            // [RIGHT] Thumbnail logic
             var thumbnailPath = item.localMedia;
-            if (!thumbnailPath && item.handle === 'ajanews') {
-                thumbnailPath = item.customAvatar;
+            // Fallback for Al Jazeera or Twitter text-only items
+            if (!thumbnailPath && (item.handle === 'ajanews' || item.customName === 'ajanews' || item.source === 'twitter')) {
+                thumbnailPath = item.customAvatar || 'public/logos/aljazeera.png';
             }
             if (!thumbnailPath) thumbnailPath = 'src/assets/no-img-placeholder.png';
             

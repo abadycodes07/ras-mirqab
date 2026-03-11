@@ -189,53 +189,13 @@ function parseNitterRSS(rss) {
     return items;
 }
 
-async function scrapeTelegram(handle, name) {
-    try {
-        console.log(`[Telegram] Scraping: ${handle}...`);
-        const html = await fetchWithTimeout(`https://t.me/s/${handle}`, 15000);
-        const posts = [];
-        const blocks = html.split('tgme_widget_message_wrap');
-        blocks.shift();
-
-        const isAlJazeera = handle.toLowerCase() === 'ajanews';
-
-        for (const block of blocks) {
-            const textMatch = block.match(/<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
-            const timeMatch = block.match(/<time[^>]*datetime="([^"]*)"/);
-            const linkMatch = block.match(/data-post="([^"]+)"/);
-            const imgMatch = block.match(/tgme_widget_message_photo_wrap[\s\S]*?background-image:url\('([^']+)'\)/);
-
-            if (textMatch) {
-                const clean = textMatch[1].replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').trim();
-                if (clean.length < 10) continue;
-                posts.push({
-                    title: clean.substring(0, 500),
-                    source: 'telegram',
-                    sourceName: name || handle,
-                    handle: handle.toLowerCase(),
-                    pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
-                    link: linkMatch ? 'https://t.me/' + linkMatch[1] : `https://t.me/${handle}`,
-                    // Rule: No images for Al Jazeera Telegram
-                    mediaUrl: isAlJazeera ? null : (imgMatch ? imgMatch[1] : null)
-                });
-            }
-        }
-        return posts.reverse().slice(0, 10);
-    } catch (e) {
-        console.error(`[Telegram] ${handle} failed: ${e.message}`);
-        return [];
-    }
-}
+// Redundant Al Jazeera specific logic removed as it's now handled by the proxy
 
 async function scrapeAll() {
     console.log('--- Starting Enhanced Hybrid Scrape ---');
     
     const results = await Promise.all([
-        scrapeTwitterList(),
-        scrapeTelegram('ajanews', 'الجزيرة عاجل'),
-        scrapeTelegram('AjelNews24', 'عاجل السعودية'),
-        scrapeTelegram('Alarabiya_brk', 'العربية عاجل'),
-        scrapeTelegram('skynewsarabia_breaking', 'سكاي نيوز عاجل')
+        scrapeTwitterList()
     ]);
 
     const allItems = results.flat();

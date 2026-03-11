@@ -11,7 +11,7 @@ const url = require('url');
 
 const PORT = process.env.PORT || 3001;
 
-function fetchPage(targetUrl) {
+function fetchPage(targetUrl, timeout = 8000) {
     return new Promise((resolve, reject) => {
         const parsed = new URL(targetUrl);
         const mod = parsed.protocol === 'https:' ? https : http;
@@ -21,7 +21,7 @@ function fetchPage(targetUrl) {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8'
             },
-            timeout: 8000
+            timeout: timeout
         }, (res) => {
             // Follow redirects
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
@@ -42,68 +42,47 @@ function fetchPage(targetUrl) {
 // Parse Telegram public channel HTML
 function parseTelegram(html, handle) {
     const posts = [];
-    // Match message containers
-    const msgBlockRe = /<div class="tgme_widget_message_wrap[^"]*"[\s\S]*?<\/div>\s*<\/div>\s*<\/div>\s*<\/div>/g;
-    const textRe = /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/;
-    const timeRe = /<time[^>]*datetime="([^"]*)"/;
-    const linkRe = /<a[^>]*href="(https?:\/\/[^"]+)"[^>]*>/g;
-    const imgRe = /<img[^>]*src="([^"]+)"/g;
-    const postLinkRe = /data-post="([^"]+)"/;
+    const isAlJazeera = handle.toLowerCase() === 'ajanews';
+    
+    // Split by message container to keep data aligned. Using a wider match for stability.
+    const blocks = html.split(/class="[^"]*tgme_widget_message_wrap/);
+    blocks.shift(); 
 
-    // Simpler approach: find all message text blocks
-    const allTexts = [];
-    const textBlockRe = /<div class="tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/g;
-    let m;
-    while ((m = textBlockRe.exec(html)) !== null) {
-        allTexts.push(m[1]);
-    }
+    for (const block of blocks) {
+        // More flexible text match (handles variations in classes)
+        const textMatch = block.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+        const timeMatch = block.match(/<time[^>]*datetime="([^"]*)"/);
+        const postLinkMatch = block.match(/data-post="([^"]+)"/);
+        const imgMatch = block.match(/tgme_widget_message_photo_wrap[\s\S]*?background-image:url\('([^']+)'\)/);
 
-    const allTimes = [];
-    const timeBlockRe = /<time[^>]*datetime="([^"]*)"/g;
-    while ((m = timeBlockRe.exec(html)) !== null) {
-        allTimes.push(m[1]);
-    }
+        if (textMatch) {
+            const rawText = textMatch[1];
+            // Remove HTML, handle common entities, and trim
+            const clean = rawText.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').trim();
+            if (clean.length < 5) continue;
 
-    const allPostLinks = [];
-    const postLinkBlockRe = /data-post="([^"]+)"/g;
-    while ((m = postLinkBlockRe.exec(html)) !== null) {
-        allPostLinks.push('https://t.me/' + m[1]);
-    }
+            const msgLinks = [];
+            let ml;
+            const linkR = /<a[^>]*href="(https?:\/\/[^"]+)"[^>]*>/g;
+            while ((ml = linkR.exec(rawText)) !== null) {
+                if (!ml[1].includes('t.me')) msgLinks.push(ml[1]);
+            }
 
-    // Check for images
-    const allImgs = [];
-    const imgBlockRe = /tgme_widget_message_photo_wrap[\s\S]*?background-image:url\('([^']+)'\)/g;
-    while ((m = imgBlockRe.exec(html)) !== null) {
-        allImgs.push(m[1]);
-    }
-
-    for (let i = 0; i < allTexts.length; i++) {
-        const raw = allTexts[i];
-        const clean = raw.replace(/<[^>]+>/g, '').trim();
-        if (!clean || clean.length < 3) continue;
-
-        // Find links in this message
-        const msgLinks = [];
-        let ml;
-        const tempR = /<a[^>]*href="(https?:\/\/[^"]+)"[^>]*>/g;
-        while ((ml = tempR.exec(raw)) !== null) {
-            if (!ml[1].includes('t.me')) msgLinks.push(ml[1]);
+            posts.push({
+                title: clean.substring(0, 800), // Larger limit for detail
+                source: 'telegram',
+                sourceName: isAlJazeera ? 'الجزيرة عاجل' : ('📱 ' + handle),
+                handle: handle.toLowerCase(),
+                pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
+                link: postLinkMatch ? 'https://t.me/' + postLinkMatch[1] : `https://t.me/${handle}`,
+                hasMedia: isAlJazeera ? false : !!imgMatch,
+                mediaUrl: isAlJazeera ? null : (imgMatch ? imgMatch[1] : null),
+                extraLinks: msgLinks
+            });
         }
-
-        posts.push({
-            title: clean.substring(0, 250),
-            source: 'telegram',
-            sourceName: '📱 ' + handle,
-            pubDate: allTimes[i] ? new Date(allTimes[i]).toISOString() : new Date().toISOString(),
-            link: allPostLinks[i] || 'https://t.me/' + handle,
-            hasMedia: i < allImgs.length,
-            mediaUrl: allImgs[i] || null,
-            extraLinks: msgLinks
-        });
     }
 
-    // Return newest first (Telegram page shows oldest first)
-    return posts.reverse().slice(0, 15);
+    return posts.reverse().slice(0, 40);
 }
 
 // Parse Nitter RSS XML for Twitter
@@ -175,7 +154,8 @@ const server = http.createServer(async (req, res) => {
                 return;
             }
 
-            const html = await fetchPage('https://t.me/s/' + handle);
+            const isFast = parsed.query.fast === 'true';
+            const html = await fetchPage('https://t.me/s/' + handle, isFast ? 5000 : 8000);
             const posts = parseTelegram(html, handle);
             res.writeHead(200);
             res.end(JSON.stringify({ ok: true, count: posts.length, items: posts }));

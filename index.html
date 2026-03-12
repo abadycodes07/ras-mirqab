@@ -2,6 +2,12 @@
 <html lang="ar" dir="rtl">
 
 <head>
+  <!-- Mobile auto-detect: redirect phones to mobile view (same site, same domain) -->
+  <script>
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && window.innerWidth < 1024 && !location.search.includes('desktop=true')) {
+      location.replace('mobile/' + location.hash);
+    }
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>راس مرقاب — رصد الأخبار العالمية</title>

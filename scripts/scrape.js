@@ -19,147 +19,153 @@ const MEDIA_DIR = path.join(__dirname, '../public/data/media');
 if (!fs.existsSync(path.dirname(OUTPUT_FILE))) fs.mkdirSync(path.dirname(OUTPUT_FILE), { recursive: true });
 if (!fs.existsSync(MEDIA_DIR)) fs.mkdirSync(MEDIA_DIR, { recursive: true });
 
-// Twitter list members (same as proxy.js)
 const LIST_MEMBERS = [
-    { handle: 'alarabiya_brk', name: 'العربية عاجل' },
-    { handle: 'Alhadath_Brk', name: 'الحدث عاجل' },
-    { handle: 'AsharqNewsBrk', name: 'الشرق عاجل' },
+    { handle: 'AJABreaking', name: 'الجزيرة عاجل', telegram: 'ajanews' },
+    { handle: 'alarabiya_brk', name: 'العربية عاجل', telegram: 'AlArabiya_Brk' },
+    { handle: 'Alhadath_Brk', name: 'الحدث عاجل', telegram: 'AlHadath_Brk' },
+    { handle: 'AsharqNewsBrk', name: 'الشرق عاجل', telegram: 'AsharqNewsBrk' },
+    { handle: 'skynewsarabia_b', name: 'سكاي نيوز عاجل', telegram: 'SkyNewsArabia_Breaking' },
+    { handle: 'AleijaBRK', name: 'الإخبارية عاجل', telegram: 'alekhbariya' },
+    { handle: 'KBSalsaud', name: 'وكالة الأنباء السعودية', telegram: 'spagov' },
     { handle: 'NewsNow4USA', name: 'الأخبار الآن' },
     { handle: 'RTOnline_AR', name: 'آر تي عربي' },
-    { handle: 'skynewsarabia_b', name: 'سكاي نيوز عاجل' },
-    { handle: 'AJABreaking', name: 'الجزيرة عاجل' },
-    { handle: 'AleijaBRK', name: 'الإخبارية عاجل' },
     { handle: 'alrougui', name: 'مالك الروقي' },
-    { handle: 'KBSalsaud', name: 'وكالة الأنباء السعودية' },
     { handle: 'modaborsa', name: 'وزارة الدفاع' },
     { handle: 'AJELNEWS24', name: 'عاجل 24' }
 ];
 
+const NITTER_MIRRORS = [
+    'https://nitter.privacyredirect.com',
+    'https://nitter.net',
+    'https://xcancel.com',
+    'https://nitter.poast.org'
+];
+
+let mirrorIdx = 0;
+function getMirror() { return NITTER_MIRRORS[mirrorIdx % NITTER_MIRRORS.length]; }
+
 async function fetchWithTimeout(url, timeout = 15000) {
     return new Promise((resolve, reject) => {
         const protocol = url.startsWith('https') ? https : http;
-        const timer = setTimeout(() => {
-            req.destroy();
-            reject(new Error(`Timeout fetching ${url}`));
-        }, timeout);
-
+        const timer = setTimeout(() => { req.destroy(); reject(new Error('timeout')); }, timeout);
         const req = protocol.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
-            }
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
         }, (res) => {
             clearTimeout(timer);
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                const redirectUrl = new URL(res.headers.location, url).href;
-                return fetchWithTimeout(redirectUrl, timeout).then(resolve).catch(reject);
+                return fetchWithTimeout(new URL(res.headers.location, url).href, timeout).then(resolve).catch(reject);
             }
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => resolve(data));
         });
-
-        req.on('error', (err) => {
-            clearTimeout(timer);
-            reject(err);
-        });
+        req.on('error', e => { clearTimeout(timer); reject(e); });
     });
 }
 
-function parseSyndicationPage(html, member) {
-    const tweets = [];
-    try {
-        const dataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
-        if (!dataMatch) return tweets;
-        
-        const json = JSON.parse(dataMatch[1]);
-        const entries = json?.props?.pageProps?.timeline?.entries || [];
-        
-        for (const entry of entries) {
-            if (entry.type !== 'tweet') continue;
-            const tw = entry.content?.tweet;
-            if (!tw) continue;
-            
-            const text = tw.full_text || tw.text || '';
-            if (!text || text.startsWith('RT @')) continue;
-            
-            const cleanText = text.replace(/https?:\/\/t\.co\/\S+/g, '').trim();
-            if (cleanText.length < 5) continue;
-            
-            let mediaUrl = null;
-            const extMedia = tw.extended_entities?.media || tw.entities?.media || [];
-            if (extMedia.length > 0) {
-                const m = extMedia[0];
-                mediaUrl = m.media_url_https + '?format=jpg&name=small';
-            }
-            
-            const handle = (tw.user?.screen_name || member.handle).toLowerCase();
-            
-            tweets.push({
-                title: cleanText.substring(0, 500),
+function parseTelegram(html, handle) {
+    const posts = [];
+    const blocks = html.split(/class="[^"]*tgme_widget_message_wrap/);
+    blocks.shift();
+    for (const block of blocks) {
+        const textMatch = block.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+        const timeMatch = block.match(/<time[^>]*datetime="([^"]*)"/);
+        const postLinkMatch = block.match(/data-post="([^"]+)"/);
+        const imgMatch = block.match(/tgme_widget_message_photo_wrap[\s\S]*?background-image:url\('([^']+)'\)/);
+        if (textMatch) {
+            const clean = textMatch[1].replace(/<[^>]+>/g, '').trim();
+            if (clean.length < 5) continue;
+            posts.push({
+                title: clean.substring(0, 500),
                 source: 'twitter',
-                sourceName: member.name || tw.user?.name || handle,
-                handle: handle,
-                pubDate: tw.created_at ? new Date(tw.created_at).toISOString() : new Date().toISOString(),
-                link: `https://x.com/${handle}/status/${tw.id_str}`,
+                handle: handle.toLowerCase(),
+                pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
+                link: postLinkMatch ? 'https://t.me/' + postLinkMatch[1] : `https://t.me/${handle}`,
+                hasMedia: !!imgMatch,
+                mediaUrl: imgMatch ? imgMatch[1] : null
+            });
+        }
+    }
+    return posts;
+}
+
+function parseRSS(xml, member) {
+    const items = [];
+    const entryRe = /<item>([\s\S]*?)<\/item>/g;
+    let m;
+    while ((m = entryRe.exec(xml)) !== null) {
+        const block = m[1];
+        const titleMatch = block.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || block.match(/<title>([\s\S]*?)<\/title>/);
+        const dateMatch = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+        const linkMatch = block.match(/<link>([\s\S]*?)<\/link>/);
+        const descMatch = block.match(/<description>([\s\S]*?)<\/description>/);
+        if (titleMatch) {
+            let text = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+            if (text.includes(': ')) text = text.split(': ').slice(1).join(': ');
+            let mediaUrl = null;
+            if (descMatch) {
+                const imgM = descMatch[1].match(/<img[^>]+src="([^"]+)"/i);
+                if (imgM) mediaUrl = imgM[1].replace(/nitter\.[a-z.]+/g, 'x.com');
+            }
+            items.push({
+                title: text.substring(0, 500),
+                source: 'twitter',
+                sourceName: member.name,
+                handle: member.handle.toLowerCase(),
+                pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
+                link: linkMatch ? linkMatch[1].replace(/nitter\.[a-z.]+/g, 'x.com') : '#',
                 hasMedia: !!mediaUrl,
                 mediaUrl: mediaUrl
             });
         }
-    } catch (e) {
-        console.error(`[Parse Error] ${member.handle}: ${e.message}`);
     }
-    return tweets;
-}
-
-async function scrapeTwitterList() {
-    console.log(`--- Fetching ${LIST_MEMBERS.length} Twitter accounts via syndication.twitter.com ---`);
-    
-    const fetches = LIST_MEMBERS.map(async (member) => {
-        try {
-            const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${member.handle}`;
-            const html = await fetchWithTimeout(url, 15000);
-            if (!html || html.length < 500) return [];
-            const tweets = parseSyndicationPage(html, member);
-            if (tweets.length > 0) console.log(`✅ @${member.handle}: ${tweets.length} tweets`);
-            else console.log(`⚠️ @${member.handle}: 0 tweets`);
-            return tweets;
-        } catch (e) {
-            console.log(`⚠️ @${member.handle}: failed — ${e.message}`);
-            return [];
-        }
-    });
-
-    const allResults = await Promise.all(fetches);
-    const merged = allResults.flat();
-    
-    // Deduplicate by tweet ID
-    const seen = new Map();
-    for (const item of merged) {
-        const id = item.link.match(/status\/(\d+)/)?.[1] || item.title;
-        if (!seen.has(id)) seen.set(id, item);
-    }
-    
-    const unique = Array.from(seen.values());
-    console.log(`📊 Total unique tweets: ${unique.length} (from ${merged.length} raw)`);
-    return unique;
+    return items;
 }
 
 async function scrapeAll() {
-    console.log('--- Starting Twitter Scrape via syndication.twitter.com ---');
-    
-    const allItems = await scrapeTwitterList();
+    console.log('--- Multi-Source Scrape Start ---');
+    const allItems = [];
+    const seen = new Set();
 
-    // Sort by date, newest first
+    for (const member of LIST_MEMBERS) {
+        let memberItems = [];
+        // 1. Try Telegram
+        if (member.telegram) {
+            try {
+                const html = await fetchWithTimeout(`https://t.me/s/${member.telegram}`);
+                memberItems = parseTelegram(html, member.telegram);
+                if (memberItems.length > 0) console.log(`✅ [Telegram] @${member.handle}: ${memberItems.length}`);
+            } catch (e) {}
+        }
+        // 2. Fallback to Nitter
+        if (memberItems.length === 0) {
+            const mirror = getMirror();
+            try {
+                const xml = await fetchWithTimeout(`${mirror}/${member.handle}/rss`);
+                memberItems = parseRSS(xml, member);
+                console.log(`✅ [Nitter] @${member.handle}: ${memberItems.length}`);
+            } catch (e) {
+                console.log(`❌ [Nitter] @${member.handle} failed on ${mirror}`);
+                mirrorIdx++;
+            }
+        }
+
+        for (const it of memberItems) {
+            const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
+            if (!seen.has(hash)) {
+                seen.add(hash);
+                allItems.push({ ...it, sourceName: member.name });
+            }
+        }
+    }
+
     allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
     fs.writeFileSync(OUTPUT_FILE, JSON.stringify({
         updated: new Date().toISOString(),
         count: allItems.length,
         items: allItems.slice(0, 120)
     }, null, 2));
-    
-    console.log(`✅ Scrape Complete: ${allItems.length} items saved.`);
+    console.log(`✅ Complete: ${allItems.length} items saved.`);
 }
 
 scrapeAll();

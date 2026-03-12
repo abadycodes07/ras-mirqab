@@ -43,104 +43,120 @@ async function telegramLoop(handle) {
     }
 }
 
-// ══════ Nonstop Twitter Cache (via syndication.twitter.com) ══════
-const twitterListCache = [];  // merged tweets from all list members
-const TWITTER_LIST_ID = '2031445708524421549';
+// ══════ Multi-Source Robustness (Telegram + Nitter Rotation) ══════
+const twitterListCache = []; 
+const NITTER_MIRRORS = [
+    'https://nitter.privacyredirect.com',
+    'https://nitter.net',
+    'https://xcancel.com',
+    'https://nitter.poast.org',
+    'https://nitter.no-logs.com'
+];
 
-// All members of the Twitter list
+let mirrorIndex = 0;
+function getMirror() { return NITTER_MIRRORS[mirrorIndex % NITTER_MIRRORS.length]; }
+function rotateMirror() { mirrorIndex++; console.log(`[Proxy] 🔄 Rotating to mirror: ${getMirror()}`); }
+
 const LIST_MEMBERS = [
-    { handle: 'alarabiya_brk', name: 'العربية عاجل', logo: 'public/logos/alarabiya.png' },
-    { handle: 'Alhadath_Brk', name: 'الحدث عاجل', logo: 'public/logos/alhadath.png' },
-    { handle: 'AsharqNewsBrk', name: 'الشرق عاجل', logo: 'public/logos/asharq.png' },
+    { handle: 'AJABreaking', name: 'الجزيرة عاجل', logo: 'public/logos/aljazeera.png', telegram: 'ajanews' },
+    { handle: 'alarabiya_brk', name: 'العربية عاجل', logo: 'public/logos/alarabiya.png', telegram: 'AlArabiya_Brk' },
+    { handle: 'Alhadath_Brk', name: 'الحدث عاجل', logo: 'public/logos/alhadath.png', telegram: 'AlHadath_Brk' },
+    { handle: 'AsharqNewsBrk', name: 'الشرق عاجل', logo: 'public/logos/asharq.png', telegram: 'AsharqNewsBrk' },
+    { handle: 'skynewsarabia_b', name: 'سكاي نيوز عاجل', logo: 'public/logos/skynews.png', telegram: 'SkyNewsArabia_Breaking' },
+    { handle: 'AleijaBRK', name: 'الإخبارية عاجل', logo: 'public/logos/alekhbariya.png', telegram: 'alekhbariya' },
+    { handle: 'KBSalsaud', name: 'وكالة الأنباء السعودية', logo: 'public/logos/kbsalsaud.png', telegram: 'spagov' },
     { handle: 'NewsNow4USA', name: 'الأخبار الآن', logo: 'public/logos/newsnow.jpg' },
     { handle: 'RTOnline_AR', name: 'آر تي عربي', logo: 'public/logos/rt.png' },
-    { handle: 'skynewsarabia_b', name: 'سكاي نيوز عاجل', logo: 'public/logos/skynews.png' },
-    { handle: 'AJABreaking', name: 'الجزيرة عاجل', logo: 'public/logos/aljazeera.png' },
-    { handle: 'AleijaBRK', name: 'الإخبارية عاجل', logo: 'public/logos/alekhbariya.png' },
     { handle: 'alrougui', name: 'مالك الروقي', logo: 'public/logos/alrougui.jpg' },
-    { handle: 'KBSalsaud', name: 'وكالة الأنباء السعودية', logo: 'public/logos/kbsalsaud.png' },
     { handle: 'modaborsa', name: 'وزارة الدفاع', logo: 'public/logos/modgovksa2.png' },
     { handle: 'AJELNEWS24', name: 'عاجل 24', logo: 'public/logos/ajelnews.jpg' }
 ];
 
-// Parse syndication.twitter.com response to extract tweets
-function parseSyndicationPage(html, member) {
-    const tweets = [];
+// ══════ HELPERS ══════
+
+function parseRSS(xml, member) {
+    const items = [];
     try {
-        const dataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
-        if (!dataMatch) return tweets;
-        
-        const json = JSON.parse(dataMatch[1]);
-        const entries = json?.props?.pageProps?.timeline?.entries || [];
-        
-        for (const entry of entries) {
-            if (entry.type !== 'tweet') continue;
-            const tw = entry.content?.tweet;
-            if (!tw) continue;
-            
-            const text = tw.full_text || tw.text || '';
-            if (!text || text.startsWith('RT @')) continue; // Skip retweets
-            
-            // Clean text: remove t.co links
-            const cleanText = text.replace(/https?:\/\/t\.co\/\S+/g, '').trim();
-            if (cleanText.length < 5) continue;
-            
-            // Get media
-            let mediaUrl = null;
-            const media = tw.entities?.media || [];
-            const extMedia = tw.extended_entities?.media || [];
-            const allMedia = extMedia.length > 0 ? extMedia : media;
-            if (allMedia.length > 0) {
-                const m = allMedia[0];
-                if (m.type === 'photo') {
-                    mediaUrl = m.media_url_https + '?format=jpg&name=small';
-                } else if (m.type === 'video' || m.type === 'animated_gif') {
-                    mediaUrl = m.media_url_https + '?format=jpg&name=small'; // thumbnail
+        const entryRe = /<item>([\s\S]*?)<\/item>/g;
+        let m;
+        while ((m = entryRe.exec(xml)) !== null) {
+            const block = m[1];
+            const titleMatch = block.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || block.match(/<title>([\s\S]*?)<\/title>/);
+            const dateMatch = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+            const linkMatch = block.match(/<link>([\s\S]*?)<\/link>/);
+            const creatorMatch = block.match(/<dc:creator>([\s\S]*?)<\/dc:creator>/);
+            const descMatch = block.match(/<description>([\s\S]*?)<\/description>/);
+
+            if (titleMatch) {
+                let text = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+                // Nitter puts the whole tweet in title, usually prefixed by handle. Let's clean it.
+                if (text.includes(': ')) text = text.split(': ').slice(1).join(': ');
+                
+                let mediaUrl = null;
+                if (descMatch) {
+                    const imgM = descMatch[1].match(/<img[^>]+src="([^"]+)"/i);
+                    if (imgM) mediaUrl = imgM[1].replace(/nitter\.[a-z.]+/g, 'x.com');
                 }
+
+                items.push({
+                    title: text,
+                    source: 'twitter',
+                    sourceName: member.name,
+                    handle: (creatorMatch ? creatorMatch[1] : member.handle).toLowerCase().replace('@',''),
+                    pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
+                    link: linkMatch ? linkMatch[1].replace(/nitter\.[a-z.]+/g, 'x.com') : '#',
+                    hasMedia: !!mediaUrl,
+                    mediaUrl: mediaUrl,
+                    customAvatar: member.logo,
+                    customName: member.name
+                });
             }
-            
-            const handle = tw.user?.screen_name || member.handle;
-            
-            tweets.push({
-                title: cleanText.substring(0, 500),
-                source: 'twitter',
-                sourceName: member.name || ('𝕏 @' + handle),
-                handle: handle.toLowerCase(),
-                pubDate: tw.created_at ? new Date(tw.created_at).toISOString() : new Date().toISOString(),
-                link: `https://x.com/${handle}/status/${tw.id_str}`,
-                hasMedia: !!mediaUrl,
-                mediaUrl: mediaUrl,
-                customAvatar: member.logo,
-                customName: member.name,
-                extraLinks: []
-            });
         }
-    } catch (e) {
-        console.error(`[Syndication Parse Error] ${member.handle}: ${e.message}`);
-    }
-    return tweets;
+    } catch (e) { console.error(`[RSS Parse Error] ${member.handle}: ${e.message}`); }
+    return items;
 }
 
-// Fetch a single user's timeline from syndication.twitter.com
-async function fetchUserSyndication(member) {
-    try {
-        const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${member.handle}`;
-        const html = await fetchPage(url, 10000, getRandomUA());
-        if (!html || html.length < 500) {
-            console.log(`  ❌ @${member.handle}: Empty or short response (${html?.length || 0} bytes)`);
-            return [];
+async function fetchFromSource(member) {
+    // 1. Try Telegram first (Reliable & Original quality for images)
+    if (member.telegram) {
+        try {
+            const html = await fetchPage(`https://t.me/s/${member.telegram}`, 5000);
+            const posts = parseTelegram(html, member.telegram);
+            if (posts.length > 0) {
+                console.log(`  ✅ [Telegram] @${member.handle} (via ${member.telegram}): ${posts.length} posts`);
+                return posts.map(p => ({
+                    ...p,
+                    sourceName: member.name,
+                    customAvatar: member.logo,
+                    customName: member.name
+                }));
+            }
+        } catch (e) {
+            console.log(`  ⚠️ [Telegram] @${member.handle} failed: ${e.message}`);
         }
-        const tweets = parseSyndicationPage(html, member);
-        if (tweets.length > 0) {
-            console.log(`  ✅ @${member.handle}: ${tweets.length} tweets [INSTANT]`);
-        } else {
-            console.log(`  ⚠️ @${member.handle}: No tweets parsed from HTML`);
-        }
-        return tweets;
-    } catch (e) {
-        console.log(`  🛑 @${member.handle} Error: ${e.message}`);
-        return [];
     }
+
+    // 2. Try Nitter Mirror (RSS)
+    const mirrorsToTry = 2;
+    for (let i = 0; i < mirrorsToTry; i++) {
+        const mirror = getMirror();
+        try {
+            const rssUrl = `${mirror}/${member.handle}/rss`;
+            const xml = await fetchPage(rssUrl, 7000, getRandomUA());
+            if (xml.includes('<item>')) {
+                const tweets = parseRSS(xml, member);
+                console.log(`  ✅ [Mirror] @${member.handle} (via ${mirror}): ${tweets.length} tweets`);
+                return tweets;
+            } else if (xml.includes('Rate limit') || xml.includes('bot')) {
+                console.log(`  ❌ [Mirror] @${member.handle} blocked by ${mirror}`);
+                rotateMirror();
+            }
+        } catch (e) {
+            console.log(`  ⚠️ [Mirror] @${member.handle} failed on ${mirror}: ${e.message}`);
+            rotateMirror();
+        }
+    }
+    return [];
 }
 
 async function twitterListLoop() {
@@ -148,34 +164,37 @@ async function twitterListLoop() {
     while (true) {
         cycle++;
         const start = Date.now();
-        console.log(`\n[Twitter List] Cycle #${cycle} — Fetching ${LIST_MEMBERS.length} accounts...`);
+        console.log(`\n[Multi-Source] Cycle #${cycle} — Refreshing ${LIST_MEMBERS.length} accounts...`);
         
         try {
-            // Fetch ALL members in parallel for maximum speed
-            const results = await Promise.all(LIST_MEMBERS.map(fetchUserSyndication));
-            const allTweets = results.flat();
-            
-            // Deduplicate by tweet ID
-            const seen = new Map();
-            for (const tw of allTweets) {
-                const id = tw.link.match(/status\/(\d+)/)?.[1] || tw.title.substring(0, 50);
-                if (!seen.has(id)) seen.set(id, tw);
+            // Fetch sequentially for better logging & to avoid global mirror rate-limits
+            const uniqueResults = [];
+            const seenItems = new Set();
+
+            for (const member of LIST_MEMBERS) {
+                const items = await fetchFromSource(member);
+                for (const it of items) {
+                    // Simple hash for deduplication: title + date
+                    const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
+                    if (!seenItems.has(hash)) {
+                        seenItems.add(hash);
+                        uniqueResults.push(it);
+                    }
+                }
             }
+
+            uniqueResults.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
             
-            const unique = Array.from(seen.values());
-            unique.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-            
-            // Update cache atomically
             twitterListCache.length = 0;
-            twitterListCache.push(...unique);
+            twitterListCache.push(...uniqueResults.slice(0, 100)); // Keep top 100
             
             const elapsed = ((Date.now() - start) / 1000).toFixed(1);
-            console.log(`[Twitter List] ✅ ${unique.length} unique tweets cached in ${elapsed}s`);
+            console.log(`[Multi-Source] ✅ ${uniqueResults.length} total news items cached in ${elapsed}s`);
         } catch (e) {
-            console.error(`[Twitter List] Error: ${e.message}`);
+            console.error(`[Multi-Source] Fatal Loop Error: ${e.message}`);
         }
         
-        await new Promise(r => setTimeout(r, 15000)); // 15s between refreshes
+        await new Promise(r => setTimeout(r, 15000)); 
     }
 }
 

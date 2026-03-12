@@ -22,7 +22,6 @@
       <div class="bell-btn" id="btn-notifications">🔔</div>
     </div>
     <div class="header-right">
-      <span class="header-title">راس مرقاب</span>
       <img src="../public/logo.png" class="header-logo" alt="logo">
     </div>
   </header>
@@ -31,19 +30,30 @@
   <section class="globe-section" id="globe-section">
     <div id="globe-container"></div>
     
-    <!-- Legend Panels (Floating over globe) -->
-    <div class="legend-panel panel-left" id="panel-left"></div>
-    <div class="legend-panel panel-right" id="panel-right"></div>
+    <!-- Layers Modal (Floating Modal) -->
+    <div id="layers-modal" class="layers-modal hidden">
+      <div class="modal-header">
+        <span>الطبقات</span>
+        <span class="close-modal" id="close-layers">✕</span>
+      </div>
+      <div class="layers-scroll" id="layers-list">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
 
     <!-- Globe Controls -->
     <div class="globe-controls">
-      <div class="hide-map-btn" id="btn-hide-map">
-        <span>Hide Map</span>
-        <span style="font-size:12px;">🗺️</span>
+      <div class="left-controls">
+        <div class="control-btn" id="btn-layers">
+          <span>الطبقات</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
       </div>
-      <div class="mode-toggle">
-        <button class="mode-btn" id="btn-2d">2D</button>
-        <button class="mode-btn active" id="btn-3d">3D</button>
+      <div class="right-controls">
+        <div class="mode-toggle">
+          <button class="mode-btn" id="btn-2d">2D</button>
+          <button class="mode-btn active" id="btn-3d">3D</button>
+        </div>
       </div>
     </div>
     <div class="update-label">تحديث تلقائي: قبل دقيقة واحدة</div>

@@ -14,6 +14,15 @@ const PORT = process.env.PORT || 3001;
 // ══════ Nonstop Telegram Cache (always instant) ══════
 const telegramCache = {};  // { handle: posts[] }
 
+const USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:123.0) Gecko/20100101 Firefox/123.0',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.3.1 Mobile/15E148 Safari/604.1'
+];
+function getRandomUA() { return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]; }
+
 function setCachedTelegram(handle, data) {
     telegramCache[handle.toLowerCase()] = data;
 }
@@ -116,15 +125,20 @@ function parseSyndicationPage(html, member) {
 async function fetchUserSyndication(member) {
     try {
         const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${member.handle}`;
-        const html = await fetchPage(url, 10000);
-        if (!html || html.length < 500) return [];
+        const html = await fetchPage(url, 10000, getRandomUA());
+        if (!html || html.length < 500) {
+            console.log(`  ❌ @${member.handle}: Empty or short response (${html?.length || 0} bytes)`);
+            return [];
+        }
         const tweets = parseSyndicationPage(html, member);
         if (tweets.length > 0) {
-            console.log(`  ✅ @${member.handle}: ${tweets.length} tweets`);
+            console.log(`  ✅ @${member.handle}: ${tweets.length} tweets [INSTANT]`);
+        } else {
+            console.log(`  ⚠️ @${member.handle}: No tweets parsed from HTML`);
         }
         return tweets;
     } catch (e) {
-        console.log(`  ⚠️ @${member.handle}: ${e.message}`);
+        console.log(`  🛑 @${member.handle} Error: ${e.message}`);
         return [];
     }
 }
@@ -165,21 +179,22 @@ async function twitterListLoop() {
     }
 }
 
-function fetchPage(targetUrl, timeout = 8000) {
+function fetchPage(targetUrl, timeout = 8000, ua = null) {
     return new Promise((resolve, reject) => {
         const parsed = new URL(targetUrl);
         const mod = parsed.protocol === 'https:' ? https : http;
         const req = mod.get(targetUrl, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': ua || getRandomUA(),
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8'
+                'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
             },
             timeout: timeout
         }, (res) => {
-            // Follow redirects
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                return fetchPage(res.headers.location).then(resolve).catch(reject);
+                return fetchPage(res.headers.location, timeout, ua).then(resolve).catch(reject);
             }
             let buffers = [];
             res.on('data', chunk => buffers.push(chunk));
@@ -289,6 +304,9 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
 
     if (req.method === 'OPTIONS') {
         res.writeHead(204);

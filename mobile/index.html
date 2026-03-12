@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a0e17">
+  <title>راس مرقاب — رصد الأخبار العالمية</title>
+  <meta name="description" content="منصة رصد الأخبار العاجلة والتحليلات الجيوسياسية">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile.css">
+  <!-- Globe -->
+  <script src="https://unpkg.com/globe.gl@2.27.2/dist/globe.gl.min.js"></script>
+</head>
+<body>
+  <!-- Status bar spacer -->
+  <div class="status-bar-spacer"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <h1 class="app-title">راس مرقاب</h1>
+  </header>
+
+  <!-- Globe Section -->
+  <section id="globe-section" class="globe-section">
+    <div id="globe-container"></div>
+    <div class="globe-overlay-left">
+      <label class="layer-toggle"><input type="checkbox" checked data-layer="fleets"><span class="dot navy"></span>Naval fleets 🚢</label>
+      <label class="layer-toggle"><input type="checkbox" checked data-layer="military"><span class="dot red"></span>Military selea ✖</label>
+      <label class="layer-toggle"><input type="checkbox" checked data-layer="pipeline"><span class="dot green"></span>4&ltby pipeline 🔵</label>
+      <label class="layer-toggle"><input type="checkbox" checked data-layer="conflicts"><span class="dot orange"></span>Conflict arcs</label>
+    </div>
+    <div class="globe-overlay-right">
+      <label class="layer-toggle"><input type="checkbox" checked data-layer="fleets2"><span class="dot navy"></span>Naval fleets 🚢</label>
+      <label class="layer-toggle"><input type="checkbox" checked data-layer="military2"><span class="dot red"></span>Military seles ✖</label>
+      <label class="layer-toggle"><input type="checkbox" checked data-layer="pipeline2"><span class="dot green"></span>4&ltby pipeline 🔵</label>
+      <label class="layer-toggle"><input type="checkbox" checked data-layer="conflicts2"><span class="dot orange"></span>Conflict arc</label>
+    </div>
+    <div class="globe-controls">
+      <div class="mode-switch">
+        <button class="mode-btn" id="btn-2d">2D</button>
+        <button class="mode-btn active" id="btn-3d">3D</button>
+      </div>
+      <button class="hide-map-btn" id="btn-hide-map">Hide Map 🗺</button>
+    </div>
+    <div class="auto-update-bar">تحديث تلقائي: قبل دقيقة واحدة</div>
+  </section>
+
+  <!-- Breaking News -->
+  <section class="news-section">
+    <div class="news-header">
+      <div class="news-actions">
+        <button class="news-btn" id="btn-hard-sync">hard sync</button>
+        <span class="sync-dot"></span>
+      </div>
+      <div class="news-title-area">
+        <span class="search-icon">🔍</span>
+        <span class="news-label">الأخبار العاجلة</span>
+      </div>
+    </div>
+    <div class="breaking-badge">عاجل</div>
+    <div id="news-list" class="news-list">
+      <div class="news-loading">جاري تحميل الأخبار...</div>
+    </div>
+  </section>
+
+  <!-- Live TV -->
+  <section class="livetv-section">
+    <h2 class="section-title">البث المباشر</h2>
+    <div class="livetv-scroll" id="livetv-scroll">
+      <div class="tv-card" data-channel="aljazeera">
+        <img src="../public/logos/aljazeera.png" alt="الجزيرة" class="tv-thumb">
+        <span class="live-badge">LIVE</span>
+      </div>
+      <div class="tv-card" data-channel="alarabiya">
+        <img src="../public/logos/alarabiya.png" alt="العربية" class="tv-thumb">
+        <span class="live-badge">LIVE</span>
+      </div>
+      <div class="tv-card active" data-channel="trt">
+        <div class="tv-thumb trt-placeholder">TRT WORLD</div>
+        <span class="live-badge">LIVE</span>
+      </div>
+      <div class="tv-card" data-channel="skynews">
+        <img src="../public/logos/skynews.png" alt="سكاي نيوز" class="tv-thumb">
+        <span class="live-badge">LIVE</span>
+      </div>
+      <div class="tv-card" data-channel="alhadath">
+        <img src="../public/logos/alhadath.png" alt="الحدث" class="tv-thumb">
+        <span class="live-badge">LIVE</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Widgets Grid -->
+  <section class="widgets-grid">
+    <!-- Gold & Currencies -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span>الذهب والعملات</span>
+        <span class="widget-icon">💰</span>
+      </div>
+      <div class="widget-body" id="gold-widget">
+        <div class="gold-label">الذهب / دولار أمريكي</div>
+        <div class="gold-price" id="gold-price">--</div>
+        <div class="gold-change" id="gold-change">--</div>
+      </div>
+    </div>
+
+    <!-- World Clock -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span>توقيت العالم</span>
+        <span class="widget-icon">🕐</span>
+      </div>
+      <div class="widget-body clock-body">
+        <div class="clock-row"><span class="clock-city">الرياض</span><span class="clock-time" id="clock-riyadh">--:--</span></div>
+        <div class="clock-row"><span class="clock-city">نيويورك</span><span class="clock-time" id="clock-nyc">--:--</span></div>
+        <div class="clock-row"><span class="clock-city">لندن</span><span class="clock-time" id="clock-london">--:--</span></div>
+      </div>
+    </div>
+
+    <!-- Movement Tracking -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span>تتبع التحركات</span>
+        <span class="widget-icon">📡</span>
+      </div>
+      <div class="widget-body tracking-body">
+        <div class="tracking-grid" id="tracking-grid">
+          <div class="tracking-item"><img src="../public/logos/skynews.png" alt=""><span>SAWWEST NEWS</span></div>
+          <div class="tracking-item"><img src="../public/logos/alarabiya.png" alt=""><span>SAUSNO</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cyber Intel -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span>الاستخبارات السيبرانية</span>
+        <span class="widget-icon">🛡</span>
+      </div>
+      <div class="widget-body cyber-body">
+        <div class="cyber-placeholder">بيانات حية</div>
+      </div>
+    </div>
+
+    <!-- Live Webcams -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <span>كاميرا مباشرة</span>
+        <span class="widget-icon">📹</span>
+      </div>
+      <div class="widget-body webcam-body">
+        <div class="webcam-placeholder">بث حي</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <a class="nav-item" href="#settings"><span class="nav-icon">⚙️</span><span>الإعدادات</span></a>
+    <a class="nav-item" href="#reports"><span class="nav-icon">📊</span><span>التقارير</span></a>
+    <a class="nav-item" href="#charts"><span class="nav-icon">📈</span><span>المخططات</span></a>
+    <a class="nav-item" href="#assets"><span class="nav-icon">💎</span><span>الأصول</span></a>
+    <a class="nav-item" href="#news"><span class="nav-icon">📰</span><span>الأخبار</span></a>
+    <a class="nav-item active" href="#home"><span class="nav-icon">🏠</span><span>الرئيسية</span></a>
+  </nav>
+
+  <script src="mobile.js"></script>
+</body>
+</html>

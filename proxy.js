@@ -34,6 +34,46 @@ async function telegramLoop(handle) {
     }
 }
 
+// ══════ Nonstop Twitter Cache ══════
+const twitterCache = {};  // { listId: posts[] }
+const NITTER_MIRRORS = [
+    'https://nitter.perennialte.ch',
+    'https://xcancel.com',
+    'https://nitter.unixfox.eu',
+    'https://nitter.poast.org',
+    'https://nitter.cz'
+];
+const TWITTER_LIST_ID = '2031445708524421549';
+
+function setCachedTwitter(id, data) { twitterCache[id] = data; }
+function getCachedTwitter(id) { return twitterCache[id] || null; }
+
+async function twitterLoop() {
+    while (true) {
+        try {
+            // Fetch ALL mirrors in parallel, merge & deduplicate
+            const results = await Promise.all(NITTER_MIRRORS.map(async (mirror) => {
+                try {
+                    const url = `${mirror}/i/lists/${TWITTER_LIST_ID}/rss`;
+                    const xml = await fetchPage(url, 12000);
+                    if (!xml || xml.length < 500 || !xml.includes('<item>')) return [];
+                    return parseNitterRSS(xml, 'list');
+                } catch (e) { return []; }
+            }));
+            const merged = results.flat();
+            // Deduplicate by status ID
+            const seen = new Map();
+            for (const item of merged) {
+                const id = item.link.match(/status\/(\d+)/)?.[1] || item.title;
+                if (!seen.has(id)) seen.set(id, item);
+            }
+            const unique = Array.from(seen.values());
+            if (unique.length > 0) setCachedTwitter(TWITTER_LIST_ID, unique);
+        } catch (e) { /* silent */ }
+        await new Promise(r => setTimeout(r, 30000)); // 30s between Twitter refreshes
+    }
+}
+
 function fetchPage(targetUrl, timeout = 8000) {
     return new Promise((resolve, reject) => {
         const parsed = new URL(targetUrl);
@@ -146,7 +186,7 @@ function parseNitterRSS(xml, handle) {
             });
         }
     }
-    return posts.slice(0, 15);
+    return posts;
 }
 
 const server = http.createServer(async (req, res) => {
@@ -188,67 +228,16 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        // ─── Twitter endpoint (via Nitter mirrors) ───
+        // ─── Twitter endpoint (instant from cache) ───
         if (parsed.pathname === '/twitter') {
-            const handle = parsed.query.user;
-            if (!handle) {
-                res.writeHead(400);
-                res.end(JSON.stringify({ error: 'Missing ?user=xxx' }));
-                return;
+            const cached = getCachedTwitter(TWITTER_LIST_ID);
+            if (cached) {
+                res.writeHead(200);
+                res.end(JSON.stringify({ ok: true, count: cached.length, items: cached }));
+            } else {
+                res.writeHead(200);
+                res.end(JSON.stringify({ ok: true, count: 0, items: [], warming: true }));
             }
-
-            const mirrors = [
-                'https://nitter.privacydev.net',
-                'https://nitter.poast.org',
-                'https://nitter.cz',
-                'https://nitter.net',
-                'https://nitter.1d4.us'
-            ];
-
-            let posts = [];
-            for (const mirror of mirrors) {
-                try {
-                    const rssUrl = mirror + '/' + handle + '/rss';
-                    const xml = await fetchPage(rssUrl);
-                    if (xml && xml.includes('<item>')) {
-                        posts = parseNitterRSS(xml, handle);
-                        if (posts.length > 0) break;
-                    }
-                } catch (e) {
-                    // Try next mirror
-                    continue;
-                }
-            }
-
-            // If Nitter failed, try scraping X directly (public profile)
-            if (posts.length === 0) {
-                try {
-                    const syndicationUrl = 'https://syndication.twitter.com/srv/timeline-profile/screen-name/' + handle;
-                    const html = await fetchPage(syndicationUrl);
-                    if (html) {
-                        const tweetRe = /<p[^>]*class="[^"]*timeline-Tweet-text[^"]*"[^>]*>([\s\S]*?)<\/p>/g;
-                        let tm;
-                        while ((tm = tweetRe.exec(html)) !== null && posts.length < 10) {
-                            const text = tm[1].replace(/<[^>]+>/g, '').trim();
-                            if (text.length > 5) {
-                                posts.push({
-                                    title: text.substring(0, 250),
-                                    source: 'twitter',
-                                    sourceName: '𝕏 @' + handle,
-                                    pubDate: new Date().toISOString(),
-                                    link: 'https://x.com/' + handle,
-                                    hasMedia: false,
-                                    mediaUrl: null,
-                                    extraLinks: ['https://x.com/' + handle]
-                                });
-                            }
-                        }
-                    }
-                } catch (e) { /* ignore */ }
-            }
-
-            res.writeHead(200);
-            res.end(JSON.stringify({ ok: true, count: posts.length, items: posts }));
             return;
         }
 
@@ -370,7 +359,9 @@ server.listen(PORT, () => {
     console.log('    /health');
     console.log('═══════════════════════════════════════');
 
-    // ── Start nonstop @AjaNews loop ──
+    // ── Start nonstop loops ──
     console.log('[Loop] 🔥 Starting nonstop @AjaNews refresh (every ~2s)...');
     telegramLoop('ajanews');
+    console.log('[Loop] 🐦 Starting nonstop Twitter list refresh (every ~30s)...');
+    twitterLoop();
 });

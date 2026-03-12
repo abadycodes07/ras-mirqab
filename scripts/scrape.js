@@ -30,20 +30,25 @@ const NITTER_INSTANCES = [
 const TWITTER_LIST_ID = '2031445708524421549';
 
 const LOGO_MAP = {
+    // Telegram
     'ajanews': 'aljazeera.png',
-    'ajelnews24': 'ajelnews.jpg',
+    // Twitter list members (all 12)
     'alarabiya_brk': 'alarabiya.png',
     'alarabiya_br': 'alarabiya.png',
-    'skynewsarabia_breaking': 'skynews.png',
-    'skynewsarabia_b': 'skynews.png',
-    'rt_arabic': 'aljazeera.png',
-    'almayadeenlive': 'aljazeera.png',
-    'sabq_news': 'ajelnews.jpg',
-    'alrougui': 'alrougui.jpg',
-    'newsnow4usa': 'newsnow.jpg',
-    'modgovksa': 'modgovksa2.png',
+    'alhadath': 'alhadath.png',
     'asharqnewsbrk': 'asharq.png',
-    'alhadath': 'alhadath.png'
+    'newsnow4usa': 'newsnow.jpg',
+    'rtonline_ar': 'rt.png',
+    'skynewsarabia_b': 'skynews.png',
+    'skynewsarabia_breaking': 'skynews.png',
+    'ajmubasher': 'aljazeera.png',
+    'alekhbariyabrk': 'alekhbariya.png',
+    'alekhbariyanews': 'alekhbariya.png',
+    'alrougui': 'alrougui.jpg',
+    'kbsalsaud': 'kbsalsaud.png',
+    'modgovksa': 'modgovksa2.png',
+    'sabq_news': 'ajelnews.jpg',
+    'ajelnews24': 'ajelnews.jpg'
 };
 
 async function fetchWithTimeout(url, timeout = 15000) {
@@ -134,27 +139,37 @@ async function downloadMedia(url, filename) {
 }
 
 async function scrapeTwitterList() {
-    console.log(`--- Racing Nitter Mirrors for List: ${TWITTER_LIST_ID} ---`);
-    const shuffled = [...NITTER_INSTANCES].sort(() => Math.random() - 0.5);
+    console.log(`--- Fetching ALL Nitter Mirrors for List: ${TWITTER_LIST_ID} ---`);
     
-    const race = shuffled.map(instance => {
-        const url = `${instance}/i/lists/${TWITTER_LIST_ID}/rss`;
-        return fetchWithTimeout(url, 15000).then(html => {
-            if (html.length < 1000) throw new Error('Short');
-            if (html.includes('bot') && html.includes('challenge')) throw new Error('Challenge');
-            if (!html.includes('<item>')) throw new Error('No items');
-            console.log(`✅ Winner Mirror: ${instance}`);
-            return { html, instance };
-        });
+    // Fetch from ALL mirrors in parallel — merge everything for max coverage
+    const fetches = NITTER_INSTANCES.map(async (instance) => {
+        try {
+            const url = `${instance}/i/lists/${TWITTER_LIST_ID}/rss`;
+            const html = await fetchWithTimeout(url, 15000);
+            if (html.length < 1000 || !html.includes('<item>')) return [];
+            if (html.includes('bot') && html.includes('challenge')) return [];
+            const items = parseNitterRSS(html);
+            console.log(`✅ ${instance}: ${items.length} tweets`);
+            return items;
+        } catch (e) {
+            console.log(`⚠️ ${instance}: failed — ${e.message}`);
+            return [];
+        }
     });
 
-    try {
-        const winner = await Promise.any(race);
-        return parseNitterRSS(winner.html);
-    } catch (e) {
-        console.error('❌ All Twitter mirrors failed.');
-        return [];
+    const allResults = await Promise.all(fetches);
+    const merged = allResults.flat();
+    
+    // Deduplicate by tweet GUID (status ID from link)
+    const seen = new Map();
+    for (const item of merged) {
+        const id = item.link.match(/status\/(\d+)/)?.[1] || item.title;
+        if (!seen.has(id)) seen.set(id, item);
     }
+    
+    const unique = Array.from(seen.values());
+    console.log(`📊 Total unique tweets: ${unique.length} (from ${merged.length} raw)`);
+    return unique;
 }
 
 function parseNitterRSS(rss) {
@@ -222,7 +237,7 @@ async function scrapeAll() {
     fs.writeFileSync(OUTPUT_FILE, JSON.stringify({
         updated: new Date().toISOString(),
         count: unique.length,
-        items: unique.slice(0, 60)
+        items: unique.slice(0, 120)
     }, null, 2));
     
     console.log(`✅ Scrape Complete: ${unique.length} items saved.`);

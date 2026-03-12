@@ -142,16 +142,26 @@
         var close = document.getElementById('close-layers');
         var list = document.getElementById('layers-list');
 
-        if (!btn || !modal || !list) return;
+        if (!btn || !modal || !list) {
+            console.warn('Layers UI components missing:', { btn:!!btn, modal:!!modal, list:!!list });
+            return;
+        }
 
         btn.onclick = (e) => {
+            console.log('Layers button clicked');
             e.stopPropagation();
             modal.classList.toggle('hidden');
         };
 
-        close.onclick = () => modal.classList.add('hidden');
+        close.onclick = (e) => {
+            e.stopPropagation();
+            modal.classList.add('hidden');
+        };
+        
         document.addEventListener('click', (e) => {
-            if (!modal.contains(e.target) && e.target !== btn) modal.classList.add('hidden');
+            if (!modal.classList.contains('hidden') && !modal.contains(e.target) && e.target !== btn) {
+                modal.classList.add('hidden');
+            }
         });
 
         // Build list

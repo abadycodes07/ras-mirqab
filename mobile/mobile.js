@@ -1,29 +1,24 @@
 /* ═══════════════════════════════════════════
-   RAS MIRQAB — MOBILE JS
-   Standalone mobile logic, shares backend data
+   RAS MIRQAB — MOBILE JS v2
+   Uses desktop globe.js directly, adds mobile-specific UI
    ═══════════════════════════════════════════ */
-
 (function () {
     'use strict';
 
-    var PROXY_BASE = 'https://ras-mirqab-proxy.onrender.com';
-    var STATIC_CACHE = '../public/data/news-live.json';
-    var seenLinks = new Set();
+    var PROXY = 'https://ras-mirqab-proxy.onrender.com';
+    var STATIC = '../public/data/news-live.json';
+    var seenKeys = new Set();
     var allNews = [];
 
-    // ═══════════════════════════════════════
-    // LOGO MAP (same as backend)
-    // ═══════════════════════════════════════
-    var LOGO_MAP = {
+    // ═══ LOGO MAP ═══
+    var LOGOS = {
         'ajanews': '../public/logos/aljazeera.png',
         'alarabiya_brk': '../public/logos/alarabiya.png',
-        'alarabiya_br': '../public/logos/alarabiya.png',
         'alhadath': '../public/logos/alhadath.png',
         'asharqnewsbrk': '../public/logos/asharq.png',
         'newsnow4usa': '../public/logos/newsnow.jpg',
         'rtonline_ar': '../public/logos/rt.png',
         'skynewsarabia_b': '../public/logos/skynews.png',
-        'skynewsarabia_breaking': '../public/logos/skynews.png',
         'ajmubasher': '../public/logos/aljazeera.png',
         'alekhbariyabrk': '../public/logos/alekhbariya.png',
         'alekhbariyanews': '../public/logos/alekhbariya.png',
@@ -32,241 +27,303 @@
         'modgovksa': '../public/logos/modgovksa2.png'
     };
 
-    // ═══════════════════════════════════════
-    // NEWS FETCHING
-    // ═══════════════════════════════════════
-    function getAvatar(item) {
-        if (item.customAvatar) return '../' + item.customAvatar;
-        var handle = (item.handle || '').toLowerCase();
-        return LOGO_MAP[handle] || '../public/logos/aljazeera.png';
-    }
+    // ═══ LIVE TV CHANNELS (same as desktop) ═══
+    var TV_CHANNELS = [
+        { key: 'aljazeera', name: 'الجزيرة', videoId: 'bNyUyrR0PHo', logo: '../public/logos/aljazeera.png' },
+        { key: 'alarabiya', name: 'العربية', videoId: 'n7eQejkXbnM', logo: '../public/logos/alarabiya.png' },
+        { key: 'skynews', name: 'سكاي نيوز', videoId: 'U--OjmpjF5o', logo: '../public/logos/skynews.png' },
+        { key: 'alhadath', name: 'الحدث', videoId: 'xWXpl7azI8k', logo: '../public/logos/alhadath.png' },
+        { key: 'france24', name: 'France 24', videoId: '3ursYA8HMeo', logo: null },
+        { key: 'bbc', name: 'BBC عربي', videoId: 'L8QJYzS9ezI', logo: null },
+        { key: 'aljazeera-en', name: 'AJ English', videoId: '-jvLzK_OasE', logo: '../public/logos/aljazeera.png' },
+        { key: 'trt', name: 'TRT World', videoId: 'p0m0h94C0f8', logo: null },
+        { key: 'asharq', name: 'الشرق', videoId: 'S_fU10Q7lXg', logo: '../public/logos/asharq.png' },
+        { key: 'bloomberg', name: 'Bloomberg', videoId: 'dp8PhLsUcFE', logo: null },
+    ];
+    var currentTV = 0; // Al Jazeera first
 
-    function getThumb(item) {
+    // ═══ HELPERS ═══
+    function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function avatar(item) {
+        if (item.customAvatar) return '../' + item.customAvatar;
+        return LOGOS[(item.handle || '').toLowerCase()] || '../public/logos/aljazeera.png';
+    }
+    function thumb(item) {
         if (item.localMedia) return '../' + item.localMedia;
         if (item.mediaUrl) return item.mediaUrl;
-        // If no media, use the source avatar as thumbnail
-        return getAvatar(item);
+        return avatar(item);
+    }
+    function timeAgo(d) {
+        var m = Math.floor((Date.now() - new Date(d)) / 60000);
+        if (m < 1) return 'الآن';
+        if (m < 60) return m + ' د';
+        var h = Math.floor(m / 60);
+        return h < 24 ? h + ' س' : Math.floor(h / 24) + ' ي';
+    }
+    function timeStr(d) {
+        return new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     }
 
-    function timeAgo(dateStr) {
-        var now = new Date();
-        var d = new Date(dateStr);
-        var diff = Math.floor((now - d) / 60000); // minutes
-        if (diff < 1) return 'الآن';
-        if (diff < 60) return diff + ' د';
-        var hours = Math.floor(diff / 60);
-        if (hours < 24) return hours + ' س';
-        return Math.floor(hours / 24) + ' ي';
+    // ═══ GLOBE (use desktop RasMirqabGlobe) ═══
+    function initGlobe() {
+        // The desktop globe.js is already loaded and will call RasMirqabGlobe.init()
+        // We just need to make sure the containers exist (they do in our HTML)
+        if (window.RasMirqabGlobe) {
+            RasMirqabGlobe.init();
+        }
+    }
+
+    // ═══ LAYER PANELS ═══
+    function initLayerPanels() {
+        var leftPanel = document.getElementById('panel-left');
+        var rightPanel = document.getElementById('panel-right');
+        if (!leftPanel || !rightPanel || !window.RasMirqabData || !RasMirqabData.categories) return;
+
+        var keys = Object.keys(RasMirqabData.categories);
+        var half = Math.ceil(keys.length / 2);
+
+        keys.forEach(function (key, i) {
+            var cat = RasMirqabData.categories[key];
+            var lbl = document.createElement('label');
+            var cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.id = 'layer-' + key;
+            cb.checked = cat.default !== false;
+            cb.addEventListener('change', function () {
+                // Trigger globe update
+                if (window.RasMirqabGlobe) {
+                    RasMirqabGlobe.init && document.getElementById('globe-container') && RasMirqabGlobe.init();
+                }
+            });
+
+            var dot = document.createElement('span');
+            dot.className = 'layer-dot';
+            dot.style.background = cat.color;
+            dot.style.boxShadow = '0 0 4px ' + cat.color;
+
+            lbl.appendChild(cb);
+            lbl.appendChild(dot);
+            lbl.appendChild(document.createTextNode(' ' + cat.emoji + ' ' + cat.labelAr));
+
+            (i < half ? rightPanel : leftPanel).appendChild(lbl);
+        });
+    }
+
+    // ═══ HIDE / SHOW MAP ═══
+    function initHideMap() {
+        var btn = document.getElementById('btn-hide-map');
+        var section = document.getElementById('globe-section');
+        var visible = true;
+
+        btn.addEventListener('click', function () {
+            visible = !visible;
+            if (visible) {
+                section.style.height = '';
+                section.style.minHeight = '';
+                section.querySelectorAll('.layer-panel, .globe-bar, .auto-refresh, #globe-container, #map-container').forEach(function (el) {
+                    el.style.display = '';
+                });
+                btn.textContent = 'Hide Map 🗺';
+            } else {
+                section.style.height = '0';
+                section.style.minHeight = '0';
+                section.querySelectorAll('.layer-panel, .globe-bar, .auto-refresh, #globe-container, #map-container').forEach(function (el) {
+                    el.style.display = 'none';
+                });
+                btn.textContent = 'Show Map 🗺';
+            }
+        });
+
+        // 2D / 3D
+        document.getElementById('btn-2d').addEventListener('click', function () {
+            document.getElementById('btn-2d').classList.add('active');
+            document.getElementById('btn-3d').classList.remove('active');
+            if (window.RasMirqabGlobe) RasMirqabGlobe.toggle();
+        });
+        document.getElementById('btn-3d').addEventListener('click', function () {
+            document.getElementById('btn-3d').classList.add('active');
+            document.getElementById('btn-2d').classList.remove('active');
+            if (window.RasMirqabGlobe) RasMirqabGlobe.toggle();
+        });
+    }
+
+    // ═══ NEWS ═══
+    function merge(items) {
+        for (var i = 0; i < items.length; i++) {
+            var k = items[i].link || items[i].title;
+            if (!seenKeys.has(k)) { seenKeys.add(k); allNews.push(items[i]); }
+        }
     }
 
     function renderNews() {
         var list = document.getElementById('news-list');
-        if (!list || allNews.length === 0) return;
-
-        // Sort by date descending
+        if (!list || !allNews.length) return;
         allNews.sort(function (a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
 
         var html = '';
-        var shown = allNews.slice(0, 30);
+        var shown = allNews.slice(0, 40);
         for (var i = 0; i < shown.length; i++) {
-            var item = shown[i];
-            var avatar = getAvatar(item);
-            var thumb = getThumb(item);
-            var sourceName = item.customName || item.sourceName || item.handle || '';
-            var time = timeAgo(item.pubDate);
-            var sourceClass = item.source === 'telegram' ? 'tg' : 'tw';
-
-            html += '<div class="news-item" onclick="window.open(\'' + (item.link || '#') + '\', \'_blank\')">'
-                + '<div style="flex:1;min-width:0">'
-                + '<div class="news-text">' + escHtml(item.title) + '</div>'
+            var it = shown[i];
+            var av = avatar(it);
+            var th = thumb(it);
+            var t = timeStr(it.pubDate);
+            html += '<div class="news-item" data-idx="' + i + '">'
+                + '<div class="news-content">'
+                + '<div class="news-text">' + esc(it.title) + '</div>'
                 + '<div class="news-meta">'
-                + '<img class="news-source-avatar" src="' + avatar + '" onerror="this.src=\'../public/logos/aljazeera.png\'">'
-                + '<span class="news-source">' + escHtml(sourceName) + '</span>'
-                + '<span class="news-time">' + time + '</span>'
+                + '<img class="news-avatar" src="' + av + '" onerror="this.src=\'../public/logos/aljazeera.png\'">'
+                + '<span class="news-src">' + esc(it.customName || it.sourceName || it.handle || '') + '</span>'
+                + '<span class="news-time">' + t + '</span>'
                 + '</div></div>'
-                + '<img class="news-thumb" src="' + thumb + '" onerror="this.src=\'' + avatar + '\'" loading="lazy">'
+                + '<img class="news-thumb" src="' + th + '" onerror="this.src=\'' + av + '\'" loading="lazy">'
                 + '</div>';
         }
         list.innerHTML = html;
-    }
 
-    function escHtml(s) {
-        if (!s) return '';
-        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function mergeItems(newItems) {
-        for (var i = 0; i < newItems.length; i++) {
-            var key = newItems[i].link || newItems[i].title;
-            if (!seenLinks.has(key)) {
-                seenLinks.add(key);
-                allNews.push(newItems[i]);
-            }
-        }
-    }
-
-    // Fetch Telegram from proxy (real-time)
-    function fetchTelegram() {
-        fetch(PROXY_BASE + '/telegram?channel=ajanews')
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data.ok && data.items) {
-                    mergeItems(data.items);
-                    renderNews();
-                }
-            })
-            .catch(function () { /* silent */ });
-    }
-
-    // Fetch Twitter from static cache
-    function fetchTwitter() {
-        fetch(STATIC_CACHE + '?t=' + Date.now())
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data && data.items) {
-                    mergeItems(data.items);
-                    renderNews();
-                }
-            })
-            .catch(function () { /* silent */ });
-    }
-
-    function loadNews() {
-        fetchTelegram();
-        fetchTwitter();
-    }
-
-    // ═══════════════════════════════════════
-    // GLOBE
-    // ═══════════════════════════════════════
-    function initGlobe() {
-        var container = document.getElementById('globe-container');
-        if (!container || typeof Globe === 'undefined') return;
-
-        var globe = Globe()
-            .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
-            .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-            .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
-            .showAtmosphere(true)
-            .atmosphereColor('#4488cc')
-            .atmosphereAltitude(0.15)
-            .width(container.offsetWidth)
-            .height(container.offsetHeight)
-            (container);
-
-        // Focus on Middle East
-        globe.pointOfView({ lat: 26, lng: 46, altitude: 2.2 }, 0);
-
-        // Auto-rotate
-        globe.controls().autoRotate = true;
-        globe.controls().autoRotateSpeed = 0.3;
-        globe.controls().enableZoom = false;
-
-        // Resize handler
-        window.addEventListener('resize', function () {
-            globe.width(container.offsetWidth);
-            globe.height(container.offsetHeight);
-        });
-
-        // Hide map button
-        var hideBtn = document.getElementById('btn-hide-map');
-        var visible = true;
-        if (hideBtn) {
-            hideBtn.onclick = function () {
-                visible = !visible;
-                container.style.display = visible ? 'block' : 'none';
-                hideBtn.textContent = visible ? 'Hide Map 🗺' : 'Show Map 🗺';
-            };
-        }
-    }
-
-    // ═══════════════════════════════════════
-    // WORLD CLOCKS
-    // ═══════════════════════════════════════
-    function updateClocks() {
-        var now = new Date();
-        var fmt = function (tz) {
-            return now.toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: true });
+        // Click to open popup
+        list.onclick = function (e) {
+            var item = e.target.closest('.news-item');
+            if (!item) return;
+            var idx = parseInt(item.dataset.idx);
+            openNewsPopup(shown[idx]);
         };
-        var el;
-        el = document.getElementById('clock-riyadh');
-        if (el) el.textContent = fmt('Asia/Riyadh');
-        el = document.getElementById('clock-nyc');
-        if (el) el.textContent = fmt('America/New_York');
-        el = document.getElementById('clock-london');
-        if (el) el.textContent = fmt('Europe/London');
     }
 
-    // ═══════════════════════════════════════
-    // GOLD PRICE (same as desktop)
-    // ═══════════════════════════════════════
-    function fetchGold() {
-        // Use TradingView widget data or a free API
-        fetch('https://api.metalpriceapi.com/v1/latest?api_key=demo&base=USD&currencies=XAU')
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (data && data.rates && data.rates.XAU) {
-                    var price = (1 / data.rates.XAU).toFixed(3);
-                    var el = document.getElementById('gold-price');
-                    if (el) el.textContent = Number(price).toLocaleString();
-                }
-            })
-            .catch(function () {
-                // Fallback price
-                var el = document.getElementById('gold-price');
-                if (el) el.textContent = '5,163.795';
-                var ch = document.getElementById('gold-change');
-                if (ch) ch.textContent = '(90.120) 1.77%';
-            });
-    }
+    function openNewsPopup(item) {
+        var popup = document.getElementById('news-popup');
+        var body = document.getElementById('popup-body');
+        if (!popup || !body) return;
 
-    // ═══════════════════════════════════════
-    // HARD SYNC
-    // ═══════════════════════════════════════
-    function setupHardSync() {
-        var btn = document.getElementById('btn-hard-sync');
-        if (btn) {
-            btn.onclick = function () {
-                seenLinks.clear();
-                allNews = [];
-                document.getElementById('news-list').innerHTML = '<div class="news-loading">جاري إعادة التحميل...</div>';
-                loadNews();
-                btn.textContent = '✓ synced';
-                setTimeout(function () { btn.textContent = 'hard sync'; }, 2000);
-            };
+        var av = avatar(item);
+        var mediaHtml = '';
+        var mediaUrl = item.localMedia ? '../' + item.localMedia : item.mediaUrl;
+        if (mediaUrl) {
+            mediaHtml = '<img class="popup-media" src="' + mediaUrl + '" onerror="this.style.display=\'none\'">';
         }
+
+        body.innerHTML =
+            '<div class="popup-title">' + esc(item.title) + '</div>'
+            + '<div class="popup-meta">'
+            + '<img class="popup-src-avatar" src="' + av + '">'
+            + '<span class="popup-src-name">' + esc(item.customName || item.sourceName || '') + '</span>'
+            + '<span class="popup-src-time">' + timeAgo(item.pubDate) + '</span>'
+            + '</div>'
+            + mediaHtml
+            + (item.link ? '<a href="' + item.link + '" target="_blank" style="display:block;margin-top:12px;color:var(--accent);font-size:13px">فتح المصدر ↗</a>' : '');
+
+        popup.classList.remove('hidden');
     }
 
-    // ═══════════════════════════════════════
-    // BOTTOM NAV
-    // ═══════════════════════════════════════
-    function setupNav() {
-        var items = document.querySelectorAll('.nav-item');
-        items.forEach(function (item) {
-            item.addEventListener('click', function (e) {
-                e.preventDefault();
-                items.forEach(function (i) { i.classList.remove('active'); });
-                item.classList.add('active');
-            });
+    function initPopup() {
+        var popup = document.getElementById('news-popup');
+        document.getElementById('popup-close').onclick = function () { popup.classList.add('hidden'); };
+        popup.querySelector('.popup-overlay').onclick = function () { popup.classList.add('hidden'); };
+    }
+
+    function fetchTelegram() {
+        fetch(PROXY + '/telegram?channel=ajanews')
+            .then(function (r) { return r.json(); })
+            .then(function (d) { if (d.ok && d.items) { merge(d.items); renderNews(); } })
+            .catch(function () {});
+    }
+    function fetchTwitter() {
+        fetch(STATIC + '?t=' + Date.now())
+            .then(function (r) { return r.json(); })
+            .then(function (d) { if (d && d.items) { merge(d.items); renderNews(); } })
+            .catch(function () {});
+    }
+    function loadNews() { fetchTelegram(); fetchTwitter(); }
+
+    // ═══ LIVE TV ═══
+    function initTV() {
+        renderTVCarousel();
+        playChannel(0); // Al Jazeera first, autoplay with audio
+    }
+
+    function renderTVCarousel() {
+        var carousel = document.getElementById('tv-carousel');
+        if (!carousel) return;
+        var html = '';
+        TV_CHANNELS.forEach(function (ch, i) {
+            var imgSrc = ch.logo || ('https://img.youtube.com/vi/' + ch.videoId + '/mqdefault.jpg');
+            html += '<div class="tv-card' + (i === currentTV ? ' active' : '') + '" data-idx="' + i + '">'
+                + '<div class="live-dot"></div>'
+                + '<img src="' + imgSrc + '" alt="' + ch.name + '">'
+                + '<div class="ch-name">' + ch.name + '</div>'
+                + '</div>';
+        });
+        carousel.innerHTML = html;
+
+        carousel.onclick = function (e) {
+            var card = e.target.closest('.tv-card');
+            if (!card) return;
+            playChannel(parseInt(card.dataset.idx));
+        };
+    }
+
+    function playChannel(idx) {
+        currentTV = idx;
+        var ch = TV_CHANNELS[idx];
+        var player = document.getElementById('tv-player');
+        if (player) {
+            player.src = 'https://www.youtube.com/embed/' + ch.videoId + '?autoplay=1&mute=0&rel=0&playsinline=1';
+        }
+        // Update active state
+        var cards = document.querySelectorAll('.tv-card');
+        cards.forEach(function (c, i) {
+            c.classList.toggle('active', i === idx);
         });
     }
 
-    // ═══════════════════════════════════════
-    // INIT
-    // ═══════════════════════════════════════
-    function init() {
-        loadNews();
-        setInterval(loadNews, 1000); // 1-second polling
+    // ═══ CLOCKS ═══
+    function updateClocks() {
+        var fmt = function (tz) {
+            return new Date().toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: true });
+        };
+        var e;
+        e = document.getElementById('clk-riyadh'); if (e) e.textContent = fmt('Asia/Riyadh');
+        e = document.getElementById('clk-nyc'); if (e) e.textContent = fmt('America/New_York');
+        e = document.getElementById('clk-london'); if (e) e.textContent = fmt('Europe/London');
+    }
 
+    // ═══ HARD SYNC ═══
+    function initSync() {
+        var btn = document.getElementById('btn-hard-sync');
+        if (btn) btn.onclick = function () {
+            seenKeys.clear(); allNews = [];
+            document.getElementById('news-list').innerHTML = '<div class="news-loading">جاري إعادة التحميل...</div>';
+            loadNews();
+            btn.textContent = '✓ synced';
+            setTimeout(function () { btn.textContent = 'hard sync'; }, 2000);
+        };
+    }
+
+    // ═══ BOTTOM NAV ═══
+    function initNav() {
+        document.getElementById('bottom-nav').onclick = function (e) {
+            var item = e.target.closest('.nav-item');
+            if (!item) return;
+            e.preventDefault();
+            document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
+            item.classList.add('active');
+        };
+    }
+
+    // ═══ INIT ═══
+    function init() {
         initGlobe();
+        initLayerPanels();
+        initHideMap();
+        initPopup();
+        initSync();
+        initNav();
+        initTV();
+
+        loadNews();
+        setInterval(loadNews, 1000);
+
         updateClocks();
         setInterval(updateClocks, 1000);
-        
-        fetchGold();
-        setInterval(fetchGold, 60000);
-
-        setupHardSync();
-        setupNav();
     }
 
     if (document.readyState === 'loading') {

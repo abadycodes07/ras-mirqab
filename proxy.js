@@ -34,43 +34,134 @@ async function telegramLoop(handle) {
     }
 }
 
-// ══════ Nonstop Twitter Cache ══════
-const twitterCache = {};  // { listId: posts[] }
-const NITTER_MIRRORS = [
-    'https://nitter.perennialte.ch',
-    'https://xcancel.com',
-    'https://nitter.unixfox.eu',
-    'https://nitter.poast.org',
-    'https://nitter.cz'
-];
+// ══════ Nonstop Twitter Cache (via syndication.twitter.com) ══════
+const twitterListCache = [];  // merged tweets from all list members
 const TWITTER_LIST_ID = '2031445708524421549';
 
-function setCachedTwitter(id, data) { twitterCache[id] = data; }
-function getCachedTwitter(id) { return twitterCache[id] || null; }
+// All members of the Twitter list
+const LIST_MEMBERS = [
+    { handle: 'alarabiya_brk', name: 'العربية عاجل', logo: 'public/logos/alarabiya.png' },
+    { handle: 'Alhadath_Brk', name: 'الحدث عاجل', logo: 'public/logos/alhadath.png' },
+    { handle: 'AsharqNewsBrk', name: 'الشرق عاجل', logo: 'public/logos/asharq.png' },
+    { handle: 'NewsNow4USA', name: 'الأخبار الآن', logo: 'public/logos/newsnow.jpg' },
+    { handle: 'RTOnline_AR', name: 'آر تي عربي', logo: 'public/logos/rt.png' },
+    { handle: 'skynewsarabia_b', name: 'سكاي نيوز عاجل', logo: 'public/logos/skynews.png' },
+    { handle: 'AJABreaking', name: 'الجزيرة عاجل', logo: 'public/logos/aljazeera.png' },
+    { handle: 'AleijaBRK', name: 'الإخبارية عاجل', logo: 'public/logos/alekhbariya.png' },
+    { handle: 'alrougui', name: 'مالك الروقي', logo: 'public/logos/alrougui.jpg' },
+    { handle: 'KBSalsaud', name: 'وكالة الأنباء السعودية', logo: 'public/logos/kbsalsaud.png' },
+    { handle: 'modaborsa', name: 'وزارة الدفاع', logo: 'public/logos/modgovksa2.png' },
+    { handle: 'AJELNEWS24', name: 'عاجل 24', logo: 'public/logos/ajelnews.jpg' }
+];
 
-async function twitterLoop() {
-    while (true) {
-        try {
-            // Fetch ALL mirrors in parallel, merge & deduplicate
-            const results = await Promise.all(NITTER_MIRRORS.map(async (mirror) => {
-                try {
-                    const url = `${mirror}/i/lists/${TWITTER_LIST_ID}/rss`;
-                    const xml = await fetchPage(url, 12000);
-                    if (!xml || xml.length < 500 || !xml.includes('<item>')) return [];
-                    return parseNitterRSS(xml, 'list');
-                } catch (e) { return []; }
-            }));
-            const merged = results.flat();
-            // Deduplicate by status ID
-            const seen = new Map();
-            for (const item of merged) {
-                const id = item.link.match(/status\/(\d+)/)?.[1] || item.title;
-                if (!seen.has(id)) seen.set(id, item);
+// Parse syndication.twitter.com response to extract tweets
+function parseSyndicationPage(html, member) {
+    const tweets = [];
+    try {
+        const dataMatch = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+        if (!dataMatch) return tweets;
+        
+        const json = JSON.parse(dataMatch[1]);
+        const entries = json?.props?.pageProps?.timeline?.entries || [];
+        
+        for (const entry of entries) {
+            if (entry.type !== 'tweet') continue;
+            const tw = entry.content?.tweet;
+            if (!tw) continue;
+            
+            const text = tw.full_text || tw.text || '';
+            if (!text || text.startsWith('RT @')) continue; // Skip retweets
+            
+            // Clean text: remove t.co links
+            const cleanText = text.replace(/https?:\/\/t\.co\/\S+/g, '').trim();
+            if (cleanText.length < 5) continue;
+            
+            // Get media
+            let mediaUrl = null;
+            const media = tw.entities?.media || [];
+            const extMedia = tw.extended_entities?.media || [];
+            const allMedia = extMedia.length > 0 ? extMedia : media;
+            if (allMedia.length > 0) {
+                const m = allMedia[0];
+                if (m.type === 'photo') {
+                    mediaUrl = m.media_url_https + '?format=jpg&name=small';
+                } else if (m.type === 'video' || m.type === 'animated_gif') {
+                    mediaUrl = m.media_url_https + '?format=jpg&name=small'; // thumbnail
+                }
             }
+            
+            const handle = tw.user?.screen_name || member.handle;
+            
+            tweets.push({
+                title: cleanText.substring(0, 500),
+                source: 'twitter',
+                sourceName: member.name || ('𝕏 @' + handle),
+                handle: handle.toLowerCase(),
+                pubDate: tw.created_at ? new Date(tw.created_at).toISOString() : new Date().toISOString(),
+                link: `https://x.com/${handle}/status/${tw.id_str}`,
+                hasMedia: !!mediaUrl,
+                mediaUrl: mediaUrl,
+                customAvatar: member.logo,
+                customName: member.name,
+                extraLinks: []
+            });
+        }
+    } catch (e) {
+        console.error(`[Syndication Parse Error] ${member.handle}: ${e.message}`);
+    }
+    return tweets;
+}
+
+// Fetch a single user's timeline from syndication.twitter.com
+async function fetchUserSyndication(member) {
+    try {
+        const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${member.handle}`;
+        const html = await fetchPage(url, 10000);
+        if (!html || html.length < 500) return [];
+        const tweets = parseSyndicationPage(html, member);
+        if (tweets.length > 0) {
+            console.log(`  ✅ @${member.handle}: ${tweets.length} tweets`);
+        }
+        return tweets;
+    } catch (e) {
+        console.log(`  ⚠️ @${member.handle}: ${e.message}`);
+        return [];
+    }
+}
+
+async function twitterListLoop() {
+    let cycle = 0;
+    while (true) {
+        cycle++;
+        const start = Date.now();
+        console.log(`\n[Twitter List] Cycle #${cycle} — Fetching ${LIST_MEMBERS.length} accounts...`);
+        
+        try {
+            // Fetch ALL members in parallel for maximum speed
+            const results = await Promise.all(LIST_MEMBERS.map(fetchUserSyndication));
+            const allTweets = results.flat();
+            
+            // Deduplicate by tweet ID
+            const seen = new Map();
+            for (const tw of allTweets) {
+                const id = tw.link.match(/status\/(\d+)/)?.[1] || tw.title.substring(0, 50);
+                if (!seen.has(id)) seen.set(id, tw);
+            }
+            
             const unique = Array.from(seen.values());
-            if (unique.length > 0) setCachedTwitter(TWITTER_LIST_ID, unique);
-        } catch (e) { /* silent */ }
-        await new Promise(r => setTimeout(r, 30000)); // 30s between Twitter refreshes
+            unique.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+            
+            // Update cache atomically
+            twitterListCache.length = 0;
+            twitterListCache.push(...unique);
+            
+            const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+            console.log(`[Twitter List] ✅ ${unique.length} unique tweets cached in ${elapsed}s`);
+        } catch (e) {
+            console.error(`[Twitter List] Error: ${e.message}`);
+        }
+        
+        await new Promise(r => setTimeout(r, 15000)); // 15s between refreshes
     }
 }
 
@@ -229,11 +320,10 @@ const server = http.createServer(async (req, res) => {
         }
 
         // ─── Twitter endpoint (instant from cache) ───
-        if (parsed.pathname === '/twitter') {
-            const cached = getCachedTwitter(TWITTER_LIST_ID);
-            if (cached) {
+        if (parsed.pathname === '/twitter' || parsed.pathname === '/twitter-list') {
+            if (twitterListCache.length > 0) {
                 res.writeHead(200);
-                res.end(JSON.stringify({ ok: true, count: cached.length, items: cached }));
+                res.end(JSON.stringify({ ok: true, count: twitterListCache.length, items: twitterListCache }));
             } else {
                 res.writeHead(200);
                 res.end(JSON.stringify({ ok: true, count: 0, items: [], warming: true }));
@@ -355,13 +445,13 @@ server.listen(PORT, () => {
     console.log('');
     console.log('  Endpoints:');
     console.log('    /telegram?channel=ajanews');
-    console.log('    /twitter?user=alrougui');
+    console.log('    /twitter  (or /twitter-list)');
     console.log('    /health');
     console.log('═══════════════════════════════════════');
 
     // ── Start nonstop loops ──
     console.log('[Loop] 🔥 Starting nonstop @AjaNews refresh (every ~2s)...');
     telegramLoop('ajanews');
-    console.log('[Loop] 🐦 Starting nonstop Twitter list refresh (every ~30s)...');
-    twitterLoop();
+    console.log('[Loop] 🐦 Starting nonstop Twitter list refresh (every ~15s via syndication.twitter.com)...');
+    twitterListLoop();
 });

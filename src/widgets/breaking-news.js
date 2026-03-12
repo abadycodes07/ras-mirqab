@@ -12,6 +12,8 @@ var BreakingNewsWidget = (function () {
     var seenIds = new Set();
     var isFirstLoad = true;
     var settingsOpen = false;
+    var toggledTimes = new Set();
+    var lastFetchedItems = [];
 
     function getSources() {
         try {
@@ -22,6 +24,24 @@ var BreakingNewsWidget = (function () {
 
     function saveSources(arr) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+    }
+
+    function timeAgoAr(dateStr) {
+        var diff = Date.now() - new Date(dateStr);
+        var s = Math.floor(diff / 1000);
+        if (s < 1) return 'الآن';
+        if (s < 60) return 'قبل ' + s + ' ثانية';
+        var m = Math.floor(s / 60);
+        if (m === 1) return 'قبل دقيقة';
+        if (m < 11) return 'قبل ' + m + ' دقائق';
+        if (m < 60) return 'قبل ' + m + ' دقيقة';
+        var h = Math.floor(m / 60);
+        if (h === 1) return 'قبل ساعة';
+        if (h < 11) return 'قبل ' + h + ' ساعات';
+        if (h < 24) return 'قبل ' + h + ' ساعة';
+        var d = Math.floor(h / 24);
+        if (d === 1) return 'قبل يوم';
+        return 'قبل ' + d + ' أيام';
     }
 
     function render() {
@@ -103,10 +123,19 @@ var BreakingNewsWidget = (function () {
         }
 
         renderSourceList();
-        loadNews();
+        loadNews(); // Initial fetch & render
 
         if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(loadNews, 1000);
+        // Refresh UI EVERY second for the "seconds ago" to update smoothly
+        refreshTimer = setInterval(function() {
+            var container = document.getElementById('breaking-news-body');
+            if (container && lastFetchedItems.length > 0) {
+                renderItems(container, lastFetchedItems);
+            }
+        }, 1000);
+        
+        // Fetch fresh data every 15 seconds (matches proxy refresh rate)
+        setInterval(loadNews, 15000);
         
         checkProxyStatus();
     }
@@ -213,6 +242,7 @@ var BreakingNewsWidget = (function () {
         }
 
         isFirstLoad = false;
+        lastFetchedItems = items;
         renderItems(container, items);
         checkProxyStatus();
     }
@@ -230,23 +260,20 @@ var BreakingNewsWidget = (function () {
         // Always attempt proxy fetch — don't gate on health check (cold starts cause false negatives)
         {
             var targetSources = [
-                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png', name: 'الجزيرة عاجل' },
-                { type: 'twitter', handle: 'alrougui', avatar: 'public/logos/alrougui.jpg' },
-                { type: 'twitter', handle: 'NewsNow4USA', avatar: 'public/logos/newsnow.jpg' }
+                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png', name: 'الجزيرة عاجل' }
             ];
 
-            // Add user-added sources
+            // Add user-added sources (telegram only — Twitter is handled by /twitter endpoint)
             var userSources = getSources();
             userSources.forEach(function(us) {
-                if (!targetSources.some(function(ts) { return ts.handle === us.handle; })) {
+                if (us.type === 'telegram' && !targetSources.some(function(ts) { return ts.handle === us.handle; })) {
                     targetSources.push(us);
                 }
             });
 
             var proxyPromises = targetSources.map(function (s) {
-                // High-speed fetch for core sources (ajanews)
                 var isCore = s.handle === 'ajanews';
-                var url = PROXY_BASE + (s.type === 'telegram' ? '/telegram?channel=' : '/twitter?user=') + encodeURIComponent(s.handle);
+                var url = PROXY_BASE + '/telegram?channel=' + encodeURIComponent(s.handle);
                 if (isCore) url += '&fast=true';
                 
                 return fetch(url).then(r => r.json()).then(d => {
@@ -258,6 +285,14 @@ var BreakingNewsWidget = (function () {
                     return fetched;
                 }).catch(() => []);
             });
+
+            // Fetch ALL twitter list tweets in a single call (12 accounts combined)
+            proxyPromises.push(
+                fetch(PROXY_BASE + '/twitter').then(r => r.json()).then(d => {
+                    return (d.items || []);
+                }).catch(() => [])
+            );
+
             try {
                 var results = await Promise.all(proxyPromises);
                 results.forEach(arr => {
@@ -273,8 +308,17 @@ var BreakingNewsWidget = (function () {
     function renderItems(container, items) {
         container.innerHTML = '';
         items.forEach(function (item) {
-            var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            var id = (item.link || '') + (item.title ? item.title.substring(0, 50) : item.pubDate);
+            var isToggled = toggledTimes.has(id);
+            
+            var relativeTime = timeAgoAr(item.pubDate);
+            var absoluteTime = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            
+            var displayTime = isToggled ? absoluteTime : relativeTime;
             var highlightClass = item.isNew ? ' news-item-new' : '';
+            
+            var itemEl = document.createElement('div');
+            itemEl.className = 'news-item' + highlightClass;
             
             // Premium Platform Icons
             var twitterIcon = '<svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.045 4.126H5.078z"/></svg>';
@@ -282,8 +326,6 @@ var BreakingNewsWidget = (function () {
             var platformIcon = item.source === 'twitter' ? twitterIcon : (item.source === 'telegram' ? telegramIcon : '');
             var platformColor = item.source === 'twitter' ? '#ffffff' : (item.source === 'telegram' ? '#24a1de' : '#666');
 
-            var itemEl = document.createElement('div');
-            itemEl.className = 'news-item' + highlightClass;
             itemEl.style = 'padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; display:flex; flex-direction:row-reverse; align-items:center; gap:12px; transition: background 0.2s;';
             itemEl.onclick = function() { window.open(item.link, '_blank'); };
             
@@ -318,10 +360,21 @@ var BreakingNewsWidget = (function () {
                 '<img src="' + avatarPath + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.1);" onerror="this.src=\'public/logos/aljazeera.png\'" />' +
                 '<div style="position:absolute; bottom:-4px; right:-4px; width:15px; height:15px; border-radius:50%; background:#111; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:' + platformColor + ';">' + platformIcon + '</div>' +
                 '</div>' +
-                '<div style="font-size:10px; color:#555; font-weight:600; font-family:\'Orbitron\', sans-serif;">' + timeStr + '</div>' +
+                '<div class="news-item-time" style="font-size:10px; color:#555; font-weight:600; font-family:\'Orbitron\', sans-serif; cursor:pointer; text-decoration:underline dashed rgba(255,255,255,0.1);" title="اضغط لتبديل عرض الوقت">' + displayTime + '</div>' +
                 '</div>';
 
             itemEl.innerHTML = thumbnailHtml + contentHtml + logoHtml;
+
+            // Handle time toggle click
+            var timeBtn = itemEl.querySelector('.news-item-time');
+            if (timeBtn) {
+                timeBtn.onclick = function(e) {
+                    e.stopPropagation();
+                    if (toggledTimes.has(id)) toggledTimes.delete(id);
+                    else toggledTimes.add(id);
+                    renderItems(container, items); // Re-render immediately with new state
+                };
+            }
 
             // Hover preview support (on larger screen)
             itemEl.addEventListener('mouseenter', function (e) {
@@ -336,7 +389,7 @@ var BreakingNewsWidget = (function () {
                     '<div class="bn-popup-text" style="font-size:13.5px; line-height:1.6; margin-bottom:10px; color:#fff; font-family:\'Tajawal\', sans-serif;">' + (item.title || item.text || '') + '</div>' +
                     '<div class="bn-popup-meta" style="font-size:9px; color:#666; display:flex; justify-content:space-between; font-family:\'Inter\', sans-serif; text-transform:uppercase;">' +
                     '  <span>Source: ' + (item.customName || item.sourceName || item.source) + '</span>' +
-                    '  <span>' + timeStr + '</span>' +
+                    '  <span>' + displayTime + '</span>' +
                     '</div>';
                 
                 popupEl.classList.add('active');

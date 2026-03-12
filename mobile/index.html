@@ -5,23 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0a0e17">
+  <meta name="theme-color" content="#000000">
   <title>راس مرقاب — رصد الأخبار العالمية</title>
-  <meta name="description" content="منصة رصد الأخبار العاجلة والتحليلات الجيوسياسية">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="../public/logo.png">
   <link rel="stylesheet" href="mobile.css">
-  <!-- Globe.gl + Three.js (same as desktop) -->
+  <!-- Three.js + Globe.gl (same libs as desktop) -->
   <script src="../src/assets/three.min.js"></script>
   <script src="../src/assets/globe.gl.min.js"></script>
-  <!-- Desktop data modules (shared) -->
-  <script src="../src/data/feeds.js?v=12"></script>
-  <script src="../src/data/conflicts.js?v=12"></script>
-  <script src="../src/data/intelligence.js?v=12"></script>
+  <!-- Desktop data modules (shared globe data) -->
+  <script src="../src/data/feeds.js?v=13"></script>
+  <script src="../src/data/conflicts.js?v=13"></script>
+  <script src="../src/data/intelligence.js?v=13"></script>
 </head>
 <body>
-  <!-- ═══ TOP BAR ═══ -->
+
+  <!-- ═══ TOP BAR (floats over globe) ═══ -->
   <div class="top-bar">
     <div class="top-bar-left">
       <button class="icon-btn" id="btn-bell">🔔</button>
@@ -32,17 +32,16 @@
     </div>
   </div>
 
-  <!-- ═══ GLOBE SECTION (1/3 screen) ═══ -->
+  <!-- ═══ GLOBE HERO (top 1/3) ═══ -->
   <section id="globe-section" class="globe-section">
     <div id="globe-container"></div>
     <div id="map-container" class="hidden"></div>
 
-    <!-- Left panel (scrollable layers) -->
+    <!-- Glassmorphism layer panels -->
     <div class="layer-panel panel-left" id="panel-left"></div>
-    <!-- Right panel (scrollable layers) -->
     <div class="layer-panel panel-right" id="panel-right"></div>
 
-    <!-- Controls bar -->
+    <!-- Controls -->
     <div class="globe-bar">
       <div class="mode-switch">
         <button class="mode-btn" id="btn-2d">2D</button>
@@ -53,23 +52,69 @@
     <div class="auto-refresh">تحديث تلقائي: قبل دقيقة واحدة</div>
   </section>
 
-  <!-- ═══ BREAKING NEWS (takes ~1/3 screen) ═══ -->
-  <section class="news-section" id="news-section">
-    <div class="news-header">
-      <div class="news-actions">
-        <button class="sync-btn" id="btn-hard-sync">hard sync</button>
-        <span class="sync-dot"></span>
+  <!-- ═══ BOTTOM SHEET (overlaps globe, rounded top) ═══ -->
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+
+    <!-- Breaking News -->
+    <section class="news-section" id="news-section">
+      <div class="news-header">
+        <div class="news-actions">
+          <button class="sync-btn" id="btn-hard-sync">hard sync</button>
+          <span class="sync-dot"></span>
+        </div>
+        <div class="news-title-area">
+          <span class="search-icon">🔍</span>
+          <span class="news-label">الأخبار العاجلة</span>
+        </div>
       </div>
-      <div class="news-title-area">
-        <span class="search-icon">🔍</span>
-        <span class="news-label">الأخبار العاجلة</span>
+      <div class="breaking-badge">عاجل</div>
+      <div id="news-list" class="news-list">
+        <div class="news-loading">جاري تحميل الأخبار...</div>
       </div>
-    </div>
-    <div class="breaking-badge">عاجل</div>
-    <div id="news-list" class="news-list">
-      <div class="news-loading">جاري تحميل الأخبار...</div>
-    </div>
-  </section>
+    </section>
+
+    <!-- Live TV -->
+    <section class="livetv-section">
+      <h2 class="sec-title">البث المباشر</h2>
+      <div class="tv-player-wrap" id="tv-player-wrap">
+        <iframe id="tv-player" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+      <div class="tv-carousel" id="tv-carousel"></div>
+    </section>
+
+    <!-- Bottom Widgets -->
+    <section class="widgets-grid">
+      <div class="widget-card">
+        <div class="widget-head"><span>الذهب والعملات</span><span class="wi">💰</span></div>
+        <div class="widget-body">
+          <div class="gold-lbl">الذهب / دولار أمريكي</div>
+          <div class="gold-price" id="gold-price">5,171.500</div>
+          <div class="gold-chg" id="gold-change">(90.120) 1.77%</div>
+        </div>
+      </div>
+      <div class="widget-card">
+        <div class="widget-head"><span>توقيت العالم</span><span class="wi">🕐</span></div>
+        <div class="widget-body clk-body">
+          <div class="clk-row"><span>الرياض</span><span id="clk-riyadh">--:--</span></div>
+          <div class="clk-row"><span>NYC</span><span id="clk-nyc">--:--</span></div>
+          <div class="clk-row"><span>London</span><span id="clk-london">--:--</span></div>
+        </div>
+      </div>
+      <div class="widget-card">
+        <div class="widget-head"><span>تتبع التحركات</span><span class="wi">📡</span></div>
+        <div class="widget-body track-body"><div>بيانات حية</div></div>
+      </div>
+      <div class="widget-card">
+        <div class="widget-head"><span>الاستخبارات السيبرانية</span><span class="wi">🛡</span></div>
+        <div class="widget-body"><div class="cyber-ph">بيانات حية</div></div>
+      </div>
+      <div class="widget-card span2">
+        <div class="widget-head"><span>كاميرا مباشرة</span><span class="wi">📹</span></div>
+        <div class="widget-body"><div class="cyber-ph">بث حي</div></div>
+      </div>
+    </section>
+  </div>
 
   <!-- ═══ NEWS POPUP ═══ -->
   <div id="news-popup" class="news-popup hidden">
@@ -80,73 +125,32 @@
     </div>
   </div>
 
-  <!-- ═══ LIVE TV SECTION ═══ -->
-  <section class="livetv-section">
-    <h2 class="sec-title">البث المباشر</h2>
-    <div class="tv-player-wrap" id="tv-player-wrap">
-      <iframe id="tv-player" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-    </div>
-    <div class="tv-carousel" id="tv-carousel"></div>
-  </section>
-
-  <!-- ═══ BOTTOM WIDGETS GRID ═══ -->
-  <section class="widgets-grid">
-    <div class="widget-card">
-      <div class="widget-head"><span>الذهب والعملات</span><span class="wi">💰</span></div>
-      <div class="widget-body">
-        <div class="gold-lbl">الذهب / دولار أمريكي</div>
-        <div class="gold-price" id="gold-price">5,171.500</div>
-        <div class="gold-chg" id="gold-change">(90.120) 1.77%</div>
-      </div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-head"><span>توقيت العالم</span><span class="wi">🕐</span></div>
-      <div class="widget-body clk-body">
-        <div class="clk-row"><span>الرياض</span><span id="clk-riyadh">--:--</span></div>
-        <div class="clk-row"><span>NYC</span><span id="clk-nyc">--:--</span></div>
-        <div class="clk-row"><span>London</span><span id="clk-london">--:--</span></div>
-      </div>
-    </div>
-    <div class="widget-card">
-      <div class="widget-head"><span>تتبع التحركات</span><span class="wi">📡</span></div>
-      <div class="widget-body track-body"><div class="track-placeholder">بيانات حية</div></div>
-    </div>
-    <div class="widget-card span2">
-      <div class="widget-head"><span>الاستخبارات السيبرانية</span><span class="wi">🛡</span></div>
-      <div class="widget-body"><div class="cyber-ph">بيانات حية</div></div>
-    </div>
-    <div class="widget-card span2">
-      <div class="widget-head"><span>كاميرا مباشرة</span><span class="wi">📹</span></div>
-      <div class="widget-body"><div class="cyber-ph">بث حي</div></div>
-    </div>
-  </section>
-
   <!-- ═══ BOTTOM NAV ═══ -->
   <nav class="bottom-nav" id="bottom-nav">
-    <a class="nav-item active" data-tab="home">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      <span>الرئيسية</span>
-    </a>
-    <a class="nav-item" data-tab="news">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-      <span>الأخبار العاجلة</span>
-    </a>
-    <a class="nav-item" data-tab="live">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="15" height="10" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg>
-      <span>البث المباشر</span>
+    <a class="nav-item" data-tab="settings">
+      <svg class="nav-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>الإعدادات</span>
     </a>
     <a class="nav-item" data-tab="markets">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="15" height="10" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg>
+      <svg class="nav-svg" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       <span>الأسواق</span>
     </a>
-    <a class="nav-item" data-tab="settings">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      <span>الإعدادات</span>
+    <a class="nav-item" data-tab="live">
+      <svg class="nav-svg" viewBox="0 0 24 24"><rect x="2" y="7" width="15" height="10" rx="2"/><path d="m17 9 5-3v12l-5-3"/></svg>
+      <span>البث المباشر</span>
+    </a>
+    <a class="nav-item" data-tab="news">
+      <svg class="nav-svg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      <span>الأخبار العاجلة</span>
+    </a>
+    <a class="nav-item active" data-tab="home">
+      <svg class="nav-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span>الرئيسية</span>
     </a>
   </nav>
 
-  <!-- Globe code from desktop (shared) -->
-  <script src="../src/globe.js?v=12"></script>
-  <script src="mobile.js?v=12"></script>
+  <!-- Desktop globe module (shared — changes in desktop affect this) -->
+  <script src="../src/globe.js?v=13"></script>
+  <script src="mobile.js?v=13"></script>
 </body>
 </html>

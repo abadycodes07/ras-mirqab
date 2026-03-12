@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════
-   RAS MIRQAB — MOBILE JS v2
-   Uses desktop globe.js directly, adds mobile-specific UI
+   RAS MIRQAB — MOBILE JS v3
+   Globe shared with desktop, glassmorphism UI
    ═══════════════════════════════════════════ */
 (function () {
     'use strict';
@@ -10,7 +10,6 @@
     var seenKeys = new Set();
     var allNews = [];
 
-    // ═══ LOGO MAP ═══
     var LOGOS = {
         'ajanews': '../public/logos/aljazeera.png',
         'alarabiya_brk': '../public/logos/alarabiya.png',
@@ -27,124 +26,167 @@
         'modgovksa': '../public/logos/modgovksa2.png'
     };
 
-    // ═══ LIVE TV CHANNELS (same as desktop) ═══
-    var TV_CHANNELS = [
-        { key: 'aljazeera', name: 'الجزيرة', videoId: 'bNyUyrR0PHo', logo: '../public/logos/aljazeera.png' },
-        { key: 'alarabiya', name: 'العربية', videoId: 'n7eQejkXbnM', logo: '../public/logos/alarabiya.png' },
-        { key: 'skynews', name: 'سكاي نيوز', videoId: 'U--OjmpjF5o', logo: '../public/logos/skynews.png' },
-        { key: 'alhadath', name: 'الحدث', videoId: 'xWXpl7azI8k', logo: '../public/logos/alhadath.png' },
-        { key: 'france24', name: 'France 24', videoId: '3ursYA8HMeo', logo: null },
-        { key: 'bbc', name: 'BBC عربي', videoId: 'L8QJYzS9ezI', logo: null },
-        { key: 'aljazeera-en', name: 'AJ English', videoId: '-jvLzK_OasE', logo: '../public/logos/aljazeera.png' },
-        { key: 'trt', name: 'TRT World', videoId: 'p0m0h94C0f8', logo: null },
-        { key: 'asharq', name: 'الشرق', videoId: 'S_fU10Q7lXg', logo: '../public/logos/asharq.png' },
-        { key: 'bloomberg', name: 'Bloomberg', videoId: 'dp8PhLsUcFE', logo: null },
+    var TV = [
+        { key: 'aljazeera', name: 'الجزيرة', vid: 'bNyUyrR0PHo', logo: '../public/logos/aljazeera.png' },
+        { key: 'alarabiya', name: 'العربية', vid: 'n7eQejkXbnM', logo: '../public/logos/alarabiya.png' },
+        { key: 'skynews', name: 'سكاي نيوز', vid: 'U--OjmpjF5o', logo: '../public/logos/skynews.png' },
+        { key: 'alhadath', name: 'الحدث', vid: 'xWXpl7azI8k', logo: '../public/logos/alhadath.png' },
+        { key: 'france24', name: 'France 24', vid: '3ursYA8HMeo', logo: null },
+        { key: 'bbc', name: 'BBC عربي', vid: 'L8QJYzS9ezI', logo: null },
+        { key: 'trt', name: 'TRT World', vid: 'p0m0h94C0f8', logo: null },
+        { key: 'asharq', name: 'الشرق', vid: 'S_fU10Q7lXg', logo: '../public/logos/asharq.png' },
     ];
-    var currentTV = 0; // Al Jazeera first
+    var curTV = 0;
 
     // ═══ HELPERS ═══
-    function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-    function avatar(item) {
-        if (item.customAvatar) return '../' + item.customAvatar;
-        return LOGOS[(item.handle || '').toLowerCase()] || '../public/logos/aljazeera.png';
+    function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function av(it) {
+        if (it.customAvatar) return '../' + it.customAvatar;
+        return LOGOS[(it.handle || '').toLowerCase()] || '../public/logos/aljazeera.png';
     }
-    function thumb(item) {
-        if (item.localMedia) return '../' + item.localMedia;
-        if (item.mediaUrl) return item.mediaUrl;
-        return avatar(item);
-    }
-    function timeAgo(d) {
-        var m = Math.floor((Date.now() - new Date(d)) / 60000);
-        if (m < 1) return 'الآن';
-        if (m < 60) return m + ' د';
-        var h = Math.floor(m / 60);
-        return h < 24 ? h + ' س' : Math.floor(h / 24) + ' ي';
-    }
-    function timeStr(d) {
-        return new Date(d).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    function th(it) {
+        if (it.localMedia) return '../' + it.localMedia;
+        if (it.mediaUrl) return it.mediaUrl;
+        return av(it);
     }
 
-    // ═══ GLOBE (use desktop RasMirqabGlobe) ═══
+    // ═══ TIME: Arabic minutes since release ═══
+    function timeAgoAr(dateStr) {
+        var m = Math.floor((Date.now() - new Date(dateStr)) / 60000);
+        if (m < 1) return 'الآن';
+        if (m < 2) return 'دقيقة';
+        if (m < 11) return m + ' دقائق';
+        if (m < 60) return m + ' دقيقة';
+        var h = Math.floor(m / 60);
+        if (h < 2) return 'ساعة';
+        if (h < 11) return h + ' ساعات';
+        if (h < 24) return h + ' ساعة';
+        var d = Math.floor(h / 24);
+        if (d < 2) return 'يوم';
+        return d + ' أيام';
+    }
+
+    // ═══ GLOBE (use desktop globe.js directly) ═══
     function initGlobe() {
-        // The desktop globe.js is already loaded and will call RasMirqabGlobe.init()
-        // We just need to make sure the containers exist (they do in our HTML)
-        if (window.RasMirqabGlobe) {
-            RasMirqabGlobe.init();
+        // The desktop globe.js (RasMirqabGlobe) needs the #globe-container element
+        // It's loaded via <script> tag, so just call init
+        if (window.RasMirqabGlobe && typeof RasMirqabGlobe.init === 'function') {
+            try {
+                RasMirqabGlobe.init();
+                console.log('[Mobile] Desktop globe initialized');
+            } catch (e) {
+                console.warn('[Mobile] Globe init error:', e);
+                initFallbackGlobe();
+            }
+        } else {
+            console.warn('[Mobile] RasMirqabGlobe not available, using fallback');
+            initFallbackGlobe();
+        }
+    }
+
+    function initFallbackGlobe() {
+        var c = document.getElementById('globe-container');
+        if (!c) return;
+        // Use Globe.gl directly if available
+        if (typeof Globe !== 'undefined') {
+            try {
+                var g = Globe()(c)
+                    .backgroundColor('rgba(0,0,0,0)')
+                    .showGlobe(true)
+                    .globeImageUrl('../src/assets/earth-dark.jpg')
+                    .bumpImageUrl('../src/assets/earth-topology.png')
+                    .backgroundImageUrl('../src/assets/night-sky.png')
+                    .showAtmosphere(true)
+                    .atmosphereColor('#ff6a00')
+                    .atmosphereAltitude(0.15)
+                    .width(c.clientWidth)
+                    .height(c.clientHeight);
+                g.pointOfView({ lat: 25, lng: 45, altitude: 2.2 });
+                var ctrl = g.controls();
+                if (ctrl) { ctrl.autoRotate = true; ctrl.autoRotateSpeed = 0.3; ctrl.enableZoom = false; }
+                window.addEventListener('resize', function () { g.width(c.clientWidth).height(c.clientHeight); });
+                console.log('[Mobile] Fallback globe initialized');
+            } catch (e) {
+                console.error('[Mobile] Globe error:', e);
+                c.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#d4a030;font-size:14px">🌍 تحميل الخريطة...</div>';
+            }
         }
     }
 
     // ═══ LAYER PANELS ═══
-    function initLayerPanels() {
-        var leftPanel = document.getElementById('panel-left');
-        var rightPanel = document.getElementById('panel-right');
-        if (!leftPanel || !rightPanel || !window.RasMirqabData || !RasMirqabData.categories) return;
+    function initPanels() {
+        var left = document.getElementById('panel-left');
+        var right = document.getElementById('panel-right');
+        if (!left || !right) return;
 
-        var keys = Object.keys(RasMirqabData.categories);
-        var half = Math.ceil(keys.length / 2);
-
-        keys.forEach(function (key, i) {
-            var cat = RasMirqabData.categories[key];
-            var lbl = document.createElement('label');
-            var cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.id = 'layer-' + key;
-            cb.checked = cat.default !== false;
-            cb.addEventListener('change', function () {
-                // Trigger globe update
-                if (window.RasMirqabGlobe) {
-                    RasMirqabGlobe.init && document.getElementById('globe-container') && RasMirqabGlobe.init();
-                }
+        // If desktop data available, use its categories
+        if (window.RasMirqabData && RasMirqabData.categories) {
+            var keys = Object.keys(RasMirqabData.categories);
+            var half = Math.ceil(keys.length / 2);
+            keys.forEach(function (key, i) {
+                var cat = RasMirqabData.categories[key];
+                var lbl = document.createElement('label');
+                var cb = document.createElement('input');
+                cb.type = 'checkbox'; cb.id = 'layer-' + key;
+                cb.checked = cat.default !== false;
+                var dot = document.createElement('span');
+                dot.className = 'layer-dot';
+                dot.style.background = cat.color;
+                dot.style.boxShadow = '0 0 4px ' + cat.color;
+                lbl.appendChild(cb);
+                lbl.appendChild(dot);
+                lbl.appendChild(document.createTextNode(' ' + (cat.emoji || '') + ' ' + cat.labelAr));
+                (i < half ? right : left).appendChild(lbl);
             });
-
-            var dot = document.createElement('span');
-            dot.className = 'layer-dot';
-            dot.style.background = cat.color;
-            dot.style.boxShadow = '0 0 4px ' + cat.color;
-
-            lbl.appendChild(cb);
-            lbl.appendChild(dot);
-            lbl.appendChild(document.createTextNode(' ' + cat.emoji + ' ' + cat.labelAr));
-
-            (i < half ? rightPanel : leftPanel).appendChild(lbl);
-        });
+        } else {
+            // Hardcoded fallback layers
+            var layers = [
+                { name: 'Naval fleets 🚢', color: '#4488cc' },
+                { name: 'Military bases ✖', color: '#e04040' },
+                { name: 'Pipelines 🔵', color: '#38c878' },
+                { name: 'Conflict arcs', color: '#e8a838' },
+                { name: 'Nuclear ☢️', color: '#e67e22' },
+                { name: 'Intelligence 🕵', color: '#3498db' },
+                { name: 'Sanctions 🚫', color: '#9b59b6' },
+                { name: 'Cables 🔗', color: '#00cec9' },
+            ];
+            layers.forEach(function (l, i) {
+                var lbl = document.createElement('label');
+                var cb = document.createElement('input');
+                cb.type = 'checkbox'; cb.checked = true;
+                var dot = document.createElement('span');
+                dot.className = 'layer-dot';
+                dot.style.background = l.color;
+                dot.style.boxShadow = '0 0 4px ' + l.color;
+                lbl.appendChild(cb);
+                lbl.appendChild(dot);
+                lbl.appendChild(document.createTextNode(' ' + l.name));
+                (i < 4 ? right : left).appendChild(lbl);
+            });
+        }
     }
 
     // ═══ HIDE / SHOW MAP ═══
     function initHideMap() {
         var btn = document.getElementById('btn-hide-map');
         var section = document.getElementById('globe-section');
-        var visible = true;
+        var shown = true;
+        btn.onclick = function () {
+            shown = !shown;
+            section.style.height = shown ? '' : '0';
+            section.style.minHeight = shown ? '' : '0';
+            section.style.overflow = shown ? '' : 'hidden';
+            btn.textContent = shown ? 'Hide Map 🗺' : 'Show Map 🗺';
+        };
 
-        btn.addEventListener('click', function () {
-            visible = !visible;
-            if (visible) {
-                section.style.height = '';
-                section.style.minHeight = '';
-                section.querySelectorAll('.layer-panel, .globe-bar, .auto-refresh, #globe-container, #map-container').forEach(function (el) {
-                    el.style.display = '';
-                });
-                btn.textContent = 'Hide Map 🗺';
-            } else {
-                section.style.height = '0';
-                section.style.minHeight = '0';
-                section.querySelectorAll('.layer-panel, .globe-bar, .auto-refresh, #globe-container, #map-container').forEach(function (el) {
-                    el.style.display = 'none';
-                });
-                btn.textContent = 'Show Map 🗺';
-            }
-        });
-
-        // 2D / 3D
-        document.getElementById('btn-2d').addEventListener('click', function () {
-            document.getElementById('btn-2d').classList.add('active');
+        document.getElementById('btn-2d').onclick = function () {
+            this.classList.add('active');
             document.getElementById('btn-3d').classList.remove('active');
-            if (window.RasMirqabGlobe) RasMirqabGlobe.toggle();
-        });
-        document.getElementById('btn-3d').addEventListener('click', function () {
-            document.getElementById('btn-3d').classList.add('active');
+        };
+        document.getElementById('btn-3d').onclick = function () {
+            this.classList.add('active');
             document.getElementById('btn-2d').classList.remove('active');
-            if (window.RasMirqabGlobe) RasMirqabGlobe.toggle();
-        });
+        };
     }
 
     // ═══ NEWS ═══
@@ -164,53 +206,46 @@
         var shown = allNews.slice(0, 40);
         for (var i = 0; i < shown.length; i++) {
             var it = shown[i];
-            var av = avatar(it);
-            var th = thumb(it);
-            var t = timeStr(it.pubDate);
+            var a = av(it);
+            var t = th(it);
+            var ago = timeAgoAr(it.pubDate);
             html += '<div class="news-item" data-idx="' + i + '">'
+                + '<div class="news-time-col">'
+                + '<span class="news-time">' + ago + '</span>'
+                + '<img class="news-avatar" src="' + a + '" onerror="this.src=\'../public/logos/aljazeera.png\'">'
+                + '</div>'
                 + '<div class="news-content">'
                 + '<div class="news-text">' + esc(it.title) + '</div>'
-                + '<div class="news-meta">'
-                + '<img class="news-avatar" src="' + av + '" onerror="this.src=\'../public/logos/aljazeera.png\'">'
-                + '<span class="news-src">' + esc(it.customName || it.sourceName || it.handle || '') + '</span>'
-                + '<span class="news-time">' + t + '</span>'
-                + '</div></div>'
-                + '<img class="news-thumb" src="' + th + '" onerror="this.src=\'' + av + '\'" loading="lazy">'
+                + '<div class="news-src">' + esc(it.customName || it.sourceName || it.handle || '') + '</div>'
+                + '</div>'
+                + '<img class="news-thumb" src="' + t + '" onerror="this.src=\'' + a + '\'" loading="lazy">'
                 + '</div>';
         }
         list.innerHTML = html;
 
-        // Click to open popup
         list.onclick = function (e) {
             var item = e.target.closest('.news-item');
             if (!item) return;
-            var idx = parseInt(item.dataset.idx);
-            openNewsPopup(shown[idx]);
+            openPopup(shown[parseInt(item.dataset.idx)]);
         };
     }
 
-    function openNewsPopup(item) {
+    function openPopup(it) {
         var popup = document.getElementById('news-popup');
         var body = document.getElementById('popup-body');
         if (!popup || !body) return;
 
-        var av = avatar(item);
-        var mediaHtml = '';
-        var mediaUrl = item.localMedia ? '../' + item.localMedia : item.mediaUrl;
-        if (mediaUrl) {
-            mediaHtml = '<img class="popup-media" src="' + mediaUrl + '" onerror="this.style.display=\'none\'">';
-        }
-
+        var a = av(it);
+        var media = it.localMedia ? '../' + it.localMedia : it.mediaUrl;
         body.innerHTML =
-            '<div class="popup-title">' + esc(item.title) + '</div>'
+            '<div class="popup-title">' + esc(it.title) + '</div>'
             + '<div class="popup-meta">'
-            + '<img class="popup-src-avatar" src="' + av + '">'
-            + '<span class="popup-src-name">' + esc(item.customName || item.sourceName || '') + '</span>'
-            + '<span class="popup-src-time">' + timeAgo(item.pubDate) + '</span>'
+            + '<img class="popup-src-avatar" src="' + a + '">'
+            + '<span class="popup-src-name">' + esc(it.customName || it.sourceName || '') + '</span>'
+            + '<span class="popup-src-time">' + timeAgoAr(it.pubDate) + '</span>'
             + '</div>'
-            + mediaHtml
-            + (item.link ? '<a href="' + item.link + '" target="_blank" style="display:block;margin-top:12px;color:var(--accent);font-size:13px">فتح المصدر ↗</a>' : '');
-
+            + (media ? '<img class="popup-media" src="' + media + '" onerror="this.style.display=\'none\'">' : '')
+            + (it.link ? '<a href="' + it.link + '" target="_blank" style="display:block;margin-top:14px;color:#d4a030;font-size:13px;text-decoration:none">فتح المصدر ↗</a>' : '');
         popup.classList.remove('hidden');
     }
 
@@ -220,73 +255,62 @@
         popup.querySelector('.popup-overlay').onclick = function () { popup.classList.add('hidden'); };
     }
 
-    function fetchTelegram() {
+    function fetchTG() {
         fetch(PROXY + '/telegram?channel=ajanews')
             .then(function (r) { return r.json(); })
             .then(function (d) { if (d.ok && d.items) { merge(d.items); renderNews(); } })
             .catch(function () {});
     }
-    function fetchTwitter() {
+    function fetchTW() {
         fetch(STATIC + '?t=' + Date.now())
             .then(function (r) { return r.json(); })
             .then(function (d) { if (d && d.items) { merge(d.items); renderNews(); } })
             .catch(function () {});
     }
-    function loadNews() { fetchTelegram(); fetchTwitter(); }
+    function loadNews() { fetchTG(); fetchTW(); }
 
     // ═══ LIVE TV ═══
     function initTV() {
-        renderTVCarousel();
-        playChannel(0); // Al Jazeera first, autoplay with audio
+        renderCarousel();
+        playTV(0);
     }
 
-    function renderTVCarousel() {
-        var carousel = document.getElementById('tv-carousel');
-        if (!carousel) return;
+    function renderCarousel() {
+        var c = document.getElementById('tv-carousel');
+        if (!c) return;
         var html = '';
-        TV_CHANNELS.forEach(function (ch, i) {
-            var imgSrc = ch.logo || ('https://img.youtube.com/vi/' + ch.videoId + '/mqdefault.jpg');
-            html += '<div class="tv-card' + (i === currentTV ? ' active' : '') + '" data-idx="' + i + '">'
-                + '<div class="live-dot"></div>'
-                + '<img src="' + imgSrc + '" alt="' + ch.name + '">'
+        TV.forEach(function (ch, i) {
+            var src = ch.logo || ('https://img.youtube.com/vi/' + ch.vid + '/mqdefault.jpg');
+            html += '<div class="tv-card' + (i === curTV ? ' active' : '') + '" data-i="' + i + '">'
+                + '<div class="live-dot">LIVE</div>'
+                + '<img src="' + src + '" alt="' + ch.name + '">'
                 + '<div class="ch-name">' + ch.name + '</div>'
                 + '</div>';
         });
-        carousel.innerHTML = html;
-
-        carousel.onclick = function (e) {
+        c.innerHTML = html;
+        c.onclick = function (e) {
             var card = e.target.closest('.tv-card');
-            if (!card) return;
-            playChannel(parseInt(card.dataset.idx));
+            if (card) playTV(parseInt(card.dataset.i));
         };
     }
 
-    function playChannel(idx) {
-        currentTV = idx;
-        var ch = TV_CHANNELS[idx];
-        var player = document.getElementById('tv-player');
-        if (player) {
-            player.src = 'https://www.youtube.com/embed/' + ch.videoId + '?autoplay=1&mute=0&rel=0&playsinline=1';
-        }
-        // Update active state
-        var cards = document.querySelectorAll('.tv-card');
-        cards.forEach(function (c, i) {
-            c.classList.toggle('active', i === idx);
-        });
+    function playTV(i) {
+        curTV = i;
+        var p = document.getElementById('tv-player');
+        if (p) p.src = 'https://www.youtube.com/embed/' + TV[i].vid + '?autoplay=1&mute=0&rel=0&playsinline=1';
+        document.querySelectorAll('.tv-card').forEach(function (c, j) { c.classList.toggle('active', j === i); });
     }
 
     // ═══ CLOCKS ═══
-    function updateClocks() {
-        var fmt = function (tz) {
-            return new Date().toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: true });
-        };
+    function clocks() {
+        var f = function (tz) { return new Date().toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: true }); };
         var e;
-        e = document.getElementById('clk-riyadh'); if (e) e.textContent = fmt('Asia/Riyadh');
-        e = document.getElementById('clk-nyc'); if (e) e.textContent = fmt('America/New_York');
-        e = document.getElementById('clk-london'); if (e) e.textContent = fmt('Europe/London');
+        e = document.getElementById('clk-riyadh'); if (e) e.textContent = f('Asia/Riyadh');
+        e = document.getElementById('clk-nyc'); if (e) e.textContent = f('America/New_York');
+        e = document.getElementById('clk-london'); if (e) e.textContent = f('Europe/London');
     }
 
-    // ═══ HARD SYNC ═══
+    // ═══ SYNC ═══
     function initSync() {
         var btn = document.getElementById('btn-hard-sync');
         if (btn) btn.onclick = function () {
@@ -298,21 +322,21 @@
         };
     }
 
-    // ═══ BOTTOM NAV ═══
+    // ═══ NAV ═══
     function initNav() {
         document.getElementById('bottom-nav').onclick = function (e) {
-            var item = e.target.closest('.nav-item');
-            if (!item) return;
+            var it = e.target.closest('.nav-item');
+            if (!it) return;
             e.preventDefault();
             document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
-            item.classList.add('active');
+            it.classList.add('active');
         };
     }
 
     // ═══ INIT ═══
     function init() {
         initGlobe();
-        initLayerPanels();
+        initPanels();
         initHideMap();
         initPopup();
         initSync();
@@ -321,14 +345,10 @@
 
         loadNews();
         setInterval(loadNews, 1000);
-
-        updateClocks();
-        setInterval(updateClocks, 1000);
+        clocks();
+        setInterval(clocks, 1000);
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
 })();

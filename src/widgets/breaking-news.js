@@ -4,7 +4,7 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab-proxy.onrender.com';
+    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'http://localhost:3001';
     var isProxyLive = false;
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
@@ -195,13 +195,9 @@ var BreakingNewsWidget = (function () {
         if (!container) return;
         var sources = getSources();
         var hardcoded = [
-            { type: 'twitter', handle: 'alrougui', fixed: true },
-            { type: 'twitter', handle: 'NewsNow4USA', fixed: true },
-            { type: 'twitter', handle: 'AJELNEWS24', fixed: true },
-            { type: 'twitter', handle: 'AsharqNewsBrk', fixed: true },
-            { type: 'twitter', handle: 'Alhadath_Brk', fixed: true },
-            { type: 'twitter', handle: 'modgovksa', fixed: true },
-            { type: 'telegram', handle: 'ajanews', fixed: true }
+            { type: 'telegram', handle: 'ajanews', fixed: true },
+            { type: 'telegram', handle: 'AlHadath_Brk', fixed: true },
+            { type: 'twitter', handle: 'Twitter List', fixed: true }
         ];
         var all = hardcoded.concat(sources);
         var html = '';
@@ -242,8 +238,27 @@ var BreakingNewsWidget = (function () {
         }
 
         isFirstLoad = false;
-        lastFetchedItems = items;
-        renderItems(container, items);
+        
+        // Smarter merging for the UI to prevent disappearing items
+        if (lastFetchedItems.length === 0) {
+            lastFetchedItems = items;
+        } else {
+            // Merge new items into existing ones
+            var existingItems = [...lastFetchedItems];
+            items.forEach(function(newItem) {
+                var newId = (newItem.link || '') + (newItem.title ? newItem.title.substring(0, 50) : newItem.pubDate);
+                if (!existingItems.some(function(ei) {
+                    var oldId = (ei.link || '') + (ei.title ? ei.title.substring(0, 50) : ei.pubDate);
+                    return oldId === newId;
+                })) {
+                    existingItems.push(newItem);
+                }
+            });
+            existingItems.sort(function (a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
+            lastFetchedItems = existingItems.slice(0, 120); // Keep reasonably sized
+        }
+
+        renderItems(container, lastFetchedItems);
         checkProxyStatus();
     }
 
@@ -260,7 +275,8 @@ var BreakingNewsWidget = (function () {
         // Always attempt proxy fetch — don't gate on health check (cold starts cause false negatives)
         {
             var targetSources = [
-                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png', name: 'الجزيرة عاجل' }
+                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png', name: 'الجزيرة عاجل' },
+                { type: 'telegram', handle: 'AlHadath_Brk', avatar: 'public/logos/alhadath.png', name: 'الحدث عاجل' }
             ];
 
             // Add user-added sources (telegram only — Twitter is handled by /twitter endpoint)
@@ -333,16 +349,14 @@ var BreakingNewsWidget = (function () {
             itemEl.onmouseenter = function() { itemEl.style.background = 'rgba(255,255,255,0.04)'; };
             itemEl.onmouseleave = function() { itemEl.style.background = 'transparent'; if (popupEl) popupEl.classList.remove('active'); };
 
-            // [RIGHT] Thumbnail logic
-            var thumbnailPath = item.localMedia;
-            // Fallback for Al Jazeera or Twitter text-only items
-            if (!thumbnailPath && (item.handle === 'ajanews' || item.customName === 'ajanews' || item.source === 'twitter')) {
+            // [RIGHT] Thumbnail logic - Fallback to source logo if no media
+            var thumbnailPath = item.localMedia || item.mediaUrl || item.image;
+            if (!thumbnailPath || thumbnailPath.includes('placeholder')) {
                 thumbnailPath = item.customAvatar || 'public/logos/aljazeera.png';
             }
-            if (!thumbnailPath) thumbnailPath = 'src/assets/no-img-placeholder.png';
             
             var thumbnailHtml = '<div style="width:75px; height:75px; flex-shrink:0; border-radius:10px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">' +
-                '<img src="' + thumbnailPath + '" style="width:100%; height:100%; object-fit:cover;" onerror="this.src=\'src/assets/no-img-placeholder.png\'; this.style.opacity=0.2;" />' +
+                '<img src="' + thumbnailPath + '" style="width:100%; height:100%; object-fit:cover;" onerror="this.src=\'public/logos/aljazeera.png\'; this.style.opacity=0.5;" />' +
                 '</div>';
 
             // [CENTER] Text Content

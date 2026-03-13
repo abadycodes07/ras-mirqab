@@ -2,7 +2,7 @@ name: Scrape News 📡
 
 on:
   schedule:
-    - cron: '*/5 * * * *' # Run every 5 minutes for instant news
+    - cron: '* * * * *' # Run every minute (GitHub's minimum)
   workflow_dispatch: # Allow manual run
 
 jobs:

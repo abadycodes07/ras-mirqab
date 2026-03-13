@@ -8,11 +8,37 @@
 const http = require('http');
 const https = require('https');
 const url = require('url');
+const fs = require('fs');
+const path = require('path');
 
 const PORT = process.env.PORT || 3001;
 
 // ══════ Nonstop Telegram Cache (always instant) ══════
 const telegramCache = {};  // { handle: posts[] }
+
+const twitterListCache = []; 
+const CACHE_FILE = path.join(__dirname, 'news-cache.json');
+
+// ══════ PAID SCRAPERS CONFIG ══════
+const PAID_CONFIG = {
+    method: 'apify', // Options: 'telegram', 'rapidapi', 'apify'
+    rapidapiKey: '76dd92d274msh5f9d70a356151dbp1c194djsn85d2595a1c7b',    // Verified from playground code snippet
+    apifyToken: process.env.APIFY_TOKEN || '',     // Removed for security, use environment variable
+    lastTwitterFetch: 0,
+    twitterCacheTTL: 30 * 1000 // 30 Seconds for high-speed updates
+};
+
+// Load persistent cache on startup
+try {
+    if (fs.existsSync(CACHE_FILE)) {
+        const data = fs.readFileSync(CACHE_FILE, 'utf8');
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+            twitterListCache.push(...parsed);
+            console.log(`[Proxy] 💾 Loaded ${twitterListCache.length} items from persistent cache.`);
+        }
+    }
+} catch (e) {}
 
 const USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -39,124 +65,184 @@ async function telegramLoop(handle) {
             const posts = parseTelegram(html, handle);
             if (posts.length > 0) setCachedTelegram(handle, posts);
         } catch (e) { /* silent — cache keeps last good data */ }
-        await new Promise(r => setTimeout(r, 2000)); // 2s pause between fetches
+        await new Promise(r => setTimeout(r, 5000)); // 5s pause between fetches as requested
     }
 }
 
-// ══════ Multi-Source Robustness (Telegram + Nitter Rotation) ══════
-const twitterListCache = []; 
-const NITTER_MIRRORS = [
-    'https://nitter.privacyredirect.com',
-    'https://nitter.net',
-    'https://xcancel.com',
-    'https://nitter.poast.org',
-    'https://nitter.no-logs.com'
-];
+// ══════ Simplified Direct Scraping Engine ══════
 
-let mirrorIndex = 0;
-function getMirror() { return NITTER_MIRRORS[mirrorIndex % NITTER_MIRRORS.length]; }
-function rotateMirror() { mirrorIndex++; console.log(`[Proxy] 🔄 Rotating to mirror: ${getMirror()}`); }
+function saveCacheToFile() {
+    try {
+        fs.writeFileSync(CACHE_FILE, JSON.stringify(twitterListCache, null, 2));
+    } catch (e) {
+        console.error(`[Proxy] ❌ Failed to save cache file: ${e.message}`);
+    }
+}
 
 const LIST_MEMBERS = [
     { handle: 'AJABreaking', name: 'الجزيرة عاجل', logo: 'public/logos/aljazeera.png', telegram: 'ajanews' },
-    { handle: 'alarabiya_brk', name: 'العربية عاجل', logo: 'public/logos/alarabiya.png', telegram: 'AlArabiya_Brk' },
-    { handle: 'Alhadath_Brk', name: 'الحدث عاجل', logo: 'public/logos/alhadath.png', telegram: 'AlHadath_Brk' },
-    { handle: 'AsharqNewsBrk', name: 'الشرق عاجل', logo: 'public/logos/asharq.png', telegram: 'AsharqNewsBrk' },
-    { handle: 'skynewsarabia_b', name: 'سكاي نيوز عاجل', logo: 'public/logos/skynews.png', telegram: 'SkyNewsArabia_Breaking' },
-    { handle: 'AleijaBRK', name: 'الإخبارية عاجل', logo: 'public/logos/alekhbariya.png', telegram: 'alekhbariya' },
-    { handle: 'KBSalsaud', name: 'وكالة الأنباء السعودية', logo: 'public/logos/kbsalsaud.png', telegram: 'spagov' },
-    { handle: 'NewsNow4USA', name: 'الأخبار الآن', logo: 'public/logos/newsnow.jpg' },
-    { handle: 'RTOnline_AR', name: 'آر تي عربي', logo: 'public/logos/rt.png' },
-    { handle: 'alrougui', name: 'مالك الروقي', logo: 'public/logos/alrougui.jpg' },
-    { handle: 'modaborsa', name: 'وزارة الدفاع', logo: 'public/logos/modgovksa2.png' },
-    { handle: 'AJELNEWS24', name: 'عاجل 24', logo: 'public/logos/ajelnews.jpg' }
+    { handle: 'Alhadath_Brk', name: 'الحدث عاجل', logo: 'public/logos/alhadath.png', telegram: 'AlHadath_Brk' }
 ];
 
-// ══════ HELPERS ══════
+const TWITTER_LIST_ID = '2031445708524421549'; // Direct List ID provided by user
 
-function parseRSS(xml, member) {
-    const items = [];
-    try {
-        const entryRe = /<item>([\s\S]*?)<\/item>/g;
-        let m;
-        while ((m = entryRe.exec(xml)) !== null) {
-            const block = m[1];
-            const titleMatch = block.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || block.match(/<title>([\s\S]*?)<\/title>/);
-            const dateMatch = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-            const linkMatch = block.match(/<link>([\s\S]*?)<\/link>/);
-            const creatorMatch = block.match(/<dc:creator>([\s\S]*?)<\/dc:creator>/);
-            const descMatch = block.match(/<description>([\s\S]*?)<\/description>/);
-
-            if (titleMatch) {
-                let text = titleMatch[1].replace(/<[^>]+>/g, '').trim();
-                // Nitter puts the whole tweet in title, usually prefixed by handle. Let's clean it.
-                if (text.includes(': ')) text = text.split(': ').slice(1).join(': ');
-                
-                let mediaUrl = null;
-                if (descMatch) {
-                    const imgM = descMatch[1].match(/<img[^>]+src="([^"]+)"/i);
-                    if (imgM) mediaUrl = imgM[1].replace(/nitter\.[a-z.]+/g, 'x.com');
-                }
-
-                items.push({
-                    title: text,
-                    source: 'twitter',
-                    sourceName: member.name,
-                    handle: (creatorMatch ? creatorMatch[1] : member.handle).toLowerCase().replace('@',''),
-                    pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
-                    link: linkMatch ? linkMatch[1].replace(/nitter\.[a-z.]+/g, 'x.com') : '#',
-                    hasMedia: !!mediaUrl,
-                    mediaUrl: mediaUrl,
-                    customAvatar: member.logo,
-                    customName: member.name
-                });
-            }
-        }
-    } catch (e) { console.error(`[RSS Parse Error] ${member.handle}: ${e.message}`); }
-    return items;
-}
-
-async function fetchFromSource(member) {
-    // 1. Try Telegram first (Reliable & Original quality for images)
-    if (member.telegram) {
-        try {
-            const html = await fetchPage(`https://t.me/s/${member.telegram}`, 5000);
-            const posts = parseTelegram(html, member.telegram);
-            if (posts.length > 0) {
-                console.log(`  ✅ [Telegram] @${member.handle} (via ${member.telegram}): ${posts.length} posts`);
-                return posts.map(p => ({
-                    ...p,
-                    sourceName: member.name,
-                    customAvatar: member.logo,
-                    customName: member.name
-                }));
-            }
-        } catch (e) {
-            console.log(`  ⚠️ [Telegram] @${member.handle} failed: ${e.message}`);
-        }
+/**
+ * Unified Twitter List Scrapper
+ * Supports: Legacy Syndication, RapidAPI, and Apify
+ */
+async function scrapeDirectTwitterList() {
+    // 1. Check Caching Layer (2 Minutes for Paid Methods)
+    const now = Date.now();
+    if (PAID_CONFIG.method !== 'telegram' && twitterListCache.length > 0 && (now - PAID_CONFIG.lastTwitterFetch < PAID_CONFIG.twitterCacheTTL)) {
+        console.log('[Scraper] ⚡ Serving Twitter List from memory cache (2min limit)');
+        return []; // No new items needed yet
     }
 
-    // 2. Try Nitter Mirror (RSS)
-    const mirrorsToTry = 2;
-    for (let i = 0; i < mirrorsToTry; i++) {
-        const mirror = getMirror();
-        try {
-            const rssUrl = `${mirror}/${member.handle}/rss`;
-            const xml = await fetchPage(rssUrl, 7000, getRandomUA());
-            if (xml.includes('<item>')) {
-                const tweets = parseRSS(xml, member);
-                console.log(`  ✅ [Mirror] @${member.handle} (via ${mirror}): ${tweets.length} tweets`);
-                return tweets;
-            } else if (xml.includes('Rate limit') || xml.includes('bot')) {
-                console.log(`  ❌ [Mirror] @${member.handle} blocked by ${mirror}`);
-                rotateMirror();
-            }
-        } catch (e) {
-            console.log(`  ⚠️ [Mirror] @${member.handle} failed on ${mirror}: ${e.message}`);
-            rotateMirror();
+    // 2. Select Method
+    if (PAID_CONFIG.method === 'rapidapi' && PAID_CONFIG.rapidapiKey) {
+        return fetchViaRapidAPI();
+    } else if (PAID_CONFIG.method === 'apify' && PAID_CONFIG.apifyToken) {
+        return fetchViaApify();
+    }
+
+    // Default Fallback: Legacy Syndication
+    const listUrl = `https://syndication.twitter.com/i/lists/${TWITTER_LIST_ID}?count=40`;
+    console.log(`[Scraper] 🐦 Fetching Twitter List (Syndication): ${TWITTER_LIST_ID}...`);
+    
+    try {
+        const res = await fetchPage(listUrl, 10000, getRandomUA(), {
+            'Referer': 'https://x.com/',
+            'Origin': 'https://x.com',
+            'Accept': 'application/json'
+        });
+        if (res && res.includes('[')) {
+            PAID_CONFIG.lastTwitterFetch = Date.now();
+            return processTwitterData(JSON.parse(res), null);
         }
+    } catch (e) {
+        console.warn(`[Scraper] ⚠️ List fetch failed: ${e.message}`);
     }
     return [];
+}
+
+async function fetchViaRapidAPI() {
+    console.log('[RapidAPI] 🚀 Fetching Twitter List via Twttr API (davethebeast)...');
+    const TWITTER_LIST_ID = '2031445708524421549';
+    // Using list-timeline endpoint which is verified as working for this provider
+    const url = `https://twitter241.p.rapidapi.com/list-timeline?listId=${TWITTER_LIST_ID}`;
+    
+    try {
+        const res = await fetchPage(url, 15000, null, {
+            'X-RapidAPI-Key': PAID_CONFIG.rapidapiKey,
+            'X-RapidAPI-Host': 'twitter241.p.rapidapi.com'
+        });
+        const data = JSON.parse(res);
+        // Debug: Log top-level keys to ensure alignment
+        if (!data.result) console.log('[RapidAPI] 📦 Twttr API Response Keys:', Object.keys(data));
+        
+        // Handle Twttr API (davethebeast) structure
+        let raw = [];
+        if (data.result && data.result.timeline && data.result.timeline.instructions) {
+            const instructions = data.result.timeline.instructions;
+            const addEntries = instructions.find(i => i.type === 'TimelineAddEntries');
+            if (addEntries && addEntries.entries) {
+                raw = addEntries.entries
+                    .filter(e => e.content && e.content.itemContent && e.content.itemContent.tweet_results)
+                    .map(e => e.content.itemContent.tweet_results.result);
+            }
+        } else {
+            raw = data.result || data.tweets || (Array.isArray(data) ? data : []);
+        }
+
+        console.log(`[RapidAPI] 📦 Raw Tweets found: ${raw.length}`);
+        if (raw.length > 0) console.log(`[RapidAPI] 📦 Sample Item Keys: ${Object.keys(raw[0])}`);
+
+        PAID_CONFIG.lastTwitterFetch = Date.now();
+        return processTwitterData(raw, null);
+    } catch (e) {
+        console.error('[RapidAPI] ❌ Error:', e.message);
+        return [];
+    }
+}
+async function fetchViaApify() {
+    console.log('[Apify] 🚀 Fetching via Apify Actor (apidojo/twitter-list-scraper)...');
+    const TWITTER_LIST_ID = '2031445708524421549';
+    // Sync run endpoint (runs actor and returns results in one call)
+    const url = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/run-sync-get-dataset-items?token=${PAID_CONFIG.apifyToken}`;
+    
+    // Actor input: list URLs/IDs and max items
+    const payload = JSON.stringify({
+        "listIds": [TWITTER_LIST_ID],
+        "maxItems": 40
+    });
+
+    try {
+        const res = await fetchPage(url, 60000, null, {
+            'Content-Type': 'application/json'
+        }, 'POST', payload);
+        
+        const data = JSON.parse(res);
+        if (!Array.isArray(data)) {
+            console.error('[Apify] ❌ Unexpected response format (expected array)');
+            return [];
+        }
+
+        PAID_CONFIG.lastTwitterFetch = Date.now();
+        console.log(`[Apify] ✅ Successfully fetched ${data.length} items.`);
+        return processTwitterData(data, null);
+    } catch (e) {
+        console.error('[Apify] ❌ Error:', e.message);
+        return [];
+    }
+}
+
+function processTwitterData(data, memberHint = null) {
+    const tweets = [];
+    if (!Array.isArray(data)) return tweets;
+    if (data.length > 0) console.log('[Scraper] 📝 First Data Item Keys:', Object.keys(data[0]), 'Text:', data[0].text || data[0].full_text);
+
+    for (const item of data) {
+        // Handle: herosAPI (legacy), Twttr API (root), or Apify (flat structure)
+        const tweet = item.legacy || item; 
+        
+        // Multi-source user extraction
+        const userResults = item.core && item.core.user_results ? item.core.user_results.result : null;
+        const userLegacy = userResults ? userResults.legacy : null;
+        const apifyAuthor = item.author;
+        const user = userLegacy || item.user || apifyAuthor || memberHint;
+
+        if (!tweet || (!user && !memberHint)) continue;
+
+        // Profile Picture Sync (Don't overwrite Al Hadath local logo)
+        const profilePic = (user && (user.profile_image_url_https || user.profilePicture)) || (memberHint ? memberHint.logo : null);
+        if (memberHint && profilePic && memberHint.handle.toLowerCase() !== 'alhadath_brk') {
+            memberHint.logo = profilePic.replace('_normal', '_400x400');
+        }
+
+        // Image Scraping (Supports nested entities or Apify media array)
+        let mediaUrl = null;
+        const entities = tweet.extended_entities || tweet.entities;
+        if (entities && entities.media && entities.media.length > 0) {
+            mediaUrl = entities.media[0].media_url_https;
+        } else if (Array.isArray(item.media) && item.media.length > 0) {
+            mediaUrl = item.media[0]; // Apify flat structure
+        }
+
+        tweets.push({
+            title: (item.text || tweet.full_text || tweet.text || '').substring(0, 1000),
+            source: 'twitter',
+            sourceName: user ? (user.name || user.screen_name || user.userName) : (memberHint ? memberHint.name : 'Twitter'),
+            handle: user ? (user.screen_name || user.userName || user.name) : (memberHint ? memberHint.handle : 'twitter'),
+            pubDate: (tweet.created_at || item.createdAt) ? new Date(tweet.created_at || item.createdAt).toISOString() : new Date().toISOString(),
+            link: item.url || `https://x.com/${user ? (user.screen_name || user.userName) : 'i'}/status/${item.rest_id || item.id_str || item.id}`,
+            hasMedia: !!mediaUrl,
+            mediaUrl: mediaUrl,
+            customAvatar: (memberHint && memberHint.handle.toLowerCase() === 'alhadath_brk') ? 'public/logos/alhadath.png' : 
+                         (profilePic ? profilePic.replace('_normal', '_400x400') : (memberHint ? memberHint.logo : null)),
+            customName: user ? (user.name || user.screen_name || user.userName) : (memberHint ? memberHint.name : 'Twitter')
+        });
+    }
+    return tweets;
 }
 
 async function twitterListLoop() {
@@ -164,56 +250,79 @@ async function twitterListLoop() {
     while (true) {
         cycle++;
         const start = Date.now();
-        console.log(`\n[Multi-Source] Cycle #${cycle} — Refreshing ${LIST_MEMBERS.length} accounts...`);
+        console.log(`\n[Scraper] Cycle #${cycle} — Refreshing Sources (30s interval)...`);
         
         try {
-            // Fetch sequentially for better logging & to avoid global mirror rate-limits
-            const uniqueResults = [];
-            const seenItems = new Set();
-
-            for (const member of LIST_MEMBERS) {
-                const items = await fetchFromSource(member);
-                for (const it of items) {
-                    // Simple hash for deduplication: title + date
-                    const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
-                    if (!seenItems.has(hash)) {
-                        seenItems.add(hash);
-                        uniqueResults.push(it);
+            // 1. Fetch Twitter List
+            const twitterResults = await scrapeDirectTwitterList();
+            
+            // 2. Fetch all Telegram items from the background caches
+            const telegramResults = [];
+            LIST_MEMBERS.forEach(m => {
+                if (m.telegram) {
+                    const cached = getCachedTelegram(m.telegram);
+                    if (cached && Array.isArray(cached)) {
+                        telegramResults.push(...cached);
                     }
+                }
+            });
+            
+            const seenItems = new Set();
+            twitterListCache.forEach(it => {
+                const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
+                seenItems.add(hash);
+            });
+
+            let addedCount = 0;
+            const newTotalResults = [...twitterListCache];
+
+            // Merge all results (Twitter + Telegram)
+            const allResults = [...twitterResults, ...telegramResults];
+            for (const it of allResults) {
+                const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
+                if (!seenItems.has(hash)) {
+                    seenItems.add(hash);
+                    newTotalResults.push(it);
+                    addedCount++;
                 }
             }
 
-            uniqueResults.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-            
+            newTotalResults.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
             twitterListCache.length = 0;
-            twitterListCache.push(...uniqueResults.slice(0, 100)); // Keep top 100
+            twitterListCache.push(...newTotalResults.slice(0, 200)); // Increased buffer for persistence
+            
+            saveCacheToFile();
             
             const elapsed = ((Date.now() - start) / 1000).toFixed(1);
-            console.log(`[Multi-Source] ✅ ${uniqueResults.length} total news items cached in ${elapsed}s`);
+            console.log(`[Scraper] ✅ Cycle complete. Added ${addedCount} new. Total: ${twitterListCache.length} in ${elapsed}s`);
         } catch (e) {
-            console.error(`[Multi-Source] Fatal Loop Error: ${e.message}`);
+            console.error(`[Scraper] Fatal Loop Error: ${e.message}`);
         }
         
-        await new Promise(r => setTimeout(r, 15000)); 
+        // 30 seconds interval as requested
+        await new Promise(r => setTimeout(r, 30000)); 
     }
 }
 
-function fetchPage(targetUrl, timeout = 8000, ua = null) {
+function fetchPage(targetUrl, timeout = 8000, ua = null, extraHeaders = {}, method = 'GET', body = null) {
     return new Promise((resolve, reject) => {
         const parsed = new URL(targetUrl);
         const mod = parsed.protocol === 'https:' ? https : http;
-        const req = mod.get(targetUrl, {
+        const options = {
+            method: method,
             headers: {
                 'User-Agent': ua || getRandomUA(),
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept': 'application/json, text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
                 'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
+                'Pragma': 'no-cache',
+                ...extraHeaders
             },
             timeout: timeout
-        }, (res) => {
+        };
+        const req = mod.request(targetUrl, options, (res) => {
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                return fetchPage(res.headers.location, timeout, ua).then(resolve).catch(reject);
+                return fetchPage(res.headers.location, timeout, ua, extraHeaders, method, body).then(resolve).catch(reject);
             }
             let buffers = [];
             res.on('data', chunk => buffers.push(chunk));
@@ -224,6 +333,8 @@ function fetchPage(targetUrl, timeout = 8000, ua = null) {
         });
         req.on('error', reject);
         req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+        if (body) req.write(body);
+        req.end();
     });
 }
 
@@ -259,13 +370,15 @@ function parseTelegram(html, handle) {
             posts.push({
                 title: clean.substring(0, 800), // Larger limit for detail
                 source: 'telegram',
-                sourceName: isAlJazeera ? 'الجزيرة عاجل' : ('📱 ' + handle),
+                sourceName: isAlJazeera ? 'الجزيرة عاجل' : (handle.toLowerCase() === 'alhadath_brk' ? 'الحدث عاجل' : ('📱 ' + handle)),
                 handle: handle.toLowerCase(),
                 pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
                 link: postLinkMatch ? 'https://t.me/' + postLinkMatch[1] : `https://t.me/${handle}`,
                 hasMedia: isAlJazeera ? false : !!imgMatch,
                 mediaUrl: isAlJazeera ? null : (imgMatch ? imgMatch[1] : null),
-                extraLinks: msgLinks
+                extraLinks: msgLinks,
+                customName: handle.toLowerCase() === 'alhadath_brk' ? 'الحدث عاجل' : null,
+                customAvatar: handle.toLowerCase() === 'alhadath_brk' ? 'public/logos/alhadath.png' : null
             });
         }
     }
@@ -273,46 +386,6 @@ function parseTelegram(html, handle) {
     return posts.reverse().slice(0, 40);
 }
 
-// Parse Nitter RSS XML for Twitter
-function parseNitterRSS(xml, handle) {
-    const posts = [];
-    const itemRe = /<item>([\s\S]*?)<\/item>/g;
-    let m;
-    while ((m = itemRe.exec(xml)) !== null) {
-        const itemXml = m[1];
-        const titleMatch = itemXml.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) ||
-            itemXml.match(/<title>([\s\S]*?)<\/title>/);
-        const linkMatch = itemXml.match(/<link>([\s\S]*?)<\/link>/);
-        const dateMatch = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-        const descMatch = itemXml.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) ||
-            itemXml.match(/<description>([\s\S]*?)<\/description>/);
-
-        let title = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, '').trim() : '';
-        const desc = descMatch ? descMatch[1] : '';
-        if (!title && desc) title = desc.replace(/<[^>]+>/g, '').trim().substring(0, 200);
-
-        const hasImg = /<img/i.test(desc);
-        const imgMatch = desc.match(/<img[^>]+src="([^"]+)"/i);
-
-        // Convert Nitter link to X.com link
-        let link = linkMatch ? linkMatch[1].trim() : 'https://x.com/' + handle;
-        link = link.replace(/nitter\.[a-z.]+/g, 'x.com');
-
-        if (title) {
-            posts.push({
-                title: title.substring(0, 250),
-                source: 'twitter',
-                sourceName: '𝕏 @' + handle,
-                pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
-                link: link,
-                hasMedia: hasImg,
-                mediaUrl: imgMatch ? imgMatch[1] : null,
-                extraLinks: link !== '#' ? [link] : []
-            });
-        }
-    }
-    return posts;
-}
 
 const server = http.createServer(async (req, res) => {
     // Log incoming request
@@ -368,74 +441,6 @@ const server = http.createServer(async (req, res) => {
             return;
         }
 
-        // ─── Alarabiya Breaking News ───
-        if (parsed.pathname === '/alarabiya') {
-            try {
-                const html = await fetchPage('https://www.alarabiya.net/breaking-news');
-                const posts = [];
-                // Simple regex extraction since we can target breaking-listing and item-title
-                const itemRe = /<span class=["']item-title[^>]*>([\s\S]*?)<\/span>[\s\S]*?<time datetime=["']([^"']+)["']/g;
-                let m;
-                while ((m = itemRe.exec(html)) !== null && posts.length < 15) {
-                    const rawTitle = m[1].replace(/<[^>]+>/g, '').trim();
-                    const rawTime = m[2];
-                    if (rawTitle.length > 5) {
-                        posts.push({
-                            title: rawTitle,
-                            source: 'alarabiya',
-                            sourceName: 'العربية',
-                            pubDate: new Date(rawTime).toISOString(),
-                            link: 'https://www.alarabiya.net/breaking-news',
-                            hasMedia: false,
-                            mediaUrl: null,
-                            extraLinks: []
-                        });
-                    }
-                }
-                res.writeHead(200);
-                res.end(JSON.stringify({ ok: true, count: posts.length, items: posts }));
-            } catch (err) {
-                res.writeHead(500);
-                res.end(JSON.stringify({ error: err.message }));
-            }
-            return;
-        }
-
-        // ─── Sky News Arabia Breaking News ───
-        if (parsed.pathname === '/skynews') {
-            try {
-                // Sky news has an RSS feed but sometimes it throws 403. Let's try RSS then fallback to page scraping.
-                const xml = await fetchPage('https://www.skynewsarabia.com/rss');
-                const posts = [];
-                const itemRe = /<item>([\s\S]*?)<\/item>/g;
-                let m;
-                while ((m = itemRe.exec(xml)) !== null && posts.length < 15) {
-                    const itemXml = m[1];
-                    const titleMatch = itemXml.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || itemXml.match(/<title>([\s\S]*?)<\/title>/);
-                    const linkMatch = itemXml.match(/<link>([\s\S]*?)<\/link>/);
-                    const dateMatch = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-
-                    if (titleMatch) {
-                        posts.push({
-                            title: titleMatch[1].replace(/<[^>]+>/g, '').trim(),
-                            source: 'skynews',
-                            sourceName: 'سكاي نيوز عربية',
-                            pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
-                            link: linkMatch ? linkMatch[1].trim() : 'https://www.skynewsarabia.com/',
-                            hasMedia: false,
-                            mediaUrl: null,
-                            extraLinks: []
-                        });
-                    }
-                }
-                res.writeHead(200);
-                res.end(JSON.stringify({ ok: true, count: posts.length, items: posts }));
-            } catch (err) {
-                res.writeHead(500);
-                res.end(JSON.stringify({ error: err.message }));
-            }
-            return;
-        }
 
         // ─── Battleships Live Tracking Proxy ───
         if (parsed.pathname === '/battleships') {
@@ -487,8 +492,13 @@ server.listen(PORT, () => {
     console.log('═══════════════════════════════════════');
 
     // ── Start nonstop loops ──
-    console.log('[Loop] 🔥 Starting nonstop @AjaNews refresh (every ~2s)...');
-    telegramLoop('ajanews');
-    console.log('[Loop] 🐦 Starting nonstop Twitter list refresh (every ~15s via syndication.twitter.com)...');
+    console.log('[Loop] 🔥 Starting nonstop Telegram refreshes (5s)...');
+    LIST_MEMBERS.forEach(member => {
+        if (member.telegram) {
+            telegramLoop(member.telegram);
+        }
+    });
+    
+    console.log('[Loop] 🐦 Starting Twitter List scraper (Direct Approach, 40s)...');
     twitterListLoop();
 });

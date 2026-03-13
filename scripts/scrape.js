@@ -21,18 +21,11 @@ if (!fs.existsSync(MEDIA_DIR)) fs.mkdirSync(MEDIA_DIR, { recursive: true });
 
 const LIST_MEMBERS = [
     { handle: 'AJABreaking', name: 'الجزيرة عاجل', telegram: 'ajanews' },
-    { handle: 'alarabiya_brk', name: 'العربية عاجل', telegram: 'AlArabiya_Brk' },
-    { handle: 'Alhadath_Brk', name: 'الحدث عاجل', telegram: 'AlHadath_Brk' },
-    { handle: 'AsharqNewsBrk', name: 'الشرق عاجل', telegram: 'AsharqNewsBrk' },
-    { handle: 'skynewsarabia_b', name: 'سكاي نيوز عاجل', telegram: 'SkyNewsArabia_Breaking' },
-    { handle: 'AleijaBRK', name: 'الإخبارية عاجل', telegram: 'alekhbariya' },
-    { handle: 'KBSalsaud', name: 'وكالة الأنباء السعودية', telegram: 'spagov' },
-    { handle: 'NewsNow4USA', name: 'الأخبار الآن' },
-    { handle: 'RTOnline_AR', name: 'آر تي عربي' },
-    { handle: 'alrougui', name: 'مالك الروقي' },
-    { handle: 'modaborsa', name: 'وزارة الدفاع' },
-    { handle: 'AJELNEWS24', name: 'عاجل 24' }
+    { handle: 'Alhadath_Brk', name: 'الحدث عاجل', telegram: 'AlHadath_Brk' }
 ];
+
+const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
+const TWITTER_LIST_ID = '2031445708524421549';
 
 const NITTER_MIRRORS = [
     'https://nitter.privacyredirect.com',
@@ -60,6 +53,48 @@ async function fetchWithTimeout(url, timeout = 15000) {
             res.on('end', () => resolve(data));
         });
         req.on('error', e => { clearTimeout(timer); reject(e); });
+    });
+}
+
+async function fetchTwitterApify() {
+    console.log('[Apify] 🚀 Fetching Twitter List...');
+    const url = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`;
+    const payload = JSON.stringify({
+        "listIds": [TWITTER_LIST_ID],
+        "maxItems": 40
+    });
+
+    return new Promise((resolve) => {
+        const req = https.request(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const items = JSON.parse(data);
+                    if (!Array.isArray(items)) return resolve([]);
+                    const mapped = items.map(it => {
+                        const author = it.author || {};
+                        return {
+                            title: (it.text || it.full_text || '').substring(0, 500),
+                            source: 'twitter',
+                            sourceName: author.name || 'Twitter',
+                            handle: author.userName || 'twitter',
+                            pubDate: it.createdAt ? new Date(it.createdAt).toISOString() : new Date().toISOString(),
+                            link: it.url || '#',
+                            hasMedia: !!(it.media && it.media[0]),
+                            mediaUrl: it.media ? it.media[0] : null
+                        };
+                    });
+                    resolve(mapped);
+                } catch (e) { resolve([]); }
+            });
+        });
+        req.on('error', () => resolve([]));
+        req.write(payload);
+        req.end();
     });
 }
 
@@ -127,6 +162,17 @@ async function scrapeAll() {
     const allItems = [];
     const seen = new Set();
 
+    // 1. Fetch Twitter via Apify
+    const twitterItems = await fetchTwitterApify();
+    twitterItems.forEach(it => {
+        const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
+        if (!seen.has(hash)) {
+            seen.add(hash);
+            allItems.push(it);
+        }
+    });
+
+    // 2. Original Telegram Scraper Logic
     for (const member of LIST_MEMBERS) {
         let memberItems = [];
         // 1. Try Telegram
@@ -135,7 +181,7 @@ async function scrapeAll() {
                 const html = await fetchWithTimeout(`https://t.me/s/${member.telegram}`);
                 memberItems = parseTelegram(html, member.telegram);
                 if (memberItems.length > 0) console.log(`✅ [Telegram] @${member.handle}: ${memberItems.length}`);
-            } catch (e) {}
+            } catch (e) { }
         }
         // 2. Fallback to Nitter
         if (memberItems.length === 0) {

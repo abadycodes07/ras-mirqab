@@ -177,51 +177,112 @@ async function startTwitterLoop() {
    ══════════════════════════════════════════════════════════════════════════════ */
 
 function parseNitter(html) {
-    const items = []; if (!html) return [];
-    const blocks = html.split('class="timeline-item"'); blocks.shift();
-    blocks.forEach(block => {
+    const items = [];
+    if (!html) return [];
+    
+    // Split by timeline-item to isolate each tweet
+    const blocks = html.split('class="timeline-item');
+    blocks.shift(); // Header part
+
+    console.log(`[Nitter] ℹ️ parsing HTML (length: ${html.length}), found ${blocks.length} raw blocks.`);
+
+    blocks.forEach((block, idx) => {
         try {
+            // Flexible regex to handle different Nitter layouts
             const textMatch = block.match(/<div class="tweet-content[^>]*>([\s\S]*?)<\/div>/);
-            const dateMatch = block.match(/class="tweet-date"><a[^>]*title="([^"]+)"/);
-            const authorMatch = block.match(/class="username"[^>]*title="([^"]+)"[^\/]*\/([^"]+)"/);
+            const dateMatch = block.match(/class="tweet-date"[^>]*title="([^"]+)"/);
+            const fullnameMatch = block.match(/class="fullname"[^>]*title="([^"]+)"/);
+            const usernameMatch = block.match(/class="username"[^>]*>@?([^<]+)<\/a>/);
             const linkMatch = block.match(/class="tweet-link"[^>]*href="([^"]+)"/);
-            const avatarMatch = block.match(/class="avatar"[^>]*src="([^"]+)"/);
+            const avatarMatch = block.match(/<img class="avatar[^"]*" src="([^"]+)"/);
+            
             if (textMatch && linkMatch) {
-                const handle = authorMatch ? authorMatch[2] : 'twitter';
-                let link = linkMatch[1]; if (link.startsWith('/')) link = 'https://x.com' + link.replace('#m', '');
-                let avatar = avatarMatch ? avatarMatch[1] : null; if (avatar && avatar.startsWith('/')) avatar = 'https://nitter.net' + avatar;
+                const handle = usernameMatch ? usernameMatch[1] : 'twitter';
+                const sourceName = fullnameMatch ? fullnameMatch[1] : (usernameMatch ? usernameMatch[1] : 'تويتر');
+                
+                let link = linkMatch[1];
+                if (link.startsWith('/')) link = 'https://x.com' + link.replace('#m', '');
+                
+                let avatar = avatarMatch ? avatarMatch[1] : null;
+                if (avatar && avatar.startsWith('/')) avatar = 'https://nitter.net' + avatar;
+
+                const id = link.split('/').pop();
+
                 items.push({
-                    title: textMatch[1].replace(/<[^>]+>/g, '').trim(), source: 'twitter', sourceName: authorMatch ? authorMatch[1] : 'Twitter',
-                    handle: handle, pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
-                    link: link, hasMedia: block.includes('attachment image'), customAvatar: avatar || 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png', id: link.split('/').pop()
+                    title: textMatch[1].replace(/<[^>]+>/g, '').trim(),
+                    source: 'twitter',
+                    sourceName: sourceName,
+                    handle: handle,
+                    pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
+                    link: link,
+                    hasMedia: block.includes('attachment image') || block.includes('media-body'),
+                    customAvatar: avatar || 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png',
+                    id: id
                 });
+            } else if (idx === 0) {
+                console.log(`[Nitter] ⚠️ Block 0 parse failed. Text: ${!!textMatch}, Link: ${!!linkMatch}`);
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error(`[Nitter] ❌ Parse error for block ${idx}:`, e.message);
+        }
     });
     return items;
 }
 
 async function startScrapedoLoop() {
-    console.log('[Scrape.do] Starting Nitter layer');
+    console.log('[Scrape.do] 🚀 Starting Nitter layer (Nitter.net)');
     lastLoopStatus['nitter'] = { status: 'starting', type: 'scraped_nitter' };
+    
     while (true) {
         lastLoopStatus['nitter'].lastAttempt = new Date().toISOString();
         try {
-            const html = await fetchPage(`https://api.scrape.do/?token=${SCRAPEDO_TOKEN}&url=${encodeURIComponent(NITTER_URL)}`);
-            const freshItems = parseNitter(html);
-            if (freshItems.length > 0) {
-                const seen = new Set(newsCache.map(i => i.id));
-                let added = 0;
-                freshItems.forEach(item => { if (!seen.has(item.id)) { newsCache.unshift(item); seen.add(item.id); added++; } });
-                if (added > 0) {
-                    newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-                    newsCache = newsCache.slice(0, 100);
-                    fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
-                    console.log(`[Scrape.do] ✅ Added ${added} items.`);
+            const encodedUrl = encodeURIComponent(NITTER_URL);
+            const proxyUrl = `https://api.scrape.do/?token=${SCRAPEDO_TOKEN}&url=${encodedUrl}`;
+            
+            console.log('[Scrape.do] 📡 Fetching Nitter...');
+            const html = await fetchPage(proxyUrl);
+            
+            if (!html || html.length < 500) {
+                console.warn(`[Scrape.do] ⚠️ Received very short HTML (${html ? html.length : 0} bytes). Possibly blocked.`);
+                if (html) console.log(`[Scrape.do] HTML Snippet: ${html.substring(0, 200)}`);
+                lastLoopStatus['nitter'].status = 'blocked_or_short_response';
+            } else {
+                const freshItems = parseNitter(html);
+                console.log(`[Scrape.do] 📊 Results: Found ${freshItems.length} items.`);
+
+                if (freshItems.length > 0) {
+                    const seen = new Set(newsCache.map(i => i.id));
+                    let added = 0;
+                    
+                    freshItems.forEach(item => {
+                        if (!seen.has(item.id)) {
+                            newsCache.unshift(item);
+                            seen.add(item.id);
+                            added++;
+                        }
+                    });
+
+                    lastLoopStatus['nitter'].status = 'ok';
+                    lastLoopStatus['nitter'].lastCount = added;
+                    
+                    if (added > 0) {
+                        newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+                        newsCache = newsCache.slice(0, 100);
+                        fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
+                        console.log(`[Scrape.do] ✅ Added ${added} new items.`);
+                    } else {
+                        console.log('[Scrape.do] ℹ️ All items already in cache.');
+                    }
+                } else {
+                    lastLoopStatus['nitter'].status = 'parser_found_zero';
+                    console.warn('[Scrape.do] ⚠️ No items parsed. Mirror might have changed layout.');
                 }
-                lastLoopStatus['nitter'].status = 'ok';
             }
-        } catch (e) { console.error('[Scrape.do] ❌ Error:', e.message); }
+        } catch (e) {
+            console.error('[Scrape.do] ❌ Loop Error:', e.message);
+            lastLoopStatus['nitter'].status = 'error: ' + e.message;
+        }
+        console.log('[Scrape.do] ⏳ Sleeping for 3 mins...');
         await new Promise(r => setTimeout(r, 180000));
     }
 }

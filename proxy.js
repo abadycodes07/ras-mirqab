@@ -215,8 +215,9 @@ async function startTwitterLoop() {
             console.log('[Twitter] 🚀 Triggering Apify Actor...');
             const runUrl = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs?token=${APIFY_TOKEN}`;
             const runRes = await postJSON(runUrl, {
-                listUrls: [`https://x.com/i/lists/${TWITTER_LIST_ID}`],
-                maxTweets: 40
+                listIds: [TWITTER_LIST_ID],
+                maxItems: 40,
+                proxyConfiguration: { useApifyProxy: true }
             });
 
             if (!runRes.data || !runRes.data.id) {

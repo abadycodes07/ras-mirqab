@@ -66,7 +66,7 @@ async function telegramLoop(handle) {
             const posts = parseTelegram(html, handle);
             if (posts.length > 0) setCachedTelegram(handle, posts);
         } catch (e) { /* silent — cache keeps last good data */ }
-        await new Promise(r => setTimeout(r, 3000)); // 3s pause for ~4s cycle
+        await new Promise(r => setTimeout(r, 1000)); // 1s pause for near-instant updates as requested
     }
 }
 
@@ -99,14 +99,14 @@ async function scrapeDirectTwitterList() {
         return []; // No new items needed yet
     }
 
-    // 2. Select Method (Apify -> Scrape.do -> RapidAPI)
-    if (PAID_CONFIG.method === 'apify' && PAID_CONFIG.apifyToken) {
-        const items = await fetchViaApify();
-        if (items.length > 0) return items;
-    } 
-    
+    // 2. Select Method (Scrape.do -> Apify -> RapidAPI)
     if (PAID_CONFIG.scrapedoToken) {
         const items = await fetchViaScrapeDo();
+        if (items.length > 0) return items;
+    }
+
+    if (PAID_CONFIG.method === 'apify' && PAID_CONFIG.apifyToken) {
+        const items = await fetchViaApify();
         if (items.length > 0) return items;
     }
 

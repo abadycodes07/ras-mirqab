@@ -275,21 +275,21 @@ async function scrapeAll() {
     const allItems = [];
     const seen = new Set();
 
-    // 1. Fetch Twitter via Multi-Engine (Apify -> Scrape.do -> RapidAPI)
+    // 1. Fetch Twitter via Multi-Engine (Scrape.do -> Apify -> RapidAPI)
     let twitterItems = [];
-    if (APIFY_TOKEN) {
-        twitterItems = await fetchTwitterApify();
-    } else {
-        console.warn('[Scraper] ⚠️ APIFY_TOKEN is missing. Skipping Apify.');
-    }
-
-    // FALLBACK 1: If Apify returned nothing, try Scrape.do
-    if (twitterItems.length === 0 && SCRAPEDO_TOKEN) {
-        console.log('[Scraper] 🔄 Falling back to Scrape.do...');
+    
+    // PRIMARY: Scrape.do (User's request to try this alone/first)
+    if (SCRAPEDO_TOKEN) {
         twitterItems = await fetchTwitterScrapeDo();
     }
 
-    // FALLBACK 2: If still nothing, try RapidAPI
+    // FALLBACK 1: Apify
+    if (twitterItems.length === 0 && APIFY_TOKEN) {
+        console.log('[Scraper] 🔄 Falling back to Apify...');
+        twitterItems = await fetchTwitterApify();
+    }
+
+    // FALLBACK 2: RapidAPI
     if (twitterItems.length === 0 && RAPIDAPI_KEY) {
         console.log('[Scraper] 🔄 Falling back to RapidAPI...');
         twitterItems = await fetchTwitterRapidAPI();

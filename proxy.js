@@ -163,22 +163,28 @@ const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
     const parsed = url.parse(req.url, true);
+    const pathName = (parsed.pathname || '').toLowerCase().replace(/\/$/, ''); // lowercase & strip trailing slash
 
-    if (parsed.pathname === '/news' || parsed.pathname === '/telegram') {
+    console.log(`[Req] ${req.method} ${pathName}`);
+
+    if (pathName === '/news' || pathName === '/telegram') {
         res.writeHead(200);
         res.end(JSON.stringify({ ok: true, count: newsCache.length, items: newsCache }));
-    } else if (parsed.pathname === '/health' || parsed.pathname === '/debug') {
+    } else if (pathName === '/health' || pathName === '/debug') {
         res.writeHead(200);
         res.end(JSON.stringify({ 
             status: 'ok', 
+            version: '1.0.2-robust',
             uptime: process.uptime(),
             loops: lastLoopStatus,
             cacheCount: newsCache.length,
-            time: new Date().toISOString()
+            time: new Date().toISOString(),
+            platform: process.platform,
+            node: process.version
         }));
     } else {
         res.writeHead(404);
-        res.end(JSON.stringify({ error: 'Not found' }));
+        res.end(JSON.stringify({ error: 'Not found', requestedPath: pathName }));
     }
 });
 

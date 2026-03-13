@@ -12,8 +12,13 @@ const path = require('path');
 const PORT = process.env.PORT || 3001;
 const CACHE_FILE = path.join(__dirname, 'telegram-cache.json');
 
-// Memory Cache
+// Memory Cache & Status
 let newsCache = [];
+const lastLoopStatus = {};
+
+// Apify Config
+const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
+const TWITTER_LIST_ID = '2031445708524421549';
 
 // Load existing cache
 try {
@@ -166,9 +171,109 @@ async function startTelegramLoop(channel) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   🟢 FUTURE SCRAPERS SECTION
-   Add new scraping logic (RSS, X, etc.) DOWN HERE to keep Telegram logic clean.
+   🟢 FUTURE SCRAPERS SECTION - Twitter (Apify Implementation)
    ══════════════════════════════════════════════════════════════════════════════ */
+
+// Helper for Apify POST requests
+function postJSON(targetUrl, body) {
+    return new Promise((resolve, reject) => {
+        const u = new URL(targetUrl);
+        const options = {
+            hostname: u.hostname,
+            path: u.pathname + u.search,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        };
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => resolve(JSON.parse(data)));
+        });
+        req.on('error', reject);
+        req.write(JSON.stringify(body));
+        req.end();
+    });
+}
+
+async function startTwitterLoop() {
+    console.log(`[Twitter] Starting Apify loop (15m interval)`);
+    lastLoopStatus['twitter'] = { status: 'starting', type: 'twitter' };
+
+    if (!APIFY_TOKEN) {
+        console.warn('[Twitter] ⚠️ APIFY_TOKEN missing. Twitter scraper disabled.');
+        lastLoopStatus['twitter'].status = 'disabled: missing_token';
+        return;
+    }
+
+    while (true) {
+        lastLoopStatus['twitter'].lastAttempt = new Date().toISOString();
+        try {
+            console.log('[Twitter] 🚀 Running Apify Actor...');
+            const runUrl = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs?token=${APIFY_TOKEN}`;
+            const runRes = await postJSON(runUrl, {
+                listUrls: [`https://x.com/i/lists/${TWITTER_LIST_ID}`],
+                maxTweets: 20
+            });
+
+            const runId = runRes.data.id;
+            const datasetId = runRes.data.defaultDatasetId;
+            
+            // Wait for completion (Simple polling)
+            let finished = false;
+            let attempts = 0;
+            while (!finished && attempts < 10) {
+                await new Promise(r => setTimeout(r, 15000)); // Wait 15s
+                const statusRes = await fetchPage(`https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs/${runId}?token=${APIFY_TOKEN}`);
+                const statusData = JSON.parse(statusRes);
+                const status = statusData.data.status;
+                
+                if (status === 'SUCCEEDED') finished = true;
+                else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) throw new Error('Actor failed: ' + status);
+                attempts++;
+            }
+
+            if (finished) {
+                const itemsRes = await fetchPage(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_TOKEN}`);
+                const tweets = JSON.parse(itemsRes);
+                
+                let added = 0;
+                const seen = new Set(newsCache.map(i => i.id));
+
+                tweets.forEach(t => {
+                    const id = t.id_str || t.id;
+                    if (!seen.has(id)) {
+                        const profileImg = (t.user && t.user.profile_image_url_https) ? t.user.profile_image_url_https : 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png';
+                        newsCache.unshift({
+                            title: t.full_text || t.text || '',
+                            source: 'twitter',
+                            sourceName: t.user ? t.user.name : 'تويتر',
+                            handle: t.user ? t.user.screen_name : 'twitter',
+                            pubDate: new Date(t.created_at).toISOString(),
+                            link: `https://x.com/i/status/${id}`,
+                            hasMedia: !!(t.entities && t.entities.media),
+                            mediaUrl: (t.entities && t.entities.media) ? t.entities.media[0].media_url_https : null,
+                            customAvatar: profileImg,
+                            id: id
+                        });
+                        added++;
+                    }
+                });
+
+                lastLoopStatus['twitter'].status = 'ok';
+                lastLoopStatus['twitter'].lastCount = added;
+                if (added > 0) {
+                    newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+                    fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache.slice(0, 100), null, 2));
+                    console.log(`[Twitter] ✅ Added ${added} new tweets.`);
+                }
+            }
+        } catch (e) {
+            console.error(`[Twitter] ❌ Error:`, e.message);
+            lastLoopStatus['twitter'].status = 'error: ' + e.message;
+        }
+        await new Promise(r => setTimeout(r, 900000)); // 15 Minutes
+    }
+}
 
 // Server
 const server = http.createServer((req, res) => {
@@ -237,4 +342,5 @@ server.listen(PORT, () => {
     console.log(` Port: ${PORT}`);
     console.log('═══════════════════════════════════════');
     CHANNELS.forEach(startTelegramLoop);
+    startTwitterLoop();
 });

@@ -125,7 +125,14 @@ async function fetchTwitterRapidAPI() {
                                 .map(e => e.content.itemContent.tweet_results.result);
                         }
                     } else {
-                        raw = parsed.result || parsed.tweets || (Array.isArray(parsed) ? parsed : []);
+                        raw = (parsed.result && Array.isArray(parsed.result)) ? parsed.result : 
+                              (parsed.tweets && Array.isArray(parsed.tweets)) ? parsed.tweets : 
+                              (Array.isArray(parsed) ? parsed : []);
+                    }
+
+                    if (!Array.isArray(raw)) {
+                        console.error('[RapidAPI] ❌ Unexpected Data Format:', typeof raw);
+                        return resolve([]);
                     }
                     
                     const mapped = raw.map(item => {
@@ -287,4 +294,7 @@ async function scrapeAll() {
     console.log(`✅ Complete: ${allItems.length} items saved.`);
 }
 
-scrapeAll();
+scrapeAll().catch(err => {
+    console.error('❌ CRITICAL ERROR:', err);
+    process.exit(1);
+});

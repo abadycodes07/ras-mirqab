@@ -63,10 +63,10 @@ function parseTelegram(html, channel) {
     const items = [];
     if (!html || !html.includes('tgme_widget_message')) return [];
     
-    // Define exact logo paths for each source
+    // Define relative logo paths (frontend will resolve these from its own origin)
     const AVATARS = {
-        'ajanews': 'https://abadycodes07.github.io/ras-mirqab/public/logos/aljazeera.png',
-        'alhadath_brk': 'https://abadycodes07.github.io/ras-mirqab/public/logos/alhadath_brk.png'
+        'ajanews': 'public/logos/aljazeera.png',
+        'alhadath_brk': 'public/logos/alhadath_brk.png'
     };
 
     const blocks = html.split(/class="[^"]*tgme_widget_message_wrap[^"]*"/);
@@ -77,18 +77,27 @@ function parseTelegram(html, channel) {
         const timeMatch = block.match(/datetime="([^"]*)"/);
         const linkMatch = block.match(/data-post="([^"]+)"/);
         
-        // Improved Media Logic: Look specifically for photo/video previews, ignore stickers/emojis
-        // Telegram photos use 'tgme_widget_message_photo_wrap' or 'tgme_widget_message_video_player'
+        // --- BULLETPROOF MEDIA EXTRACTION ---
         let mediaUrl = null;
+        
+        // 1. Look for photo/video thumb containers ONLY
         const photoMatch = block.match(/tgme_widget_message_photo_wrap[^>]*background-image:url\('([^']+)'\)/);
         const thumbMatch = block.match(/tgme_widget_message_video_thumb[^>]*background-image:url\('([^']+)'\)/);
+        const videoMatch = block.match(/tgme_widget_message_video_player[^>]*background-image:url\('([^']+)'\)/);
         
         if (photoMatch) mediaUrl = photoMatch[1];
         else if (thumbMatch) mediaUrl = thumbMatch[1];
+        else if (videoMatch) mediaUrl = videoMatch[1];
+
+        // 2. AGGRESSIVE SKIP: If it's a sticker or contains "emoji" in the URL/block, ignore it
+        const blockLower = block.toLowerCase();
+        const isSticker = blockLower.includes('sticker') || blockLower.includes('emoji') || blockLower.includes('animated_emoji');
         
-        // Skip small emojis/stickers that might be in the message
-        const isSticker = block.includes('tgme_widget_message_inline_sticker') || block.includes('tgme_widget_message_sticker');
-        if (isSticker && !mediaUrl) mediaUrl = null;
+        // If we found a mediaUrl but it looks like a sticker/emoji item, nullify it
+        if (mediaUrl && (mediaUrl.includes('emoji') || mediaUrl.includes('sticker') || isSticker)) {
+            mediaUrl = null;
+        }
+        // ------------------------------------
 
         if (textMatch) {
             const cleanText = textMatch[1].replace(/<[^>]+>/g, '').trim();
@@ -125,7 +134,7 @@ async function startTelegramLoop(channel) {
             for (const url of urls) {
                 try {
                     html = await fetchPage(url);
-                    if (html.includes('tgme_widget_message')) { usedUrl = url; break; }
+                    if (html && html.includes('tgme_widget_message')) { usedUrl = url; break; }
                 } catch (e) {}
             }
 
@@ -138,7 +147,17 @@ async function startTelegramLoop(channel) {
                 const seen = new Set(newsCache.map(i => i.id));
                 let added = 0;
                 freshItems.forEach(item => {
-                    if (!seen.has(item.id)) { newsCache.unshift(item); added++; }
+                    if (!seen.has(item.id)) { 
+                        newsCache.unshift(item); 
+                        added++; 
+                    } else if (item.handle === 'alhadath_brk') {
+                        // FORCED UPDATE for Al Hadath icons on existing items in memory
+                        const existing = newsCache.find(i => i.id === item.id);
+                        if (existing) {
+                            existing.customAvatar = item.customAvatar;
+                            existing.mediaUrl = item.mediaUrl;
+                        }
+                    }
                 });
 
                 if (added > 0) {
@@ -148,7 +167,7 @@ async function startTelegramLoop(channel) {
                     console.log(`[${channel.handle}] ✅ Added ${added} new items.`);
                 }
             } else {
-                lastLoopStatus[channel.handle].status = 'empty_response';
+                lastLoopStatus[channel.handle].status = 'empty_response' + (html ? '_but_got_html' : '_no_html');
             }
         } catch (e) {
             console.error(`[${channel.handle}] ❌ Error:`, e.message);
@@ -186,7 +205,7 @@ const server = http.createServer((req, res) => {
         res.writeHead(200);
         return res.end(JSON.stringify({ 
             status: 'ok', 
-            service: 'Ras Mirqab Proxy v1.0.4-bulletproof',
+            service: 'Ras Mirqab Proxy v1.0.5-final',
             uptime: Math.floor(process.uptime()) + 's',
             memory: process.memoryUsage().rss,
             loops: lastLoopStatus,
@@ -195,12 +214,20 @@ const server = http.createServer((req, res) => {
         }));
     }
 
+    // Wipe Cache Endpoint
+    if (path === '/wipe') {
+        newsCache = [];
+        try { if (fs.existsSync(CACHE_FILE)) fs.unlinkSync(CACHE_FILE); } catch(e) {}
+        res.writeHead(200);
+        return res.end(JSON.stringify({ status: 'wiped', message: 'Memory and disk cache cleared. Scraper will restart fresh.' }));
+    }
+
     // News/Telegram Endpoints
     if (path === '/news' || path === '/telegram' || path === '/twitter') {
         res.writeHead(200);
         return res.end(JSON.stringify({ 
             ok: true, 
-            version: '1.0.4',
+            version: '1.0.5',
             count: newsCache.length, 
             items: newsCache 
         }));
@@ -212,7 +239,7 @@ const server = http.createServer((req, res) => {
         error: 'Endpoint not found', 
         receivedPath: path,
         hint: 'Use /news or /debug',
-        version: '1.0.4-bulletproof'
+        version: '1.0.5-final'
     }));
 });
 

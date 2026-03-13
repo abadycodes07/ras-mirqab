@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T14:13:20.392Z",
+  "updated": "2026-03-13T14:14:25.851Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | وكالة الصحافة الفرنسية: دوي انفجار في #دبي",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:14:04.000Z",
+      "link": "https://t.me/AjaNews/467253",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | حزب الله: قصفنا بالصواريخ قاعدة غيفع للتحكم بالمسيرات شرق مدينة صفد المحتلة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:13:29.000Z",
+      "link": "https://t.me/AjaNews/467252",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | هيئة البث عن مصادر: الجيش الإسرائيلي يفحص إذا ما كان رئيس شعبة استخبارات الجيش الإيراني قد اغتيل في #طهران",
       "source": "telegram",
@@ -248,26 +268,6 @@
       "handle": "ajanews",
       "pubDate": "2026-03-13T13:27:59.000Z",
       "link": "https://t.me/AjaNews/467234",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | وزير الدفاع الإسرائيلي: الحكومة اللبنانية خدعتنا وماطلت في نزع سلاح #حزب_الله وستدفع أثمانا متصاعدة",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T13:26:33.000Z",
-      "link": "https://t.me/AjaNews/467233",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | الجيش اللبناني: طائرة إسرائيلية ألقت منشورات فوق #بيروت تحمل رمزا لرابط نحذر من مسحه لدواع أمنية",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T13:26:03.000Z",
-      "link": "https://t.me/AjaNews/467232",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

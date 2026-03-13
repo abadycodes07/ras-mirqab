@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T12:10:21.816Z",
+  "updated": "2026-03-13T12:11:19.700Z",
   "count": 40,
   "items": [
+    {
+      "title": "&rlm;وزير الحرب الأميركي: المرشد الإيراني الجديد مصاب وخائف من الاستهداف",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T12:11:02.000Z",
+      "link": "https://t.me/alhadath_brk/106781",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | وزير الحرب الأمريكي: إيران تهدد الشحن في مضيق هرمز وتأخذه رهينة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:10:29.000Z",
+      "link": "https://t.me/AjaNews/467205",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm;وزير الحرب الأميركي: دمرنا قدرات إيران على انتاج الصواريخ الباليستية",
       "source": "telegram",
@@ -293,16 +313,6 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | وسائل إعلام إسرائيلية: الدفاعات الجوية تعترض صواريخ أطلقت من #إيران في أجواء وسط إسرائيل",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:37:56.000Z",
-      "link": "https://t.me/AjaNews/467185",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مراسل الحدث: إطلاق صفارات الإنذار في القدس",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -388,16 +398,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T11:10:02.000Z",
       "link": "https://t.me/alhadath_brk/106762",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;جعجع للحدث:  لبنان تأخر بترتيب وضعه",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T11:09:02.000Z",
-      "link": "https://t.me/alhadath_brk/106761",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

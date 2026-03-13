@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T14:55:23.622Z",
+  "updated": "2026-03-13T14:56:21.895Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | وكالة مهر: مقتل 2 وإصابة 5 في هجوم أمريكي إسرائيلي على منطقة بويين زهرا في محافظة قزوين غرب #طهران",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:56:00.000Z",
+      "link": "https://t.me/AjaNews/467287",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm;تركيا: سفينة مملوكة لنا عبرت مضيق هرمز بإذن إيراني",
       "source": "telegram",
@@ -271,16 +281,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | الجيش الإسرائيلي: رئيس الأركان وجه بتعزيز القوات لدعم الاستعدادات لسيناريوهات الهجوم والدفاع",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T14:34:32.000Z",
-      "link": "https://t.me/AjaNews/467267",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;كلمة لرئيس الوزراء اللبناني خلال استقباله أمين عام الأمم المتحدة",

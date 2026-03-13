@@ -208,12 +208,16 @@ function parseNitter(html) {
 
                 const id = link.split('/').pop();
 
+                // Clean Nitter date string (remove the middot '·' so Date() can parse it)
+                let dateStr = dateMatch ? dateMatch[1].replace('·', '').trim() : new Date().toISOString();
+                let pubDate = new Date(dateStr).toISOString();
+
                 items.push({
                     title: textMatch[1].replace(/<[^>]+>/g, '').trim(),
                     source: 'twitter',
                     sourceName: sourceName,
                     handle: handle,
-                    pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
+                    pubDate: pubDate,
                     link: link,
                     hasMedia: block.includes('attachment image') || block.includes('media-body'),
                     customAvatar: avatar || 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png',

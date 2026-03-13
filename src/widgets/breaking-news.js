@@ -234,11 +234,16 @@ var BreakingNewsWidget = (function () {
             return;
         }
 
-        items.sort(function (a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
+        items.sort(function (a, b) {
+            var da = new Date(a.pubDate);
+            var db = new Date(b.pubDate);
+            if (isNaN(da.getTime())) return 1;
+            if (isNaN(db.getTime())) return -1;
+            return db - da;
+        });
 
         var newCount = 0;
         items.forEach(function (item) {
-            // Using a longer title slice + pubDate for a more robust unique ID
             var id = (item.link || '') + (item.title ? item.title.substring(0, 50) : item.pubDate);
             if (!seenIds.has(id)) {
                 if (!isFirstLoad) { newCount++; item.isNew = true; }
@@ -252,11 +257,10 @@ var BreakingNewsWidget = (function () {
 
         isFirstLoad = false;
         
-        // Smarter merging for the UI to prevent disappearing items
+        // Smarter merging for the UI
         if (lastFetchedItems.length === 0) {
             lastFetchedItems = items;
         } else {
-            // Merge new items into existing ones
             var existingItems = [...lastFetchedItems];
             items.forEach(function(newItem) {
                 var newId = (newItem.link || '') + (newItem.title ? newItem.title.substring(0, 50) : newItem.pubDate);
@@ -267,8 +271,14 @@ var BreakingNewsWidget = (function () {
                     existingItems.push(newItem);
                 }
             });
-            existingItems.sort(function (a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
-            lastFetchedItems = existingItems.slice(0, 120); // Keep reasonably sized
+            existingItems.sort(function (a, b) {
+                var da = new Date(a.pubDate);
+                var db = new Date(b.pubDate);
+                if (isNaN(da.getTime())) return 1;
+                if (isNaN(db.getTime())) return -1;
+                return db - da;
+            });
+            lastFetchedItems = existingItems.slice(0, 120);
         }
 
         renderItems(container, lastFetchedItems);

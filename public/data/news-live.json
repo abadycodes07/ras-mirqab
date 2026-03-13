@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-13T11:32:18.325Z",
+  "updated": "2026-03-13T11:33:20.761Z",
   "count": 41,
   "items": [
     {
@@ -7,10 +7,20 @@
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:32:16.772Z",
+      "pubDate": "2026-03-13T11:33:19.296Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "عاجل | حزب الله: قصفنا بالصواريخ قاعدة ميرون للمراقبة وإدارة العمليات الجوية شمال فلسطين المحتلة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:32:29.000Z",
+      "link": "https://t.me/AjaNews/467182",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "عاجل | مراسل #الجزيرة: غارة إسرائيلية على مرتفعات بلدة سجد جنوبي #لبنان",
@@ -318,16 +328,6 @@
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:00:30.000Z",
       "link": "https://t.me/AjaNews/467163",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | عراقجي: ارتفاع أسعار النفط والطاقة هو نتيجة لأفعال الولايات المتحدة وإسرائيل في المنطقة",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T10:59:55.000Z",
-      "link": "https://t.me/AjaNews/467162",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

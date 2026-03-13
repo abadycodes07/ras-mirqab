@@ -216,8 +216,7 @@ async function startTwitterLoop() {
             const runUrl = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs?token=${APIFY_TOKEN}`;
             const runRes = await postJSON(runUrl, {
                 startUrls: [`https://x.com/i/lists/${TWITTER_LIST_ID}`],
-                listIds: [TWITTER_LIST_ID],
-                maxItems: 40,
+                maxItems: 60,
                 proxyConfiguration: { useApifyProxy: true }
             });
 
@@ -249,48 +248,46 @@ async function startTwitterLoop() {
             }
 
             if (finished) {
-                console.log(`[Twitter] ✨ Run succeeded. Fetching results from dataset: ${datasetId}`);
-                const itemsRes = await fetchPage(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_TOKEN}`);
-                const tweets = JSON.parse(itemsRes);
+                console.log(`[Twitter] ✨ Run succeeded. Received ${tweets.length} items from dataset.`);
                 
-                if (!Array.isArray(tweets)) {
-                    console.error('[Twitter] ❌ Expected array of tweets, got:', typeof tweets);
-                    throw new Error('Invalid results format');
-                }
-
-                let added = 0;
-                const seen = new Set(newsCache.map(i => i.id));
-
-                tweets.forEach(t => {
-                    const id = t.id_str || t.id;
-                    if (!id) return;
-                    if (!seen.has(id)) {
-                        const profileImg = (t.user && t.user.profile_image_url_https) ? t.user.profile_image_url_https : 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png';
-                        newsCache.unshift({
-                            title: t.full_text || t.text || '',
-                            source: 'twitter',
-                            sourceName: t.user ? t.user.name : 'تويتر',
-                            handle: t.user ? t.user.screen_name : 'twitter',
-                            pubDate: new Date(t.created_at).toISOString(),
-                            link: `https://x.com/i/status/${id}`,
-                            hasMedia: !!(t.entities && t.entities.media),
-                            mediaUrl: (t.entities && t.entities.media) ? t.entities.media[0].media_url_https : null,
-                            customAvatar: profileImg,
-                            id: id
-                        });
-                        added++;
-                    }
-                });
-
-                lastLoopStatus['twitter'].status = 'ok';
-                lastLoopStatus['twitter'].lastCount = added;
-                if (added > 0) {
-                    newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-                    newsCache = newsCache.slice(0, 100);
-                    fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
-                    console.log(`[Twitter] ✅ Added ${added} new tweets.`);
+                if (!Array.isArray(tweets) || tweets.length === 0) {
+                    console.log('[Twitter] ℹ️ Dataset is empty. Check if list ID is correct or has public tweets.');
+                    lastLoopStatus['twitter'].status = 'ok_but_empty';
                 } else {
-                    console.log('[Twitter] ℹ️ No new tweets found (already in cache).');
+                    let added = 0;
+                    const seen = new Set(newsCache.map(i => i.id));
+
+                    tweets.forEach(t => {
+                        const id = t.id_str || t.id;
+                        if (!id) return;
+                        if (!seen.has(id)) {
+                            const profileImg = (t.user && t.user.profile_image_url_https) ? t.user.profile_image_url_https : 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png';
+                            newsCache.unshift({
+                                title: t.full_text || t.text || '',
+                                source: 'twitter',
+                                sourceName: t.user ? t.user.name : 'تويتر',
+                                handle: t.user ? t.user.screen_name : 'twitter',
+                                pubDate: new Date(t.created_at).toISOString(),
+                                link: `https://x.com/i/status/${id}`,
+                                hasMedia: !!(t.entities && t.entities.media),
+                                mediaUrl: (t.entities && t.entities.media) ? t.entities.media[0].media_url_https : null,
+                                customAvatar: profileImg,
+                                id: id
+                            });
+                            added++;
+                        }
+                    });
+
+                    lastLoopStatus['twitter'].status = 'ok';
+                    lastLoopStatus['twitter'].lastCount = added;
+                    if (added > 0) {
+                        newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+                        newsCache = newsCache.slice(0, 100);
+                        fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
+                        console.log(`[Twitter] ✅ Added ${added} new tweets.`);
+                    } else {
+                        console.log('[Twitter] ℹ️ All received tweets are already in cache.');
+                    }
                 }
             } else {
                 console.warn('[Twitter] ⏳ Actor timed out after polling.');

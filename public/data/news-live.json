@@ -1,26 +1,26 @@
 {
-  "updated": "2026-03-13T11:49:36.476Z",
-  "count": 42,
+  "updated": "2026-03-13T11:51:19.416Z",
+  "count": 40,
   "items": [
     {
-      "title": "",
-      "source": "twitter",
-      "sourceName": "Twitter",
-      "handle": "twitter",
-      "pubDate": "2026-03-13T11:49:34.869Z",
-      "link": "#",
+      "title": "&rlm;الاتحاد الأوروبي: الوقت غير مناسب لتخفيف العقوبات على روسيا",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T11:51:02.000Z",
+      "link": "https://t.me/alhadath_brk/106775",
       "hasMedia": false,
-      "mediaUrl": null
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
     },
     {
-      "title": "",
-      "source": "twitter",
-      "sourceName": "Twitter",
-      "handle": "twitter",
-      "pubDate": "2026-03-13T11:49:34.868Z",
-      "link": "#",
+      "title": "عاجل | مراسل #الجزيرة: غارة إسرائيلية على أطراف بلدة النبي شيت في البقاع شرقي #لبنان",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:50:57.000Z",
+      "link": "https://t.me/AjaNews/467191",
       "hasMedia": false,
-      "mediaUrl": null
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "عاجل | وسائل إعلام إسرائيلية: الدفاعات الحوية اعترضت صاروخا أطلق من #إيران",
@@ -343,16 +343,6 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | ترمب لفوكس نيوز: سنضرب #إيران بشدة خلال الأسبوع المقبل",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:09:57.000Z",
-      "link": "https://t.me/AjaNews/467171",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;جعجع للحدث:  لبنان تأخر بترتيب وضعه",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -408,16 +398,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T10:47:02.000Z",
       "link": "https://t.me/alhadath_brk/106756",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;الحدث ترصد الأضرار الجسيمة التي لحقت بفرع القرض الحسن ببيروت جراء غارة إسرائيلية",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T10:35:02.000Z",
-      "link": "https://t.me/alhadath_brk/106755",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

@@ -212,6 +212,14 @@ function parseNitter(html) {
                 let dateStr = dateMatch ? dateMatch[1].replace('·', '').trim() : new Date().toISOString();
                 let pubDate = new Date(dateStr).toISOString();
 
+                // Advanced Media Extraction (Images)
+                let mediaUrl = null;
+                const mediaMatch = block.match(/<div class="attachment image">[\s\S]*?<img[^>]*src="([^"]+)"/);
+                if (mediaMatch) {
+                    mediaUrl = mediaMatch[1];
+                    if (mediaUrl.startsWith('/')) mediaUrl = 'https://nitter.net' + mediaUrl;
+                }
+
                 items.push({
                     title: textMatch[1].replace(/<[^>]+>/g, '').trim(),
                     source: 'twitter',
@@ -219,7 +227,8 @@ function parseNitter(html) {
                     handle: handle,
                     pubDate: pubDate,
                     link: link,
-                    hasMedia: block.includes('attachment image') || block.includes('media-body'),
+                    hasMedia: !!mediaUrl,
+                    mediaUrl: mediaUrl,
                     customAvatar: avatar || 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png',
                     id: id
                 });

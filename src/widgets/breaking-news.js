@@ -396,16 +396,28 @@ var BreakingNewsWidget = (function () {
                 itemEl.addEventListener('mouseenter', function (e) {
                     if (!hoverEnabled || !popupEl) return;
                     var rect = itemEl.getBoundingClientRect();
-                    var media = item.localMedia || item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
-                    var imgHtml = media ? '<img src="' + media + '" class="bn-popup-image has-img" style="max-width:100%; border-radius:6px; margin:8px 0; border:1px solid #444;" />' : '';
+                    
+                    // Priority 1: Direct Media from Proxy
+                    // Priority 2: Fallback to the channel's source avatar (Logo)
+                    var popupMedia = item.localMedia || item.mediaUrl || item.image || item.customAvatar || avatarPath;
+                    
+                    var imgHtml = popupMedia ? 
+                        '<div style="width:100%; height:160px; border-radius:8px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,0.1); margin-bottom:12px;">' +
+                        '<img src="' + popupMedia + '" style="width:100%; height:100%; object-fit:cover;" onerror="this.src=\'' + avatarPath + '\';" />' +
+                        '</div>' : '';
                     
                     popupEl.innerHTML = 
-                        '<div class="bn-popup-header" style="color:#e67e22; font-weight:800; font-size:11px; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:6px; letter-spacing:1px;">🚨 BREAKING LIVE</div>' +
+                        '<div class="bn-popup-header" style="color:#e67e22; font-weight:800; font-size:10px; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:8px; letter-spacing:1px; display:flex; justify-content:space-between; align-items:center;">' +
+                        '<span>🚨 BREAKING ALERT</span>' +
+                        '<span style="opacity:0.6;">' + (item.sourceName || item.source).toUpperCase() + '</span>' +
+                        '</div>' +
                         imgHtml +
-                        '<div class="bn-popup-text" style="font-size:13.5px; line-height:1.6; margin-bottom:10px; color:#fff; font-family:\'Tajawal\', sans-serif;">' + (item.title || item.text || '') + '</div>' +
-                        '<div class="bn-popup-meta" style="font-size:9px; color:#666; display:flex; justify-content:space-between; font-family:\'Inter\', sans-serif; text-transform:uppercase;">' +
+                        '<div class="bn-popup-text" style="font-size:14px; line-height:1.6; margin-bottom:12px; color:#fff; font-family:\'Tajawal\', sans-serif; text-align:right; direction:rtl; font-weight:400;">' + 
+                        (item.title || item.text || '').replace(/\n/g, '<br>') + 
+                        '</div>' +
+                        '<div class="bn-popup-meta" style="font-size:10px; color:#666; display:flex; justify-content:space-between; font-family:\'Inter\', sans-serif; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px;">' +
                         '  <span>Source: ' + (item.customName || item.sourceName || item.source) + '</span>' +
-                        '  <span>' + timeAgoAr(item.pubDate) + '</span>' +
+                        '  <span style="color:#888;">' + timeAgoAr(item.pubDate) + '</span>' +
                         '</div>';
                     
                     popupEl.classList.add('active');

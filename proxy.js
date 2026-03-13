@@ -163,28 +163,34 @@ const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
     const parsed = url.parse(req.url, true);
-    const pathName = (parsed.pathname || '').toLowerCase().replace(/\/$/, ''); // lowercase & strip trailing slash
+    let pathName = (parsed.pathname || '').toLowerCase();
+    
+    // Normalize path: strip trailing slash and handle root
+    if (pathName === '/' || pathName === '') pathName = '/index';
+    else pathName = pathName.replace(/\/$/, '');
 
     console.log(`[Req] ${req.method} ${pathName}`);
 
-    if (pathName === '/news' || pathName === '/telegram') {
+    if (pathName === '/index') {
+        res.writeHead(200);
+        res.end(JSON.stringify({ message: 'Ras Mirqab Proxy v1.0.3-ultra is LIVE', status: 'ok' }));
+    } else if (pathName === '/news' || pathName === '/telegram') {
         res.writeHead(200);
         res.end(JSON.stringify({ ok: true, count: newsCache.length, items: newsCache }));
     } else if (pathName === '/health' || pathName === '/debug') {
         res.writeHead(200);
         res.end(JSON.stringify({ 
             status: 'ok', 
-            version: '1.0.2-robust',
-            uptime: process.uptime(),
+            version: '1.0.3-ultra',
+            uptime: Math.floor(process.uptime()) + 's',
             loops: lastLoopStatus,
             cacheCount: newsCache.length,
             time: new Date().toISOString(),
-            platform: process.platform,
             node: process.version
         }));
     } else {
         res.writeHead(404);
-        res.end(JSON.stringify({ error: 'Not found', requestedPath: pathName }));
+        res.end(JSON.stringify({ error: 'Not found', path: pathName, hint: 'Use /news or /debug' }));
     }
 });
 

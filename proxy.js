@@ -215,6 +215,7 @@ async function startTwitterLoop() {
             console.log('[Twitter] 🚀 Triggering Apify Actor...');
             const runUrl = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs?token=${APIFY_TOKEN}`;
             const runRes = await postJSON(runUrl, {
+                startUrls: [`https://x.com/i/lists/${TWITTER_LIST_ID}`],
                 listIds: [TWITTER_LIST_ID],
                 maxItems: 40,
                 proxyConfiguration: { useApifyProxy: true }
@@ -240,7 +241,10 @@ async function startTwitterLoop() {
                 console.log(`[Twitter] Polling status (Attempt ${attempts + 1}/20): ${status}`);
                 
                 if (status === 'SUCCEEDED') finished = true;
-                else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) throw new Error('Actor failed: ' + status);
+                else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) {
+                    const msg = statusData.data ? statusData.data.errorMessage : 'No error message';
+                    throw new Error(`Actor ${status}: ${msg}`);
+                }
                 attempts++;
             }
 

@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T14:34:20.703Z",
+  "updated": "2026-03-13T14:35:20.493Z",
   "count": 40,
   "items": [
+    {
+      "title": "&rlm;رئيس وزراء لبنان: مجتمعنا يواجه اليوم ما يفوق قدرته على الاحتمال",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T14:35:02.000Z",
+      "link": "https://t.me/alhadath_brk/106813",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | الجيش الإسرائيلي: رئيس الأركان وجه بتعزيز القوات لدعم الاستعدادات لسيناريوهات الهجوم والدفاع",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:34:32.000Z",
+      "link": "https://t.me/AjaNews/467267",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | الجيش الإسرائيلي: رئيس الأركان وجه بتعزيز القوات بشكل واسع النطاق لدعم الاسعدادات لسيناريوهات الهجوم والدفاع",
       "source": "telegram",
@@ -253,16 +273,6 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | الداخلية الإماراتية: دفاعاتنا الجوية تتعامل مع تهديد صاروخي ويرجى البقاء في مكان آمن ومتابعة التحذيرات",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T14:00:32.000Z",
-      "link": "https://t.me/AjaNews/467247",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;الجيش الإسرائيلي: نفذنا عشرات الغارات على بنى تحتية لحزب الله ببيروت والبقاع وجنوب لبنان",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -388,16 +398,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T12:33:02.000Z",
       "link": "https://t.me/alhadath_brk/106794",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm; وزير الحرب الأميركي: نراقب مساعي إيران لإشراك وكلائها في الصراع",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T12:30:02.000Z",
-      "link": "https://t.me/alhadath_brk/106793",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

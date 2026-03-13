@@ -133,8 +133,46 @@ async function fetchTwitterApify() {
 }
 
 async function fetchTwitterRapidAPI() {
-    // RapidAPI removed as per user request to use Apify Free
-    return [];
+    console.log('[RapidAPI] 🚀 Fetching Twitter List via Twitter 241...');
+    if (!RAPIDAPI_KEY) {
+        console.warn('[RapidAPI] ⚠️ RAPIDAPI_KEY is missing. Skipping.');
+        return [];
+    }
+
+    const url = `https://twitter241.p.rapidapi.com/list-timeline?listId=${TWITTER_LIST_ID}`;
+    try {
+        const data = await fetchWithTimeout(url, 20000);
+        const json = JSON.parse(data);
+        
+        // Deeply nested mapping for Twitter 241
+        const instructions = json?.result?.timeline?.instructions || [];
+        const timelineEntry = instructions.find(i => i.type === 'TimelineAddEntries');
+        const entries = timelineEntry ? timelineEntry.entries : [];
+        
+        const mapped = entries.map(entry => {
+            const tweet = entry?.content?.itemContent?.tweet_results?.result?.legacy;
+            const author = entry?.content?.itemContent?.tweet_results?.result?.core?.user_results?.result?.legacy;
+            
+            if (!tweet || !tweet.full_text) return null;
+
+            return {
+                title: tweet.full_text.substring(0, 500),
+                source: 'twitter',
+                sourceName: author?.name || 'Twitter',
+                handle: author?.screen_name || 'twitter',
+                pubDate: new Date(tweet.created_at).toISOString(),
+                link: `https://x.com/i/status/${tweet.id_str}`,
+                hasMedia: !!(tweet.entities && tweet.entities.media),
+                mediaUrl: tweet.entities?.media?.[0]?.media_url_https || null,
+                customAvatar: author?.profile_image_url_https || null
+            };
+        }).filter(it => it && it.title.trim().length > 5);
+
+        return mapped;
+    } catch (e) {
+        console.warn('[RapidAPI] ❌ Error fetching from Twitter 241:', e.message);
+        return [];
+    }
 }
 
 function parseTelegram(html, handle) {
@@ -211,16 +249,23 @@ async function scrapeAll() {
     const allItems = [];
     const seen = new Set();
 
-    // 1. Fetch Twitter via Apify (Primary as per user request)
+    // 1. Fetch Twitter via Dual-Engine (Apify -> RapidAPI)
     let twitterItems = [];
     if (APIFY_TOKEN) {
         twitterItems = await fetchTwitterApify();
     } else {
-        console.warn('[Scraper] ⚠️ APIFY_TOKEN is missing. Skipping Twitter.');
+        console.warn('[Scraper] ⚠️ APIFY_TOKEN is missing. Skipping Apify.');
+    }
+
+    // FALLBACK: If Apify returned nothing, try RapidAPI
+    if (twitterItems.length === 0 && RAPIDAPI_KEY) {
+        console.log('[Scraper] 🔄 Falling back to RapidAPI...');
+        twitterItems = await fetchTwitterRapidAPI();
     }
 
     console.log(`✅ [Twitter] Total items fetched: ${twitterItems.length}`);
     twitterItems.forEach(it => {
+        // Use a more generic hash for Twitter as IDs can vary between providers
         const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
         if (!seen.has(hash)) {
             seen.add(hash);

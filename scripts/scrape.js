@@ -303,34 +303,13 @@ async function scrapeAll() {
         }
     });
 
-    // 2. Direct Telegram Scraper Logic (No Nitter fallbacks)
-    for (const member of LIST_MEMBERS) {
-        console.log(`[Telegram] 📡 Scraping direct: @${member.telegram}...`);
-        try {
-            const html = await fetchWithTimeout(`https://t.me/s/${member.telegram}`);
-            const memberItems = parseTelegram(html, member.telegram);
-            if (memberItems.length > 0) {
-                console.log(`✅ [Telegram] @${member.handle}: ${memberItems.length}`);
-                for (const it of memberItems) {
-                    const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
-                    if (!seen.has(hash)) {
-                        seen.add(hash);
-                        allItems.push({ ...it, sourceName: member.name });
-                    }
-                }
-            }
-        } catch (e) {
-            console.warn(`[Telegram] ⚠️ Failed to scrape @${member.telegram}: ${e.message}`);
-        }
-    }
-
     allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
     fs.writeFileSync(OUTPUT_FILE, JSON.stringify({
         updated: new Date().toISOString(),
         count: allItems.length,
-        items: allItems.slice(0, 120)
+        items: allItems.slice(0, 100)
     }, null, 2));
-    console.log(`✅ Complete: ${allItems.length} items saved.`);
+    console.log(`✅ Complete: ${allItems.length} Twitter items saved.`);
 }
 
 scrapeAll().then(() => {

@@ -62,14 +62,11 @@ function getCachedTelegram(handle) {
 async function telegramLoop(handle) {
     while (true) {
         try {
-            // Direct fetch from Telegram public view with a short timeout
             const html = await fetchPage('https://t.me/s/' + handle, 5000);
             const posts = parseTelegram(html, handle);
             if (posts.length > 0) setCachedTelegram(handle, posts);
-        } catch (e) { 
-            // Silent failure — keep old cache
-        }
-        await new Promise(r => setTimeout(r, 500)); // 500ms pause for truly instant feel
+        } catch (e) { }
+        await new Promise(r => setTimeout(r, 500)); // 500ms interval for instant updates
     }
 }
 
@@ -319,23 +316,9 @@ async function twitterListLoop() {
                 seenItems.add(hash);
             });
 
-            let addedCount = 0;
-            const newTotalResults = [...twitterListCache];
-
-            // Merge all results (Twitter + Telegram)
-            const allResults = [...twitterResults, ...telegramResults];
-            for (const it of allResults) {
-                const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
-                if (!seenItems.has(hash)) {
-                    seenItems.add(hash);
-                    newTotalResults.push(it);
-                    addedCount++;
-                }
-            }
-
             newTotalResults.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
             twitterListCache.length = 0;
-            twitterListCache.push(...newTotalResults.slice(0, 200)); // Increased buffer for persistence
+            twitterListCache.push(...newTotalResults.slice(0, 100)); 
             
             saveCacheToFile();
             

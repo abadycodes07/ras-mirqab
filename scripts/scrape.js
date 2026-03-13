@@ -25,8 +25,34 @@ const LIST_MEMBERS = [
 ];
 
 const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
+const SCRAPEDO_TOKEN = process.env.SCRAPEDO_TOKEN || ''; // User can get 1,000 free credits
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || '76dd92d274msh5f9d70a356151dbp1c194djsn85d2595a1c7b';
 const TWITTER_LIST_ID = '2031445708524421549';
+
+async function fetchTwitterScrapeDo() {
+    if (!SCRAPEDO_TOKEN) {
+        console.warn('[Scrape.do] ⚠️ SCRAPEDO_TOKEN is missing. Skipping.');
+        return [];
+    }
+    console.log('[Scrape.do] 🚀 Fetching Twitter List via Nitter Mirror...');
+    
+    // Instead of x.com (hard to parse), we use Scrape.do to fetch an easier-to-parse Nitter mirror
+    const mirror = getMirror();
+    const targetUrl = `${mirror}/i/lists/${TWITTER_LIST_ID}/rss`;
+    const apiURL = `https://api.scrape.do?token=${SCRAPEDO_TOKEN}&url=${encodeURIComponent(targetUrl)}&geo=us`;
+
+    try {
+        const xml = await fetchWithTimeout(apiURL, 30000);
+        if (xml.includes('<item>')) {
+            return parseRSS(xml, { name: 'Twitter List', handle: 'twitter' });
+        }
+        console.warn('[Scrape.do] ⚠️ RSS feed not found in response.');
+        return [];
+    } catch (e) {
+        console.warn('[Scrape.do] ❌ Error:', e.message);
+        return [];
+    }
+}
 
 const NITTER_MIRRORS = [
     'https://nitter.privacyredirect.com',
@@ -249,7 +275,7 @@ async function scrapeAll() {
     const allItems = [];
     const seen = new Set();
 
-    // 1. Fetch Twitter via Dual-Engine (Apify -> RapidAPI)
+    // 1. Fetch Twitter via Multi-Engine (Apify -> Scrape.do -> RapidAPI)
     let twitterItems = [];
     if (APIFY_TOKEN) {
         twitterItems = await fetchTwitterApify();
@@ -257,7 +283,13 @@ async function scrapeAll() {
         console.warn('[Scraper] ⚠️ APIFY_TOKEN is missing. Skipping Apify.');
     }
 
-    // FALLBACK: If Apify returned nothing, try RapidAPI
+    // FALLBACK 1: If Apify returned nothing, try Scrape.do
+    if (twitterItems.length === 0 && SCRAPEDO_TOKEN) {
+        console.log('[Scraper] 🔄 Falling back to Scrape.do...');
+        twitterItems = await fetchTwitterScrapeDo();
+    }
+
+    // FALLBACK 2: If still nothing, try RapidAPI
     if (twitterItems.length === 0 && RAPIDAPI_KEY) {
         console.log('[Scraper] 🔄 Falling back to RapidAPI...');
         twitterItems = await fetchTwitterRapidAPI();

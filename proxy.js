@@ -24,6 +24,7 @@ const PAID_CONFIG = {
     method: 'apify', // Options: 'telegram', 'rapidapi', 'apify'
     rapidapiKey: process.env.RAPIDAPI_KEY || '',
     apifyToken: process.env.APIFY_TOKEN || '',
+    scrapedoToken: process.env.SCRAPEDO_TOKEN || '',
     lastTwitterFetch: 0,
     twitterCacheTTL: 60 * 1000
 };
@@ -65,7 +66,7 @@ async function telegramLoop(handle) {
             const posts = parseTelegram(html, handle);
             if (posts.length > 0) setCachedTelegram(handle, posts);
         } catch (e) { /* silent — cache keeps last good data */ }
-        await new Promise(r => setTimeout(r, 5000)); // 5s pause between fetches as requested
+        await new Promise(r => setTimeout(r, 3000)); // 3s pause for ~4s cycle
     }
 }
 
@@ -98,11 +99,19 @@ async function scrapeDirectTwitterList() {
         return []; // No new items needed yet
     }
 
-    // 2. Select Method
+    // 2. Select Method (Apify -> Scrape.do -> RapidAPI)
+    if (PAID_CONFIG.method === 'apify' && PAID_CONFIG.apifyToken) {
+        const items = await fetchViaApify();
+        if (items.length > 0) return items;
+    } 
+    
+    if (PAID_CONFIG.scrapedoToken) {
+        const items = await fetchViaScrapeDo();
+        if (items.length > 0) return items;
+    }
+
     if (PAID_CONFIG.method === 'rapidapi' && PAID_CONFIG.rapidapiKey) {
         return fetchViaRapidAPI();
-    } else if (PAID_CONFIG.method === 'apify' && PAID_CONFIG.apifyToken) {
-        return fetchViaApify();
     }
 
     // Default Fallback: Legacy Syndication
@@ -128,19 +137,13 @@ async function scrapeDirectTwitterList() {
 async function fetchViaRapidAPI() {
     console.log('[RapidAPI] 🚀 Fetching Twitter List via Twttr API (davethebeast)...');
     const TWITTER_LIST_ID = '2031445708524421549';
-    // Using list-timeline endpoint which is verified as working for this provider
     const url = `https://twitter241.p.rapidapi.com/list-timeline?listId=${TWITTER_LIST_ID}`;
-    
     try {
         const res = await fetchPage(url, 15000, null, {
             'X-RapidAPI-Key': PAID_CONFIG.rapidapiKey,
             'X-RapidAPI-Host': 'twitter241.p.rapidapi.com'
         });
         const data = JSON.parse(res);
-        // Debug: Log top-level keys to ensure alignment
-        if (!data.result) console.log('[RapidAPI] 📦 Twttr API Response Keys:', Object.keys(data));
-        
-        // Handle Twttr API (davethebeast) structure
         let raw = [];
         if (data.result && data.result.timeline && data.result.timeline.instructions) {
             const instructions = data.result.timeline.instructions;
@@ -153,10 +156,6 @@ async function fetchViaRapidAPI() {
         } else {
             raw = data.result || data.tweets || (Array.isArray(data) ? data : []);
         }
-
-        console.log(`[RapidAPI] 📦 Raw Tweets found: ${raw.length}`);
-        if (raw.length > 0) console.log(`[RapidAPI] 📦 Sample Item Keys: ${Object.keys(raw[0])}`);
-
         PAID_CONFIG.lastTwitterFetch = Date.now();
         return processTwitterData(raw, null);
     } catch (e) {
@@ -167,33 +166,97 @@ async function fetchViaRapidAPI() {
 async function fetchViaApify() {
     console.log('[Apify] 🚀 Fetching via Apify Actor (apidojo/twitter-list-scraper)...');
     const TWITTER_LIST_ID = '2031445708524421549';
-    // Sync run endpoint (runs actor and returns results in one call)
     const url = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/run-sync-get-dataset-items?token=${PAID_CONFIG.apifyToken}`;
-    
-    // Actor input: list URLs/IDs and max items
-    const payload = JSON.stringify({
-        "startUrls": [{ "url": `https://x.com/i/lists/${TWITTER_LIST_ID}` }],
-        "maxItems": 40
-    });
+    const payload = JSON.stringify({ "startUrls": [{ "url": `https://x.com/i/lists/${TWITTER_LIST_ID}` }], "maxItems": 40 });
 
     try {
-        const res = await fetchPage(url, 60000, null, {
-            'Content-Type': 'application/json'
-        }, 'POST', payload);
-        
+        const res = await fetchPage(url, 60000, null, { 'Content-Type': 'application/json' }, 'POST', payload);
         const data = JSON.parse(res);
-        if (!Array.isArray(data)) {
-            console.error('[Apify] ❌ Unexpected response format (expected array)');
-            return [];
-        }
-
+        if (!Array.isArray(data)) return [];
         PAID_CONFIG.lastTwitterFetch = Date.now();
-        console.log(`[Apify] ✅ Successfully fetched ${data.length} items.`);
         return processTwitterData(data, null);
     } catch (e) {
         console.error('[Apify] ❌ Error:', e.message);
         return [];
     }
+}
+
+async function fetchViaScrapeDo() {
+    console.log('[Scrape.do] 🚀 Fetching Twitter List via Nitter Mirror...');
+    const TWITTER_LIST_ID = '2031445708524421549';
+    const mirror = getRandomNitterMirror();
+    const targetUrl = `${mirror}/i/lists/${TWITTER_LIST_ID}/rss`;
+    const apiURL = `https://api.scrape.do?token=${PAID_CONFIG.scrapedoToken}&url=${encodeURIComponent(targetUrl)}&geo=us`;
+
+    try {
+        const xml = await fetchPage(apiURL, 30000);
+        if (xml.includes('<item>')) {
+            PAID_CONFIG.lastTwitterFetch = Date.now();
+            return processRSSData(xml, { name: 'Twitter List', handle: 'twitter' });
+        }
+        return [];
+    } catch (e) {
+        console.error('[Scrape.do] ❌ Error:', e.message);
+        return [];
+    }
+}
+async function fetchViaScrapeDo() {
+    console.log('[Scrape.do] 🚀 Fetching Twitter List via Nitter Mirror...');
+    const TWITTER_LIST_ID = '2031445708524421549';
+    const mirror = getRandomNitterMirror();
+    const targetUrl = `${mirror}/i/lists/${TWITTER_LIST_ID}/rss`;
+    const apiURL = `https://api.scrape.do?token=${PAID_CONFIG.scrapedoToken}&url=${encodeURIComponent(targetUrl)}&geo=us`;
+
+    try {
+        const xml = await fetchPage(apiURL, 30000);
+        if (xml.includes('<item>')) {
+            PAID_CONFIG.lastTwitterFetch = Date.now();
+            return processRSSData(xml, { name: 'Twitter List', handle: 'twitter' });
+        }
+        return [];
+    } catch (e) {
+        console.error('[Scrape.do] ❌ Error:', e.message);
+        return [];
+    }
+}
+
+function getRandomNitterMirror() {
+    const mirrors = ['https://nitter.privacyredirect.com', 'https://nitter.net', 'https://xcancel.com'];
+    return mirrors[Math.floor(Math.random() * mirrors.length)];
+}
+
+function processRSSData(xml, member) {
+    const items = [];
+    const entryRe = /<item>([\s\S]*?)<\/item>/g;
+    let m;
+    while ((m = entryRe.exec(xml)) !== null) {
+        const block = m[1];
+        const titleMatch = block.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || block.match(/<title>([\s\S]*?)<\/title>/);
+        const dateMatch = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+        const linkMatch = block.match(/<link>([\s\S]*?)<\/link>/);
+        const descMatch = block.match(/<description>([\s\S]*?)<\/description>/);
+        if (titleMatch) {
+            let text = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+            if (text.includes(': ')) text = text.split(': ').slice(1).join(': ');
+            let mediaUrl = null;
+            if (descMatch) {
+                const imgM = descMatch[1].match(/<img[^>]+src="([^"]+)"/i);
+                if (imgM) mediaUrl = imgM[1].replace(/nitter\.[a-z.]+/g, 'x.com');
+            }
+            items.push({
+                title: text.substring(0, 800),
+                source: 'twitter',
+                sourceName: member.name,
+                handle: member.handle.toLowerCase(),
+                pubDate: dateMatch ? new Date(dateMatch[1]).toISOString() : new Date().toISOString(),
+                link: linkMatch ? linkMatch[1].replace(/nitter\.[a-z.]+/g, 'x.com') : '#',
+                hasMedia: !!mediaUrl,
+                mediaUrl: mediaUrl,
+                customAvatar: 'public/logos/twitter_bg.png'
+            });
+        }
+    }
+    return items;
 }
 
 function processTwitterData(data, memberHint = null) {

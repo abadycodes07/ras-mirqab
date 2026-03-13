@@ -126,18 +126,31 @@ var BreakingNewsWidget = (function () {
         loadNews(); // Initial fetch & render
 
         if (refreshTimer) clearInterval(refreshTimer);
-        // Refresh UI EVERY second for the "seconds ago" to update smoothly
-        refreshTimer = setInterval(function() {
-            var container = document.getElementById('breaking-news-body');
-            if (container && lastFetchedItems.length > 0) {
-                renderItems(container, lastFetchedItems);
-            }
-        }, 1000);
+        // Refresh ONLY the "time ago" labels every second to prevent flicker
+        refreshTimer = setInterval(updateTimeLabels, 1000);
         
-        // Fetch fresh data every 15 seconds (matches proxy refresh rate)
-        setInterval(loadNews, 15000);
+        // Fetch fresh data every 5 seconds for near-real-time updates
+        setInterval(loadNews, 5000);
         
         checkProxyStatus();
+    }
+
+    function updateTimeLabels() {
+        var timeLabels = document.querySelectorAll('.news-item-time');
+        timeLabels.forEach(function(btn) {
+            var dateStr = btn.getAttribute('data-date');
+            if (dateStr) {
+                var id = btn.getAttribute('data-id');
+                var isToggled = toggledTimes.has(id);
+                if (isToggled) {
+                    // Absolute time doesn't need updating every second, but we do it to keep logic simple
+                    var absoluteTime = new Date(dateStr).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                    btn.innerText = absoluteTime;
+                } else {
+                    btn.innerText = timeAgoAr(dateStr);
+                }
+            }
+        });
     }
 
     function toggleSettings() {
@@ -322,7 +335,18 @@ var BreakingNewsWidget = (function () {
     }
 
     function renderItems(container, items) {
-        container.innerHTML = '';
+        // To prevent flicker, we only rebuild if count changed or it's first load
+        // Or we can be smarter and only add new items to the top
+        var currentItemCount = container.querySelectorAll('.news-item').length;
+        
+        // If it's a completely new list or first load, rebuild once
+        if (currentItemCount === 0 || items.length !== currentItemCount) {
+             container.innerHTML = '';
+        } else {
+            // Already rendered, updateTimeLabels will handle the countdowns
+            return;
+        }
+
         items.forEach(function (item) {
             var id = (item.link || '') + (item.title ? item.title.substring(0, 50) : item.pubDate);
             var isToggled = toggledTimes.has(id);
@@ -349,17 +373,12 @@ var BreakingNewsWidget = (function () {
             itemEl.onmouseenter = function() { itemEl.style.background = 'rgba(255,255,255,0.04)'; };
             itemEl.onmouseleave = function() { itemEl.style.background = 'transparent'; if (popupEl) popupEl.classList.remove('active'); };
 
-            // [RIGHT] Thumbnail logic - Fallback to source logo if no media
+            // [RIGHT] Thumbnail logic
             var thumbnailPath = item.localMedia || item.mediaUrl || item.image;
             if (!thumbnailPath || thumbnailPath.includes('placeholder')) {
-                // If it's Twitter and we have an avatar, use it as the "main" image if no media
-                if (item.source === 'twitter' && item.customAvatar) {
-                    thumbnailPath = item.customAvatar;
-                } else if (item.source === 'telegram' && item.customAvatar) {
-                    thumbnailPath = item.customAvatar;
-                } else {
-                    thumbnailPath = 'public/logos/aljazeera.png'; // Global default
-                }
+                if (item.source === 'twitter' && item.customAvatar) thumbnailPath = item.customAvatar;
+                else if (item.source === 'telegram' && item.customAvatar) thumbnailPath = item.customAvatar;
+                else thumbnailPath = 'public/logos/aljazeera.png';
             }
             
             var thumbnailHtml = '<div style="width:75px; height:75px; flex-shrink:0; border-radius:10px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">' +
@@ -376,32 +395,29 @@ var BreakingNewsWidget = (function () {
 
             // [LEFT] Logo, Badge and Time
             var avatarPath = item.customAvatar;
-            if (!avatarPath) {
-                avatarPath = (item.source === 'twitter') ? 'public/logos/twitter_bg.png' : 'public/logos/aljazeera.png';
-            }
+            if (!avatarPath) avatarPath = (item.source === 'twitter') ? 'public/logos/twitter_bg.png' : 'public/logos/aljazeera.png';
             
             var logoHtml = '<div style="display:flex; flex-direction:column; align-items:center; gap:8px; min-width:45px; flex-shrink:0;">' +
                 '<div style="position:relative; width:34px; height:34px;">' +
                 '<img src="' + avatarPath + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.1);" onerror="this.src=\'public/logos/aljazeera.png\'" />' +
                 '<div style="position:absolute; bottom:-4px; right:-4px; width:15px; height:15px; border-radius:50%; background:#111; border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; color:' + platformColor + ';">' + platformIcon + '</div>' +
                 '</div>' +
-                '<div class="news-item-time" style="font-size:10px; color:#555; font-weight:600; font-family:\'Orbitron\', sans-serif; cursor:pointer; text-decoration:underline dashed rgba(255,255,255,0.1);" title="اضغط لتبديل عرض الوقت">' + displayTime + '</div>' +
+                '<div class="news-item-time" data-date="' + item.pubDate + '" data-id="' + id + '" style="font-size:10px; color:#555; font-weight:600; font-family:\'Orbitron\', sans-serif; cursor:pointer; text-decoration:underline dashed rgba(255,255,255,0.1);" title="اضغط لتبديل عرض الوقت">' + displayTime + '</div>' +
                 '</div>';
 
             itemEl.innerHTML = thumbnailHtml + contentHtml + logoHtml;
 
-            // Handle time toggle click
             var timeBtn = itemEl.querySelector('.news-item-time');
             if (timeBtn) {
                 timeBtn.onclick = function(e) {
                     e.stopPropagation();
                     if (toggledTimes.has(id)) toggledTimes.delete(id);
                     else toggledTimes.add(id);
-                    renderItems(container, items); // Re-render immediately with new state
+                    updateTimeLabels(); // Update text immediately
                 };
             }
 
-            // Hover preview support (on larger screen)
+            // Hover preview support
             itemEl.addEventListener('mouseenter', function (e) {
                 if (!hoverEnabled || !popupEl) return;
                 var rect = itemEl.getBoundingClientRect();
@@ -414,7 +430,7 @@ var BreakingNewsWidget = (function () {
                     '<div class="bn-popup-text" style="font-size:13.5px; line-height:1.6; margin-bottom:10px; color:#fff; font-family:\'Tajawal\', sans-serif;">' + (item.title || item.text || '') + '</div>' +
                     '<div class="bn-popup-meta" style="font-size:9px; color:#666; display:flex; justify-content:space-between; font-family:\'Inter\', sans-serif; text-transform:uppercase;">' +
                     '  <span>Source: ' + (item.customName || item.sourceName || item.source) + '</span>' +
-                    '  <span>' + displayTime + '</span>' +
+                    '  <span>' + timeAgoAr(item.pubDate) + '</span>' +
                     '</div>';
                 
                 popupEl.classList.add('active');

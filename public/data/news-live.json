@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T14:02:23.206Z",
+  "updated": "2026-03-13T14:04:17.018Z",
   "count": 40,
   "items": [
+    {
+      "title": "&rlm;مراسل الحدث: غارة إسرائيلية قرب بلدة &quot;معركة&quot; في جنوب لبنان",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T14:04:02.000Z",
+      "link": "https://t.me/alhadath_brk/106807",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | وول ستريت جورنال عن مسؤولين: القوات الأمريكية لن تبدأ بمرافقة السفن إلا بعد انخفاض مستوى التهديد الإيراني",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:02:33.000Z",
+      "link": "https://t.me/AjaNews/467249",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | وول ستريت جورنال عن مسؤول أمريكي: القيادة المركزية طلبت مدمرات وسفنا حربية لمرافقة السفن التجارية بمضيق هرمز",
       "source": "telegram",
@@ -263,16 +283,6 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | وكالة مهر: مقتل 2 وإصابة 9 في هجوم أمريكي إسرائيلي استهدف مركزا للشرطة في منطقة فشافوية جنوبي #طهران",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T13:10:58.000Z",
-      "link": "https://t.me/AjaNews/467229",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;الرئيس اللبناني: أبديت استعدادي للتفاوض لكننا لم نتلق جواباً من الطرف الآخر",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -388,16 +398,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T12:22:02.000Z",
       "link": "https://t.me/alhadath_brk/106788",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;رئيس الأركان الأميركي: إيران تأخذ مضيق هرمز رهينة وقامت بزرع الألغام",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T12:19:02.000Z",
-      "link": "https://t.me/alhadath_brk/106787",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

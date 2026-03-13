@@ -1,16 +1,36 @@
 {
-  "updated": "2026-03-13T11:35:16.652Z",
-  "count": 41,
+  "updated": "2026-03-13T11:36:15.473Z",
+  "count": 42,
   "items": [
     {
       "title": "",
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:35:15.698Z",
+      "pubDate": "2026-03-13T11:36:14.365Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "",
+      "source": "twitter",
+      "sourceName": "Twitter",
+      "handle": "twitter",
+      "pubDate": "2026-03-13T11:36:14.364Z",
+      "link": "#",
+      "hasMedia": false,
+      "mediaUrl": null
+    },
+    {
+      "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي في مناطق واسعة جنوب تل أبيب وأسدود وعسقلان والقدس",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:36:00.000Z",
+      "link": "https://t.me/AjaNews/467184",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;مراسل الحدث: إطلاق صفارات الإنذار في القدس",
@@ -163,7 +183,7 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | مراسلة #الجزيرة: غارة إسرائيلية في محيط بلدتي القوزح وعيتا الشعب جنوبي #لبنان",
+      "title": "عاجل | مراس��ة #الجزيرة: غارة إسرائيلية في محيط بلدتي القوزح وعيتا الشعب جنوبي #لبنان",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:14:27.000Z",
@@ -328,16 +348,6 @@
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:02:56.000Z",
       "link": "https://t.me/AjaNews/467165",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | مراسل #الجزيرة: إطلاق دفعة صاروخية من جنوب #لبنان باتجاه الجليل الأعلى",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:02:26.000Z",
-      "link": "https://t.me/AjaNews/467164",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

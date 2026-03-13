@@ -271,7 +271,7 @@ async function startTwitterLoop() {
             console.error(`[Twitter] ❌ Error:`, e.message);
             lastLoopStatus['twitter'].status = 'error: ' + e.message;
         }
-        await new Promise(r => setTimeout(r, 900000)); // 15 Minutes
+        await new Promise(r => setTimeout(r, 40000)); // 40 Seconds
     }
 }
 

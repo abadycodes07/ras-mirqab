@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T14:04:17.018Z",
+  "updated": "2026-03-13T14:05:22.431Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | مراسل #الجزيرة: غارات إسرائيلية على بلدات باريش وميفدون وكفردونين جنوبي #لبنان",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:04:34.000Z",
+      "link": "https://t.me/AjaNews/467250",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm;مراسل الحدث: غارة إسرائيلية قرب بلدة &quot;معركة&quot; في جنوب لبنان",
       "source": "telegram",
@@ -271,16 +281,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | مراسلة #الجزيرة: قصف بصواريخ ومسيرات على موقع الحزب الديمقراطي الكردستاني الإيراني المعارض شرق أربيل",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T13:11:32.000Z",
-      "link": "https://t.me/AjaNews/467230",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;الرئيس اللبناني: أبديت استعدادي للتفاوض لكننا لم نتلق جواباً من الطرف الآخر",

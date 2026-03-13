@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-13T11:41:16.071Z",
+  "updated": "2026-03-13T11:42:21.578Z",
   "count": 41,
   "items": [
     {
@@ -7,10 +7,20 @@
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:41:15.096Z",
+      "pubDate": "2026-03-13T11:42:20.539Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "&rlm;روس آتوم الروسية: لم نرصد أي تغيير بمستويات الإشعاع بعد استهداف منشآت نووية إيرانية",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T11:42:02.000Z",
+      "link": "https://t.me/alhadath_brk/106773",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
     },
     {
       "title": "&rlm;الوكالة الدولية للطاقة : نسعى للتوصل لاتفاق نووي جديد بين أمريكا وإيران",
@@ -193,7 +203,7 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | مراسل #الجزيرة: قصف مدفعي إسرائيلي على محيط بلدات كفرحمام وكفرشوبا والهبارية وراشيا الفخار جنوبي #لبنان",
+      "title": "عاجل | م��اسل #الجزيرة: قصف مدفعي إسرائيلي على محيط بلدات كفرحمام وكفرشوبا والهبارية وراشيا الفخار جنوبي #لبنان",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:16:57.000Z",
@@ -273,7 +283,7 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "&rlm;جعجع للحدث: موازين القوى التي ستنتج عن هذه الحرب ستفرض شروطها على الوضع السياسي للبنان",
+      "title": "&rlm;جعجع للحدث: موازين القوى التي ستنتج عن هذه الحرب ستفرض شروطها على الوضع السياس�� للبنان",
       "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T11:10:02.000Z",
@@ -398,16 +408,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T10:33:02.000Z",
       "link": "https://t.me/alhadath_brk/106754",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسلة الحدث من أمام فرع القرض الحسن في زقاق البلاط ببيروت والذي تم استهدافه أمس",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T10:32:02.000Z",
-      "link": "https://t.me/alhadath_brk/106753",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

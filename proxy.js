@@ -203,11 +203,12 @@ function postJSON(targetUrl, body) {
 }
 
 async function startTwitterLoop() {
-    console.log(`[Twitter] Starting Apify loop (1m interval)`);
+    const tokenPrefix = APIFY_TOKEN ? (APIFY_TOKEN.substring(0, 10) + '...') : 'MISSING';
+    console.log(`[Twitter] Starting Apify loop (1m interval). Token: ${tokenPrefix}`);
     lastLoopStatus['twitter'] = { status: 'starting', type: 'twitter' };
 
     if (!APIFY_TOKEN) {
-        console.warn('[Twitter] ⚠️ APIFY_TOKEN missing. Twitter scraper disabled.');
+        console.warn('[Twitter] ⚠️ APIFY_TOKEN missing.');
         lastLoopStatus['twitter'].status = 'disabled: missing_token';
         return;
     }
@@ -218,64 +219,60 @@ async function startTwitterLoop() {
             console.log('[Twitter] 🚀 Triggering Apify Actor...');
             const runUrl = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs?token=${APIFY_TOKEN}`;
             const runRes = await postJSON(runUrl, {
-                startUrls: [{ url: `https://x.com/i/lists/${TWITTER_LIST_ID}` }],
+                startUrls: [{ url: `https://x.com/i/lists/${TWITTER_LIST_ID.trim()}` }],
                 maxItems: 60,
                 proxyConfiguration: { useApifyProxy: true }
             });
 
             if (!runRes.data || !runRes.data.id) {
-                throw new Error('Failed to trigger actor: ' + JSON.stringify(runRes));
+                throw new Error('Trigger failed: ' + JSON.stringify(runRes));
             }
 
             const runId = runRes.data.id;
             const datasetId = runRes.data.defaultDatasetId;
-            console.log(`[Twitter] 🏃 Actor started. Run ID: ${runId}`);
+            console.log(`[Twitter] 🏃 Run started: ${runId}`);
             
             let finished = false;
             let attempts = 0;
-            while (!finished && attempts < 20) {
+            while (!finished && attempts < 15) {
                 await new Promise(r => setTimeout(r, 10000));
                 const statusRes = await fetchPage(`https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs/${runId}?token=${APIFY_TOKEN}`);
                 const statusData = JSON.parse(statusRes);
                 const status = statusData.data ? statusData.data.status : 'UNKNOWN';
                 
-                console.log(`[Twitter] Polling status (Attempt ${attempts + 1}/20): ${status}`);
-                
-                if (status === 'SUCCEEDED') {
-                    finished = true;
-                } else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) {
-                    const msg = statusData.data ? statusData.data.errorMessage : 'No error message';
-                    throw new Error(`Actor ${status}: ${msg}`);
-                }
+                if (status === 'SUCCEEDED') finished = true;
+                else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) throw new Error(`Actor ${status}`);
                 attempts++;
             }
 
             if (finished) {
                 const itemsRes = await fetchPage(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_TOKEN}`);
                 const tweets = JSON.parse(itemsRes);
+                console.log(`[Twitter] ✨ Dataset received (${tweets.length} items).`);
                 
-                console.log(`[Twitter] ✨ Run succeeded. Received ${tweets.length} items from dataset.`);
-                
-                if (!Array.isArray(tweets) || tweets.length === 0) {
-                    console.log('[Twitter] ℹ️ Dataset is empty or contains no valid tweets.');
-                    lastLoopStatus['twitter'].status = 'ok_but_empty';
-                } else {
-                    // Diagnostic check for "demo" data
+                if (Array.isArray(tweets) && tweets.length > 0) {
+                    console.log(`[Twitter] ℹ️ First item keys: ${Object.keys(tweets[0]).join(', ')}`);
+                    
                     if (tweets[0].id_str === 'demo' || tweets[0].is_demo) {
-                        console.warn('[Twitter] ⚠️ WARNING: Receiving DEMO data. This usually means the Apify account is on a free/limited tier.');
+                        console.warn('[Twitter] ⚠️ APIFY RETURNS DEMO DATA. Subscription may be missing or token invalid.');
                     }
 
                     let added = 0;
+                    let skippedDemo = 0;
+                    let skippedCache = 0;
+                    let skippedNoId = 0;
+                    
                     const seen = new Set(newsCache.map(i => i.id));
 
                     tweets.forEach(t => {
                         const data = t.legacy || t;
                         const id = t.id_str || t.id || data.id_str || data.id;
                         
-                        if (!id || id === 'demo') return;
+                        if (!id) { skippedNoId++; return; }
+                        if (id === 'demo') { skippedDemo++; return; }
 
                         if (!seen.has(id)) {
-                            const user = t.user || data.user || {};
+                            const user = t.user || data.user || itemUser || {};
                             const profileImg = user.profile_image_url_https || 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png';
                             
                             newsCache.unshift({
@@ -283,30 +280,28 @@ async function startTwitterLoop() {
                                 source: 'twitter',
                                 sourceName: user.name || 'تويتر',
                                 handle: user.screen_name || 'twitter',
-                                pubDate: new Date(t.created_at || data.created_at).toISOString(),
+                                pubDate: new Date(t.created_at || data.created_at || Date.now()).toISOString(),
                                 link: `https://x.com/i/status/${id}`,
-                                hasMedia: !!(t.entities && t.entities.media) || !!(data.entities && data.entities.media),
-                                mediaUrl: (t.entities && t.entities.media) ? t.entities.media[0].media_url_https : (data.entities && data.entities.media ? data.entities.media[0].media_url_https : null),
+                                hasMedia: !!(t.entities?.media || data.entities?.media),
+                                mediaUrl: t.entities?.media?.[0]?.media_url_https || data.entities?.media?.[0]?.media_url_https || null,
                                 customAvatar: profileImg,
                                 id: id
                             });
                             added++;
+                            seen.add(id);
+                        } else {
+                            skippedCache++;
                         }
                     });
 
-                    lastLoopStatus['twitter'].status = 'ok';
-                    lastLoopStatus['twitter'].lastCount = added;
+                    console.log(`[Twitter] 📊 Stats: Added: ${added}, Demo: ${skippedDemo}, Cached: ${skippedCache}, NoID: ${skippedNoId}`);
+                    
                     if (added > 0) {
                         newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
                         newsCache = newsCache.slice(0, 100);
                         fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
-                        console.log(`[Twitter] ✅ Added ${added} new tweets.`);
-                    } else {
-                        console.log('[Twitter] ℹ️ All received tweets are already in cache.');
                     }
                 }
-            } else {
-                console.warn('[Twitter] ⏳ Actor timed out after polling.');
             }
         } catch (e) {
             console.error(`[Twitter] ❌ Error:`, e.message);

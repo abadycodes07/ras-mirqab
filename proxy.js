@@ -21,8 +21,8 @@ const CACHE_FILE = path.join(__dirname, 'news-cache.json');
 
 // ══════ PAID SCRAPERS CONFIG ══════
 const PAID_CONFIG = {
-    method: 'apify', // Options: 'telegram', 'rapidapi', 'apify'
-    rapidapiKey: '76dd92d274msh5f9d70a356151dbp1c194djsn85d2595a1c7b',    // Verified from playground code snippet
+    method: 'rapidapi', // Options: 'telegram', 'rapidapi', 'apify'
+    rapidapiKey: process.env.RAPIDAPI_KEY || '76dd92d274msh5f9d70a356151dbp1c194djsn85d2595a1c7b',    // Verified working key
     apifyToken: process.env.APIFY_TOKEN || '',     // Removed for security, use environment variable
     lastTwitterFetch: 0,
     twitterCacheTTL: 30 * 1000 // 30 Seconds for high-speed updates

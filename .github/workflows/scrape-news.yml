@@ -21,7 +21,11 @@ jobs:
           node-version: '20'
 
       - name: Run Scraper
-        run: timeout 180 node scripts/scrape.js || echo "⚠️ Scraper timed out but continuing with partial data"
+        env:
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+        run: |
+          node scripts/scrape.js
 
       - name: Commit and Push Changes
         run: |

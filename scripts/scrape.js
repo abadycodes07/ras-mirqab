@@ -25,6 +25,7 @@ const LIST_MEMBERS = [
 ];
 
 const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
+const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || '76dd92d274msh5f9d70a356151dbp1c194djsn85d2595a1c7b';
 const TWITTER_LIST_ID = '2031445708524421549';
 
 const NITTER_MIRRORS = [
@@ -98,6 +99,71 @@ async function fetchTwitterApify() {
     });
 }
 
+async function fetchTwitterRapidAPI() {
+    console.log('[RapidAPI] 🚀 Fetching Twitter List (RapidAPI/Twttr)...');
+    const url = `https://twitter241.p.rapidapi.com/list-timeline?listId=${TWITTER_LIST_ID}`;
+    
+    return new Promise((resolve) => {
+        const req = https.get(url, {
+            headers: {
+                'X-RapidAPI-Key': RAPIDAPI_KEY,
+                'X-RapidAPI-Host': 'twitter241.p.rapidapi.com'
+            }
+        }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                try {
+                    const parsed = JSON.parse(data);
+                    let raw = [];
+                    if (parsed.result && parsed.result.timeline && parsed.result.timeline.instructions) {
+                        const instructions = parsed.result.timeline.instructions;
+                        const addEntries = instructions.find(i => i.type === 'TimelineAddEntries');
+                        if (addEntries && addEntries.entries) {
+                            raw = addEntries.entries
+                                .filter(e => e.content && e.content.itemContent && e.content.itemContent.tweet_results)
+                                .map(e => e.content.itemContent.tweet_results.result);
+                        }
+                    } else {
+                        raw = parsed.result || parsed.tweets || (Array.isArray(parsed) ? parsed : []);
+                    }
+                    
+                    const mapped = raw.map(item => {
+                        const tweet = item.legacy || item;
+                        const user = item.core && item.core.user_results ? item.core.user_results.result.legacy : (item.user || {});
+                        let mediaUrl = null;
+                        const entities = tweet.extended_entities || tweet.entities;
+                        if (entities && entities.media && entities.media.length > 0) {
+                            mediaUrl = entities.media[0].media_url_https;
+                        }
+
+                        return {
+                            title: (tweet.full_text || tweet.text || '').substring(0, 500),
+                            source: 'twitter',
+                            sourceName: user.name || 'Twitter',
+                            handle: user.screen_name || 'twitter',
+                            pubDate: tweet.created_at ? new Date(tweet.created_at).toISOString() : new Date().toISOString(),
+                            link: `https://x.com/${user.screen_name}/status/${item.rest_id || item.id_str}`,
+                            hasMedia: !!mediaUrl,
+                            mediaUrl: mediaUrl,
+                            customAvatar: user.profile_image_url_https ? user.profile_image_url_https.replace('_normal', '_400x400') : null,
+                            customName: user.name
+                        };
+                    });
+                    resolve(mapped);
+                } catch (e) {
+                    console.error('[RapidAPI] ❌ Parse Failed:', e.message);
+                    resolve([]);
+                }
+            });
+        });
+        req.on('error', (e) => {
+            console.error('[RapidAPI] ❌ Request Failed:', e.message);
+            resolve([]);
+        });
+    });
+}
+
 function parseTelegram(html, handle) {
     const posts = [];
     const blocks = html.split(/class="[^"]*tgme_widget_message_wrap/);
@@ -162,8 +228,14 @@ async function scrapeAll() {
     const allItems = [];
     const seen = new Set();
 
-    // 1. Fetch Twitter via Apify
-    const twitterItems = await fetchTwitterApify();
+    // 1. Fetch Twitter via RapidAPI (Primary) or Apify (Backup)
+    let twitterItems = await fetchTwitterRapidAPI();
+    
+    if (twitterItems.length === 0 && APIFY_TOKEN) {
+        console.log('[Scraper] ⚠️ RapidAPI returned 0, trying Apify fallback...');
+        twitterItems = await fetchTwitterApify();
+    }
+
     console.log(`✅ [Twitter] Total items fetched: ${twitterItems.length}`);
     twitterItems.forEach(it => {
         const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');

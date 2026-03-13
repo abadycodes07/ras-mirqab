@@ -28,8 +28,6 @@ const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || '76dd92d274msh5f9d70a356151dbp1c194djsn85d2595a1c7b';
 const TWITTER_LIST_ID = '2031445708524421549';
 
-const TWITTER_LIST_ID = '2031445708524421549';
-
 const NITTER_MIRRORS = [
     'https://nitter.privacyredirect.com',
     'https://nitter.net',

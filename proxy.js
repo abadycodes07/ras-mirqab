@@ -63,6 +63,12 @@ function parseTelegram(html, channel) {
     const items = [];
     if (!html || !html.includes('tgme_widget_message')) return [];
     
+    // Define exact logo paths for each source
+    const AVATARS = {
+        'ajanews': 'https://abadycodes07.github.io/ras-mirqab/public/logos/aljazeera.png',
+        'alhadath_brk': 'https://abadycodes07.github.io/ras-mirqab/public/logos/alhadath_brk.png'
+    };
+
     const blocks = html.split(/class="[^"]*tgme_widget_message_wrap[^"]*"/);
     blocks.shift();
 
@@ -70,7 +76,19 @@ function parseTelegram(html, channel) {
         const textMatch = block.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
         const timeMatch = block.match(/datetime="([^"]*)"/);
         const linkMatch = block.match(/data-post="([^"]+)"/);
-        const imgMatch = block.match(/background-image:url\('([^']+)'\)/);
+        
+        // Improved Media Logic: Look specifically for photo/video previews, ignore stickers/emojis
+        // Telegram photos use 'tgme_widget_message_photo_wrap' or 'tgme_widget_message_video_player'
+        let mediaUrl = null;
+        const photoMatch = block.match(/tgme_widget_message_photo_wrap[^>]*background-image:url\('([^']+)'\)/);
+        const thumbMatch = block.match(/tgme_widget_message_video_thumb[^>]*background-image:url\('([^']+)'\)/);
+        
+        if (photoMatch) mediaUrl = photoMatch[1];
+        else if (thumbMatch) mediaUrl = thumbMatch[1];
+        
+        // Skip small emojis/stickers that might be in the message
+        const isSticker = block.includes('tgme_widget_message_inline_sticker') || block.includes('tgme_widget_message_sticker');
+        if (isSticker && !mediaUrl) mediaUrl = null;
 
         if (textMatch) {
             const cleanText = textMatch[1].replace(/<[^>]+>/g, '').trim();
@@ -83,8 +101,9 @@ function parseTelegram(html, channel) {
                 handle: channel.handle,
                 pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
                 link: linkMatch ? `https://t.me/${linkMatch[1]}` : `https://t.me/s/${channel.handle}`,
-                hasMedia: !!imgMatch && channel.handle !== 'ajanews',
-                mediaUrl: imgMatch ? imgMatch[1] : null,
+                hasMedia: !!mediaUrl && channel.handle !== 'ajanews',
+                mediaUrl: mediaUrl,
+                customAvatar: AVATARS[channel.handle] || AVATARS['ajanews'],
                 id: linkMatch ? linkMatch[1] : (cleanText.substring(0, 50) + (timeMatch ? timeMatch[1] : ''))
             });
         }

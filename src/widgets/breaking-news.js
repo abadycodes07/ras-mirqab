@@ -209,7 +209,7 @@ var BreakingNewsWidget = (function () {
         var sources = getSources();
         var hardcoded = [
             { type: 'telegram', handle: 'ajanews', fixed: true },
-            { type: 'telegram', handle: 'AlHadath_Brk', fixed: true },
+            { type: 'telegram', handle: 'alhadath_brk', fixed: true },
             { type: 'twitter', handle: 'Twitter List', fixed: true }
         ];
         var all = hardcoded.concat(sources);

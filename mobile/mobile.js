@@ -13,7 +13,7 @@
         'NewsNow4USA': '../public/logos/newsnow.jpg',
         'AJELNEWS24': '../public/logos/alekhbariya.png',
         'AsharqNewsBrk': '../public/logos/asharq.png',
-        'Alhadath_Brk': '../public/logos/alhadath.png',
+        'alhadath_brk': '../public/logos/alhadath_brk.png',
         'modgovksa': '../public/logos/modgovksa2.png'
     };
 

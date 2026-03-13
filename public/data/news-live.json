@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T15:05:25.678Z",
+  "updated": "2026-03-13T15:06:20.381Z",
   "count": 40,
   "items": [
+    {
+      "title": "&rlm;مراسلة الحدث: صفارات الإنذار تدوي بمدينة تل أبيب",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T15:06:02.000Z",
+      "link": "https://t.me/alhadath_brk/106824",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
     {
       "title": "&rlm;الجيش الإسرائيلي: استهداف جسر الزرارية على نهر الليطاني رسالة للدولة اللبنانية",
       "source": "telegram",
@@ -388,16 +398,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T13:47:02.000Z",
       "link": "https://t.me/alhadath_brk/106805",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;تصريح للمتحدثة باسم الجيش الإسرائيلي",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T13:46:02.000Z",
-      "link": "https://t.me/alhadath_brk/106804",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

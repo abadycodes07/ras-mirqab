@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T14:11:20.127Z",
+  "updated": "2026-03-13T14:12:19.901Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | هيئة البث عن مصادر: الجيش الإسرائيلي يفحص إذا ما كان رئيس شعبة استخبارات الجيش الإيراني قد اغتيل في #طهران",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:12:05.000Z",
+      "link": "https://t.me/AjaNews/467251",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | مراسل #الجزيرة: غارات إسرائيلية على بلدات باريش وميفدون وكفردونين جنوبي #لبنان",
       "source": "telegram",
@@ -258,16 +268,6 @@
       "handle": "ajanews",
       "pubDate": "2026-03-13T13:26:03.000Z",
       "link": "https://t.me/AjaNews/467232",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | وول ستريت جورنال عن مسؤول إيطالي: إيطاليا بدأت سحبا تدريجيا لقواتها من إقليم كردستان #العراق",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T13:24:58.000Z",
-      "link": "https://t.me/AjaNews/467231",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

@@ -1,26 +1,26 @@
 {
-  "updated": "2026-03-13T11:29:17.210Z",
-  "count": 42,
+  "updated": "2026-03-13T11:30:22.865Z",
+  "count": 41,
   "items": [
     {
       "title": "",
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:29:16.143Z",
+      "pubDate": "2026-03-13T11:30:21.843Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
     },
     {
-      "title": "",
-      "source": "twitter",
-      "sourceName": "Twitter",
-      "handle": "twitter",
-      "pubDate": "2026-03-13T11:29:16.142Z",
-      "link": "#",
+      "title": "عاجل | الجبهة الداخلية الإسرائيلية: رصد صواريخ أطلقت من #إيران تستهدف وسط إسرائيل",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:29:29.000Z",
+      "link": "https://t.me/AjaNews/467180",
       "hasMedia": false,
-      "mediaUrl": null
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;مراسل الحدث: إطلاق صواريخ من إيران باتجاه وسط إسرائيل",
@@ -328,16 +328,6 @@
       "handle": "ajanews",
       "pubDate": "2026-03-13T10:59:55.000Z",
       "link": "https://t.me/AjaNews/467162",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي في منطقة المطلة بالجليل الأعلى عقب رصد صواريخ من #لبنان",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T10:58:55.000Z",
-      "link": "https://t.me/AjaNews/467160",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

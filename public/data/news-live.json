@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-13T11:39:17.874Z",
+  "updated": "2026-03-13T11:40:22.267Z",
   "count": 41,
   "items": [
     {
@@ -7,10 +7,30 @@
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:39:16.452Z",
+      "pubDate": "2026-03-13T11:40:20.577Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "&rlm;الوكالة الدولية للطاقة : نسعى للتوصل لاتفاق نووي جديد بين أمريكا وإيران",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T11:40:02.000Z",
+      "link": "https://t.me/alhadath_brk/106772",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | مدير الوكالة الدولية للطاقة الذرية: نسعى للتوصل إلى اتفاق نووي جديد بين الولايات المتحدة وإيران",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:39:26.000Z",
+      "link": "https://t.me/AjaNews/467187",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "عاجل | حزب الله: استهدفنا بالصواريخ مستوطنة إيفن مناحيم في إطار التحذير الذي وجهناه لعدد من المستوطنات",
@@ -173,7 +193,7 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | مراسل #الجزيرة: قصف مدفعي إسرائيلي على محيط بلدات كفرحمام وكفرشوبا والهبارية وراشيا الفخار جنوبي #لبنان",
+      "title": "عاجل | م��اسل #الجزيرة: قصف مدفعي إسرائيلي على محيط بلدات كفرحمام وكفرشوبا والهبارية وراشيا الفخار جنوبي #لبنان",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:16:57.000Z",
@@ -333,16 +353,6 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | الأمين العام للأمم المتحدة: الشعب اللبناني لم يختر الحرب لكنه جر إليها",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:05:28.000Z",
-      "link": "https://t.me/AjaNews/467167",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مقابلة خاصة مع رئيس حزب القوات اللبنانية سمير جعجع",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -398,16 +408,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T10:32:02.000Z",
       "link": "https://t.me/alhadath_brk/106753",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;الشيخ محمد بن زايد والملك عبدالله يدعوان لتغليب الحل الدبلوماسي لمعالجة قضايا المنطقة",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T10:20:02.000Z",
-      "link": "https://t.me/alhadath_brk/106752",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

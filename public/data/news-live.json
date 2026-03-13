@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T15:14:21.919Z",
+  "updated": "2026-03-13T15:15:24.167Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | وسائل إعلام إسرائيلية: أضرار في مناطق عدة وسط إسرائيل جراء الصاروخ",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T15:15:03.000Z",
+      "link": "https://t.me/AjaNews/467291",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | وسائل إعلام إسرائيلية: أضرار في مناطق عدة وسط إسرائيل جراء الصاروخ الإيراني",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T15:15:03.000Z",
+      "link": "https://t.me/AjaNews/467292",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | مراسل #الجزيرة: أنباء أولية عن سقوط صاروخ في وسط إسرائيل",
       "source": "telegram",
@@ -283,31 +303,11 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | رئيس الوزراء اللبناني: شعب #لبنان ليس ساحة معركة ونؤكد على الوقف الفوري لإطلاق النار",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T14:38:03.000Z",
-      "link": "https://t.me/AjaNews/467272",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "عاجل | رئيس الوزراء اللبناني: حكومتي مصممة على حصر السلاح بيدها واتخذنا خطوات حاسمة لذلك",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T14:38:03.000Z",
       "link": "https://t.me/AjaNews/467273",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | رئيس الوزراء اللبناني: جددت التأكيد على استعداد #لبنان للدخول في مفاوضات مع إسرائيل برعاية دولية",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T14:37:32.000Z",
-      "link": "https://t.me/AjaNews/467271",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

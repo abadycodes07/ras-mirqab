@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-13T11:38:16.195Z",
+  "updated": "2026-03-13T11:39:17.874Z",
   "count": 41,
   "items": [
     {
@@ -7,10 +7,20 @@
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:38:15.239Z",
+      "pubDate": "2026-03-13T11:39:16.452Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "عاجل | حزب الله: استهدفنا بالصواريخ مستوطنة إيفن مناحيم في إطار التحذير الذي وجهناه لعدد من المستوطنات",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:39:01.000Z",
+      "link": "https://t.me/AjaNews/467186",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;مراسل الحدث: دوي انفجارات بالقدس جراء عمليات اعتراض صواريخ إيرانية",
@@ -183,7 +193,7 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | ال��يش الإسرائيلي: إنذار بقصف مبنى في منطقة العباسية بصور جنوبي #لبنان",
+      "title": "عاجل | الجيش الإسرائيلي: إنذار بقصف مبنى في منطقة العباسية بصور جنوبي #لبنان",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:16:02.000Z",
@@ -341,16 +351,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | أ.ف.ب عن مصدر عسكري: مسيرة من نوع شاهد قتلت الجندي الفرنسي في كردستان #العراق",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:03:31.000Z",
-      "link": "https://t.me/AjaNews/467166",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;مراسل الحدث: تراجع حركة المسافرين على منفذ الشلامجة فيما بقيت الحركة التجارية",

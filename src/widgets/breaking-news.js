@@ -352,7 +352,14 @@ var BreakingNewsWidget = (function () {
             // [RIGHT] Thumbnail logic - Fallback to source logo if no media
             var thumbnailPath = item.localMedia || item.mediaUrl || item.image;
             if (!thumbnailPath || thumbnailPath.includes('placeholder')) {
-                thumbnailPath = item.customAvatar || 'public/logos/aljazeera.png';
+                // If it's Twitter and we have an avatar, use it as the "main" image if no media
+                if (item.source === 'twitter' && item.customAvatar) {
+                    thumbnailPath = item.customAvatar;
+                } else if (item.source === 'telegram' && item.customAvatar) {
+                    thumbnailPath = item.customAvatar;
+                } else {
+                    thumbnailPath = 'public/logos/aljazeera.png'; // Global default
+                }
             }
             
             var thumbnailHtml = '<div style="width:75px; height:75px; flex-shrink:0; border-radius:10px; overflow:hidden; background:#000; border:1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">' +
@@ -368,7 +375,11 @@ var BreakingNewsWidget = (function () {
                 '</div>';
 
             // [LEFT] Logo, Badge and Time
-            var avatarPath = item.customAvatar || 'public/logos/default.png';
+            var avatarPath = item.customAvatar;
+            if (!avatarPath) {
+                avatarPath = (item.source === 'twitter') ? 'public/logos/twitter_bg.png' : 'public/logos/aljazeera.png';
+            }
+            
             var logoHtml = '<div style="display:flex; flex-direction:column; align-items:center; gap:8px; min-width:45px; flex-shrink:0;">' +
                 '<div style="position:relative; width:34px; height:34px;">' +
                 '<img src="' + avatarPath + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.1);" onerror="this.src=\'public/logos/aljazeera.png\'" />' +

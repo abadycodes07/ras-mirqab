@@ -75,22 +75,40 @@ async function fetchTwitterApify() {
             res.on('end', () => {
                 try {
                     const items = JSON.parse(data);
-                    if (!Array.isArray(items)) return resolve([]);
+                    if (!Array.isArray(items)) {
+                        console.warn('[Apify] ⚠️ Response is not an array:', typeof items);
+                        return resolve([]);
+                    }
+                    
+                    if (items.length > 0) {
+                        console.log('[Apify] 🔍 Sample Item Structure (Keys):', Object.keys(items[0]));
+                    }
+
                     const mapped = items.map(it => {
+                        // Handle potential undefined/null items
+                        if (!it) return null;
+                        
                         const author = it.author || {};
+                        const title = it.text || it.fullText || it.full_text || it.description || '';
+                        
                         return {
-                            title: (it.text || it.full_text || '').substring(0, 500),
+                            title: title.substring(0, 500),
                             source: 'twitter',
                             sourceName: author.name || 'Twitter',
-                            handle: author.userName || 'twitter',
+                            handle: author.userName || author.screenName || 'twitter',
                             pubDate: it.createdAt ? new Date(it.createdAt).toISOString() : new Date().toISOString(),
-                            link: it.url || '#',
+                            link: it.url || (it.id ? `https://x.com/i/status/${it.id}` : '#'),
                             hasMedia: !!(it.media && it.media[0]),
-                            mediaUrl: it.media ? it.media[0] : null
+                            mediaUrl: (it.media && Array.isArray(it.media)) ? (typeof it.media[0] === 'string' ? it.media[0] : it.media[0].url) : null,
+                            customAvatar: author.profilePicture || author.profileImageUrl || author.avatar || null
                         };
-                    });
+                    }).filter(it => it && it.title.length > 3); // Filter out empty or too-short tweets
+
                     resolve(mapped);
-                } catch (e) { resolve([]); }
+                } catch (e) { 
+                    console.error('[Apify] ❌ Parse error:', e.message);
+                    resolve([]); 
+                }
             });
         });
         req.on('error', () => resolve([]));

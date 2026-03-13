@@ -26,8 +26,12 @@ jobs:
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+          SCRAPEDO_TOKEN: ${{ secrets.SCRAPEDO_TOKEN }}
         run: |
           node scripts/scrape.js
+
+      - name: Wake up Proxy
+        run: curl -s https://ras-mirqab-proxy.onrender.com/health || true
 
       - name: Commit and Push Changes
         run: |

@@ -64,11 +64,12 @@ const NITTER_MIRRORS = [
 let mirrorIdx = 0;
 function getMirror() { return NITTER_MIRRORS[mirrorIdx % NITTER_MIRRORS.length]; }
 
-async function fetchWithTimeout(url, timeout = 15000) {
+async function fetchWithTimeout(url, timeout = 25000) {
     return new Promise((resolve, reject) => {
+        let req;
+        const timer = setTimeout(() => { if (req) req.destroy(); reject(new Error('timeout')); }, timeout);
         const protocol = url.startsWith('https') ? https : http;
-        const timer = setTimeout(() => { req.destroy(); reject(new Error('timeout')); }, timeout);
-        const req = protocol.get(url, {
+        req = protocol.get(url, {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
         }, (res) => {
             clearTimeout(timer);
@@ -279,12 +280,14 @@ async function scrapeAll() {
     let twitterItems = [];
     
     if (SCRAPEDO_TOKEN) {
-        console.log('[Scraper] 🛡️ Using Scrape.do as exclusive engine for this run...');
+        console.log('[Scraper] 🛡️ Using Scrape.do as primary engine...');
         twitterItems = await fetchTwitterScrapeDo();
-    } else {
-        // Fallback to other engines only if Scrape.do token is missing
+    } 
+    
+    // Fallback if Scrape.do fails or returns few results
+    if (twitterItems.length < 5) {
         if (APIFY_TOKEN) {
-            console.log('[Scraper] 🔄 Using Apify...');
+            console.log('[Scraper] 🔄 Falling back to Apify (Scrape.do had few results)...');
             twitterItems = await fetchTwitterApify();
         }
         if (twitterItems.length === 0 && RAPIDAPI_KEY) {

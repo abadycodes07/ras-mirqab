@@ -432,13 +432,19 @@ const server = http.createServer(async (req, res) => {
             // Simple direct fetch - the "Old Way"
             console.log(`[Proxy] ⚡ Direct fetch for Telegram: @${handle}`);
             try {
-                const html = await fetchPage('https://t.me/s/' + handle, 8000);
-                const items = parseTelegram(html, handle);
+                // Try direct first
+                let html = await fetchPage('https://t.me/s/' + handle, 12000);
+                let items = parseTelegram(html, handle);
+                
+                // If direct is blocked or empty, try a web proxy/mirror if needed? 
+                // For now, let's keep it simple as requested, but increase timeout.
+                
                 res.writeHead(200);
                 res.end(JSON.stringify({ ok: true, count: items.length, items: items }));
             } catch (err) {
-                res.writeHead(500);
-                res.end(JSON.stringify({ error: err.message }));
+                console.error(`[Proxy] ❌ Telegram Fetch Error (@${handle}):`, err.message);
+                res.writeHead(200); // Return empty items instead of 500 to keep UI alive
+                res.end(JSON.stringify({ ok: false, count: 0, items: [], error: err.message }));
             }
             return;
         }

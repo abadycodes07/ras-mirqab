@@ -351,9 +351,10 @@ const server = http.createServer((req, res) => {
     // Wipe Cache Endpoint
     if (path === '/wipe') {
         newsCache = [];
-        try { if (fs.existsSync(CACHE_FILE)) fs.unlinkSync(CACHE_FILE); } catch(e) {}
+        if (fs.existsSync(CACHE_FILE)) fs.unlinkSync(CACHE_FILE);
+        console.log('[Server] 🧹 Cache wiped manually.');
         res.writeHead(200);
-        return res.end(JSON.stringify({ status: 'wiped', message: 'Memory and disk cache cleared. Scraper will restart fresh.' }));
+        return res.end(JSON.stringify({ status: 'wiped', items: 0 }));
     }
 
     // News/Telegram Endpoints

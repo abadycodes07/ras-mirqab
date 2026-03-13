@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T15:12:24.421Z",
+  "updated": "2026-03-13T15:13:18.817Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | مراسل #الجزيرة: أنباء أولية عن سقوط صاروخ في وسط إسرائيل",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T15:12:37.000Z",
+      "link": "https://t.me/AjaNews/467290",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm;مراسلة الحدث: سقوط شظايا في منطقة وسط اسرائيل",
       "source": "telegram",
@@ -298,16 +308,6 @@
       "handle": "ajanews",
       "pubDate": "2026-03-13T14:37:32.000Z",
       "link": "https://t.me/AjaNews/467271",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | أ. ب عن مسؤول أمريكي: المدمرة الأمريكية أوسكار أوستن أسقطت الصاروخ الباليستي الإيراني في المجال الجوي التركي",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T14:37:02.000Z",
-      "link": "https://t.me/AjaNews/467270",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

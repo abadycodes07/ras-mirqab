@@ -276,62 +276,28 @@ var BreakingNewsWidget = (function () {
     }
 
     async function fetchAllFeeds() {
-        var all = [];
         try {
-            var cloudRes = await fetch('https://abadycodes07.github.io/ras-mirqab/public/data/news-live.json?t=' + Date.now());
-            if (cloudRes.ok) {
-                var cloudData = await cloudRes.json();
-                if (cloudData && cloudData.items) all = cloudData.items;
+            const url = PROXY_BASE + '/news?t=' + Date.now();
+            const res = await fetch(url);
+            if (res.ok) {
+                const data = await res.json();
+                return data.items || [];
+            }
+        } catch (e) {
+            console.error('[BN] Proxy fetch failed:', e.message);
+        }
+
+        // Fallback to static cache if proxy fails
+        try {
+            const staticUrl = 'https://abadycodes07.github.io/ras-mirqab/public/data/news-live.json?t=' + Date.now();
+            const staticRes = await fetch(staticUrl);
+            if (staticRes.ok) {
+                const staticData = await staticRes.json();
+                return staticData.items || [];
             }
         } catch (e) {}
 
-        // Always attempt proxy fetch — don't gate on health check (cold starts cause false negatives)
-        {
-            var targetSources = [
-                { type: 'telegram', handle: 'ajanews', avatar: 'public/logos/aljazeera.png', name: 'الجزيرة عاجل' },
-                { type: 'telegram', handle: 'AlHadath_Brk', avatar: 'public/logos/alhadath.png', name: 'الحدث عاجل' }
-            ];
-
-            // Add user-added sources (telegram only — Twitter is handled by /twitter endpoint)
-            var userSources = getSources();
-            userSources.forEach(function(us) {
-                if (us.type === 'telegram' && !targetSources.some(function(ts) { return ts.handle === us.handle; })) {
-                    targetSources.push(us);
-                }
-            });
-
-            var proxyPromises = targetSources.map(function (s) {
-                var isCore = s.handle === 'ajanews';
-                var url = PROXY_BASE + '/telegram?channel=' + encodeURIComponent(s.handle);
-                if (isCore) url += '&fast=true';
-                
-                return fetch(url).then(r => r.json()).then(d => {
-                    var fetched = d.items || [];
-                    fetched.forEach(item => { 
-                        item.customAvatar = s.avatar; 
-                        item.customName = s.name || s.handle; 
-                    });
-                    return fetched;
-                }).catch(() => []);
-            });
-
-            // Fetch ALL twitter list tweets in a single call (12 accounts combined)
-            proxyPromises.push(
-                fetch(PROXY_BASE + '/twitter').then(r => r.json()).then(d => {
-                    return (d.items || []);
-                }).catch(() => [])
-            );
-
-            try {
-                var results = await Promise.all(proxyPromises);
-                results.forEach(arr => {
-                    arr.forEach(pItem => {
-                        if (!all.some(c => c.link === pItem.link)) all.push(pItem);
-                    });
-                });
-            } catch (e) {}
-        }
-        return all;
+        return [];
     }
 
     function renderItems(container, items) {

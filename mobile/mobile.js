@@ -191,23 +191,14 @@
 
     // ═══ NEWS ENGINE (Proxy-Based / Desktop Sync) ═══
     async function loadNews() {
-        var promises = [
-            fetch(PROXY_BASE + '/telegram?channel=ajanews&fast=true&t=' + Date.now()).then(r => r.json()).catch(() => ({ items: [] })),
-            fetch(PROXY_BASE + '/twitter?t=' + Date.now()).then(r => r.json()).catch(() => ({ items: [] }))
-        ];
-
-        promises.push(fetch(STATIC_DATA + '?t=' + Date.now()).then(r => r.json()).catch(() => ({ items: [] })));
-
         try {
-            var results = await Promise.all(promises);
-            var merged = [];
-            results.forEach(res => {
-                if (res && res.items) merged = merged.concat(res.items);
-            });
-
-            merged.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-            allNews = merged;
-            renderNews();
+            var url = PROXY_BASE + '/news?t=' + Date.now();
+            var res = await fetch(url);
+            if (res.ok) {
+                var data = await res.json();
+                allNews = data.items || [];
+                renderNews();
+            }
         } catch (e) { console.error('Fetch Error:', e); }
     }
 

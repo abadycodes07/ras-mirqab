@@ -214,6 +214,7 @@
                 timeAgoAr(it.pubDate);
             
             var avatar = it.customAvatar || LOGOS[it.handle] || '../public/logos/aljazeera.png';
+            if (!avatar.startsWith('http')) avatar = '../' + avatar.replace(/^\.\.\//, '');
             var thumb = it.localMedia || it.mediaUrl || avatar;
 
             html += `

@@ -63,10 +63,10 @@ function parseTelegram(html, channel) {
     const items = [];
     if (!html || !html.includes('tgme_widget_message')) return [];
     
-    // Define relative logo paths (frontend will resolve these from its own origin)
+    // Use Absolute URLs to ensure they load everywhere
     const AVATARS = {
-        'ajanews': 'public/logos/aljazeera.png',
-        'alhadath_brk': 'public/logos/alhadath_brk.png'
+        'ajanews': 'https://abadycodes07.github.io/ras-mirqab/public/logos/aljazeera.png',
+        'alhadath_brk': 'https://abadycodes07.github.io/ras-mirqab/public/logos/alhadath_brk.png'
     };
 
     const blocks = html.split(/class="[^"]*tgme_widget_message_wrap[^"]*"/);
@@ -77,27 +77,15 @@ function parseTelegram(html, channel) {
         const timeMatch = block.match(/datetime="([^"]*)"/);
         const linkMatch = block.match(/data-post="([^"]+)"/);
         
-        // --- BULLETPROOF MEDIA EXTRACTION ---
         let mediaUrl = null;
-        
-        // 1. Look for photo/video thumb containers ONLY
-        const photoMatch = block.match(/tgme_widget_message_photo_wrap[^>]*background-image:url\('([^']+)'\)/);
-        const thumbMatch = block.match(/tgme_widget_message_video_thumb[^>]*background-image:url\('([^']+)'\)/);
-        const videoMatch = block.match(/tgme_widget_message_video_player[^>]*background-image:url\('([^']+)'\)/);
-        
-        if (photoMatch) mediaUrl = photoMatch[1];
-        else if (thumbMatch) mediaUrl = thumbMatch[1];
-        else if (videoMatch) mediaUrl = videoMatch[1];
-
-        // 2. AGGRESSIVE SKIP: If it's a sticker or contains "emoji" in the URL/block, ignore it
-        const blockLower = block.toLowerCase();
-        const isSticker = blockLower.includes('sticker') || blockLower.includes('emoji') || blockLower.includes('animated_emoji');
-        
-        // If we found a mediaUrl but it looks like a sticker/emoji item, nullify it
-        if (mediaUrl && (mediaUrl.includes('emoji') || mediaUrl.includes('sticker') || isSticker)) {
-            mediaUrl = null;
+        if (channel.handle === 'alhadath_brk') {
+            // FORCED: Al Hadath items ALWAYS use the logo as thumbnail
+            mediaUrl = AVATARS.alhadath_brk;
+        } else {
+            // Standard media extraction for others (Al Jazeera stays as is)
+            const photoMatch = block.match(/tgme_widget_message_photo_wrap[^>]*background-image:url\('([^']+)'\)/);
+            if (photoMatch) mediaUrl = photoMatch[1];
         }
-        // ------------------------------------
 
         if (textMatch) {
             const cleanText = textMatch[1].replace(/<[^>]+>/g, '').trim();
@@ -110,7 +98,7 @@ function parseTelegram(html, channel) {
                 handle: channel.handle,
                 pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
                 link: linkMatch ? `https://t.me/${linkMatch[1]}` : `https://t.me/s/${channel.handle}`,
-                hasMedia: !!mediaUrl && channel.handle !== 'ajanews',
+                hasMedia: (channel.handle === 'alhadath_brk') ? true : !!mediaUrl,
                 mediaUrl: mediaUrl,
                 customAvatar: AVATARS[channel.handle] || AVATARS['ajanews'],
                 id: linkMatch ? linkMatch[1] : (cleanText.substring(0, 50) + (timeMatch ? timeMatch[1] : ''))

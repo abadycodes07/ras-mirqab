@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T12:05:19.721Z",
+  "updated": "2026-03-13T12:06:20.775Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | وزير الحرب الأمريكي: نقضي على الجيش الراديكالي الإيراني بطريقة غير مسبوقة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:05:34.000Z",
+      "link": "https://t.me/AjaNews/467197",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm; مؤتمر صحفي لوزير الحرب الأميركي ورئيس هيئة الأركان",
       "source": "telegram",
@@ -311,16 +321,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | الرابطة الأمريكية للسيارات: سعر البنزين ارتفع بنسبة 21.8% منذ بدء العمليات العسكرية في #إيران",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:17:28.000Z",
-      "link": "https://t.me/AjaNews/467177",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;جعجع للحدث:  لا أؤمن بفرضية &quot; انقسام الجيش&quot; التي لوّح بها حزب الله",

@@ -1,16 +1,56 @@
 {
-  "updated": "2026-03-13T11:42:21.578Z",
-  "count": 41,
+  "updated": "2026-03-13T11:43:17.000Z",
+  "count": 42,
   "items": [
     {
       "title": "",
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:42:20.539Z",
+      "pubDate": "2026-03-13T11:43:15.458Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "",
+      "source": "twitter",
+      "sourceName": "Twitter",
+      "handle": "twitter",
+      "pubDate": "2026-03-13T11:43:15.457Z",
+      "link": "#",
+      "hasMedia": false,
+      "mediaUrl": null
+    },
+    {
+      "title": "&rlm;الوكالة الدولية للطاقة : نأمل استئناف المحادثات للتوصل لحل طويل الأمد بشأن النووي الإيراني",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T11:43:02.000Z",
+      "link": "https://t.me/alhadath_brk/106774",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | مدير الوكالة الدولية للطاقة الذرية: نأمل استئناف المحادثات للتوصل إلى حل طويل بشأن البرنامج النووي الإيراني",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:42:31.000Z",
+      "link": "https://t.me/AjaNews/467188",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي في المطلة بالجليل الأعلى عقب رصد صواريخ من #لبنان",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:42:31.000Z",
+      "link": "https://t.me/AjaNews/467189",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;روس آتوم الروسية: لم نرصد أي تغيير بمستويات الإشعاع بعد استهداف منشآت نووية إيرانية",
@@ -203,7 +243,7 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | م��اسل #الجزيرة: قصف مدفعي إسرائيلي على محيط بلدات كفرحمام وكفرشوبا والهبارية وراشيا الفخار جنوبي #لبنان",
+      "title": "عاجل | مراسل #الجزيرة: قصف مدفعي إسرائيلي على محيط بلدات كفرحمام وكفرشوبا والهبارية وراشيا الفخار جنوبي #لبنان",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:16:57.000Z",
@@ -283,7 +323,7 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "&rlm;جعجع للحدث: موازين القوى التي ستنتج عن هذه الحرب ستفرض شروطها على الوضع السياس�� للبنان",
+      "title": "&rlm;جعجع للحدث: موازين القوى التي ستنتج عن هذه الحرب ستفرض شروطها على الوضع السياسي للبنان",
       "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T11:10:02.000Z",
@@ -333,16 +373,6 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | الجيش الإسرائيلي: قضينا على مرتضى سرور العنصر في الوحدة الجوية لحزب الله خلال غارة على منطقة الجامعة اللبنانية",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:07:02.000Z",
-      "link": "https://t.me/AjaNews/467169",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;جعجع للحدث:  لبنان يعيش تحت وصاية &quot;مغّلفة&quot; منذ عقود",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -351,16 +381,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | الأمين العام للأمم المتحدة: الشعب اللبناني لم يختر الحرب لكنه جر إليها",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:05:29.000Z",
-      "link": "https://t.me/AjaNews/467168",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;مقابلة خاصة مع رئيس حزب القوات اللبنانية سمير جعجع",
@@ -398,16 +418,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T10:35:02.000Z",
       "link": "https://t.me/alhadath_brk/106755",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;الحدث تستطلع الأضرار التي لحقت بفرع القرض الحسن في زقاق البلاط بعد غارة إسرائيلية استهدفته أمس",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T10:33:02.000Z",
-      "link": "https://t.me/alhadath_brk/106754",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

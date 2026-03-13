@@ -158,43 +158,61 @@ async function startLoop(channel) {
 
 // Server
 const server = http.createServer((req, res) => {
-    // CORS
+    // CORS & JSON Headers
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
 
-    const parsed = url.parse(req.url, true);
-    let pathName = (parsed.pathname || '').toLowerCase();
-    
-    // Normalize path: strip trailing slash and handle root
-    if (pathName === '/' || pathName === '') pathName = '/index';
-    else pathName = pathName.replace(/\/$/, '');
-
-    console.log(`[Req] ${req.method} ${pathName}`);
-
-    if (pathName === '/index') {
-        res.writeHead(200);
-        res.end(JSON.stringify({ message: 'Ras Mirqab Proxy v1.0.3-ultra is LIVE', status: 'ok' }));
-    } else if (pathName === '/news' || pathName === '/telegram') {
-        res.writeHead(200);
-        res.end(JSON.stringify({ ok: true, count: newsCache.length, items: newsCache }));
-    } else if (pathName === '/health' || pathName === '/debug') {
-        res.writeHead(200);
-        res.end(JSON.stringify({ 
-            status: 'ok', 
-            version: '1.0.3-ultra',
-            uptime: Math.floor(process.uptime()) + 's',
-            loops: lastLoopStatus,
-            cacheCount: newsCache.length,
-            time: new Date().toISOString(),
-            node: process.version
-        }));
-    } else {
-        res.writeHead(404);
-        res.end(JSON.stringify({ error: 'Not found', path: pathName, hint: 'Use /news or /debug' }));
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204);
+        return res.end();
     }
+
+    const parsed = url.parse(req.url, true);
+    const rawPath = parsed.pathname || '/';
+    const path = rawPath.toLowerCase().replace(/\/$/, '') || '/';
+
+    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${path}`);
+
+    // High Priority: Root and Debug
+    if (path === '/' || path === '/index' || path === '/health' || path === '/debug') {
+        res.writeHead(200);
+        return res.end(JSON.stringify({ 
+            status: 'ok', 
+            service: 'Ras Mirqab Proxy v1.0.4-bulletproof',
+            uptime: Math.floor(process.uptime()) + 's',
+            memory: process.memoryUsage().rss,
+            loops: lastLoopStatus,
+            newsCount: newsCache.length,
+            time: new Date().toISOString()
+        }));
+    }
+
+    // News/Telegram Endpoints
+    if (path === '/news' || path === '/telegram' || path === '/twitter') {
+        res.writeHead(200);
+        return res.end(JSON.stringify({ 
+            ok: true, 
+            version: '1.0.4',
+            count: newsCache.length, 
+            items: newsCache 
+        }));
+    }
+
+    // Default 404 with helpful debug info
+    res.writeHead(404);
+    res.end(JSON.stringify({ 
+        error: 'Endpoint not found', 
+        receivedPath: path,
+        hint: 'Use /news or /debug',
+        version: '1.0.4-bulletproof'
+    }));
 });
 
 server.listen(PORT, () => {
-    console.log(`🚀 Scraper Proxy live on port ${PORT}`);
+    console.log('═══════════════════════════════════════');
+    console.log(` 🚀 RAS MIRQAB PROXY v1.0.4 LIVE`);
+    console.log(` Port: ${PORT}`);
+    console.log('═══════════════════════════════════════');
     CHANNELS.forEach(startLoop);
 });

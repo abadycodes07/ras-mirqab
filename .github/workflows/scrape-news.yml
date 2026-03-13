@@ -3,6 +3,8 @@ name: Scrape News 📡
 on:
   schedule:
     - cron: '* * * * *' # Run every minute (GitHub's minimum)
+  repository_dispatch:
+    types: [trigger-scrape]
   workflow_dispatch: # Allow manual run
 
 jobs:

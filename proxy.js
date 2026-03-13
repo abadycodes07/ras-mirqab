@@ -52,15 +52,17 @@ function fetchPage(targetUrl, redirects = 0) {
     });
 }
 
-// Simple Parser
+/* ══════════════════════════════════════════════════════════════════════════════
+   🔴 CORE TELEGRAM ENGINE - DO NOT MODIFY WITHOUT EXPLICIT PERMISSION
+   This section handles ultra-fast direct polling and parsing.
+   It is isolated to ensure zero-regression when adding other sources.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+// Flexible Telegram Page Parser
 function parseTelegram(html, channel) {
     const items = [];
-    if (!html || !html.includes('tgme_widget_message')) {
-        console.log(`[${channel.handle}] ⚠️ No message containers found in HTML (Length: ${html.length})`);
-        return [];
-    }
+    if (!html || !html.includes('tgme_widget_message')) return [];
     
-    // Flexible split
     const blocks = html.split(/class="[^"]*tgme_widget_message_wrap[^"]*"/);
     blocks.shift();
 
@@ -90,71 +92,57 @@ function parseTelegram(html, channel) {
     return items.reverse();
 }
 
-// Global debug state
-let lastLoopStatus = {};
-
-// Loop for each channel
-async function startLoop(channel) {
-    console.log(`[Loop] Starting loop for @${channel.handle} (${channel.interval}ms)`);
-    lastLoopStatus[channel.handle] = { status: 'starting', lastAttempt: null, successCount: 0, errorCount: 0 };
+// Telegram Background Loop
+async function startTelegramLoop(channel) {
+    console.log(`[Telegram] Starting loop for @${channel.handle} (${channel.interval}ms)`);
+    lastLoopStatus[channel.handle] = { status: 'starting', type: 'telegram' };
 
     while (true) {
         lastLoopStatus[channel.handle].lastAttempt = new Date().toISOString();
         try {
-            // Try direct, then try a known mirror if it fails
-            const urls = [
-                `https://t.me/s/${channel.handle}`,
-                `https://tel.ge/s/${channel.handle}`
-            ];
+            const urls = [`https://t.me/s/${channel.handle}`, `https://tel.ge/s/${channel.handle}`];
+            let html = '', usedUrl = '';
             
-            let html = '';
-            let usedUrl = '';
             for (const url of urls) {
                 try {
                     html = await fetchPage(url);
-                    if (html.includes('tgme_widget_message')) {
-                        usedUrl = url;
-                        break;
-                    }
-                } catch (e) { console.log(`[${channel.handle}] Mirror ${url} failed: ${e.message}`); }
+                    if (html.includes('tgme_widget_message')) { usedUrl = url; break; }
+                } catch (e) {}
             }
 
             const freshItems = parseTelegram(html, channel);
-            
             if (freshItems.length > 0) {
                 lastLoopStatus[channel.handle].status = 'ok';
-                lastLoopStatus[channel.handle].successCount++;
                 lastLoopStatus[channel.handle].lastCount = freshItems.length;
                 lastLoopStatus[channel.handle].usedUrl = usedUrl;
 
                 const seen = new Set(newsCache.map(i => i.id));
                 let added = 0;
-                
                 freshItems.forEach(item => {
-                    if (!seen.has(item.id)) {
-                        newsCache.unshift(item);
-                        added++;
-                    }
+                    if (!seen.has(item.id)) { newsCache.unshift(item); added++; }
                 });
 
                 if (added > 0) {
                     newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
                     newsCache = newsCache.slice(0, 100);
                     fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
-                    console.log(`[${channel.handle}] ✅ Added ${added} new items from ${usedUrl}`);
+                    console.log(`[${channel.handle}] ✅ Added ${added} new items.`);
                 }
             } else {
                 lastLoopStatus[channel.handle].status = 'empty_response';
-                lastLoopStatus[channel.handle].errorCount++;
             }
         } catch (e) {
-            console.error(`[${channel.handle}] ❌ Loop Error:`, e.message);
+            console.error(`[${channel.handle}] ❌ Error:`, e.message);
             lastLoopStatus[channel.handle].status = 'error: ' + e.message;
-            lastLoopStatus[channel.handle].errorCount++;
         }
         await new Promise(r => setTimeout(r, channel.interval));
     }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   🟢 FUTURE SCRAPERS SECTION
+   Add new scraping logic (RSS, X, etc.) DOWN HERE to keep Telegram logic clean.
+   ══════════════════════════════════════════════════════════════════════════════ */
 
 // Server
 const server = http.createServer((req, res) => {
@@ -214,5 +202,5 @@ server.listen(PORT, () => {
     console.log(` 🚀 RAS MIRQAB PROXY v1.0.4 LIVE`);
     console.log(` Port: ${PORT}`);
     console.log('═══════════════════════════════════════');
-    CHANNELS.forEach(startLoop);
+    CHANNELS.forEach(startTelegramLoop);
 });

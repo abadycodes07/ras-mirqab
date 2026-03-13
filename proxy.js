@@ -200,7 +200,7 @@ function postJSON(targetUrl, body) {
 }
 
 async function startTwitterLoop() {
-    console.log(`[Twitter] Starting Apify loop (15m interval)`);
+    console.log(`[Twitter] Starting Apify loop (1m interval)`);
     lastLoopStatus['twitter'] = { status: 'starting', type: 'twitter' };
 
     if (!APIFY_TOKEN) {
@@ -212,24 +212,31 @@ async function startTwitterLoop() {
     while (true) {
         lastLoopStatus['twitter'].lastAttempt = new Date().toISOString();
         try {
-            console.log('[Twitter] 🚀 Running Apify Actor...');
+            console.log('[Twitter] 🚀 Triggering Apify Actor...');
             const runUrl = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs?token=${APIFY_TOKEN}`;
             const runRes = await postJSON(runUrl, {
                 listUrls: [`https://x.com/i/lists/${TWITTER_LIST_ID}`],
-                maxTweets: 20
+                maxTweets: 40
             });
+
+            if (!runRes.data || !runRes.data.id) {
+                throw new Error('Failed to trigger actor: ' + JSON.stringify(runRes));
+            }
 
             const runId = runRes.data.id;
             const datasetId = runRes.data.defaultDatasetId;
+            console.log(`[Twitter] 🏃 Actor started. Run ID: ${runId}`);
             
             // Wait for completion (Simple polling)
             let finished = false;
             let attempts = 0;
-            while (!finished && attempts < 10) {
-                await new Promise(r => setTimeout(r, 15000)); // Wait 15s
+            while (!finished && attempts < 15) {
+                await new Promise(r => setTimeout(r, 20000)); // Wait 20s
                 const statusRes = await fetchPage(`https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs/${runId}?token=${APIFY_TOKEN}`);
                 const statusData = JSON.parse(statusRes);
                 const status = statusData.data.status;
+                
+                console.log(`[Twitter] Polling status (Attempt ${attempts + 1}/15): ${status}`);
                 
                 if (status === 'SUCCEEDED') finished = true;
                 else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) throw new Error('Actor failed: ' + status);
@@ -237,14 +244,21 @@ async function startTwitterLoop() {
             }
 
             if (finished) {
+                console.log(`[Twitter] ✨ Run succeeded. Fetching results from dataset: ${datasetId}`);
                 const itemsRes = await fetchPage(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_TOKEN}`);
                 const tweets = JSON.parse(itemsRes);
                 
+                if (!Array.isArray(tweets)) {
+                    console.error('[Twitter] ❌ Expected array of tweets, got:', typeof tweets);
+                    throw new Error('Invalid results format');
+                }
+
                 let added = 0;
                 const seen = new Set(newsCache.map(i => i.id));
 
                 tweets.forEach(t => {
                     const id = t.id_str || t.id;
+                    if (!id) return;
                     if (!seen.has(id)) {
                         const profileImg = (t.user && t.user.profile_image_url_https) ? t.user.profile_image_url_https : 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png';
                         newsCache.unshift({
@@ -269,7 +283,11 @@ async function startTwitterLoop() {
                     newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
                     fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache.slice(0, 100), null, 2));
                     console.log(`[Twitter] ✅ Added ${added} new tweets.`);
+                } else {
+                    console.log('[Twitter] ℹ️ No new tweets found.');
                 }
+            } else {
+                console.warn('[Twitter] ⏳ Actor timed out after polling.');
             }
         } catch (e) {
             console.error(`[Twitter] ❌ Error:`, e.message);

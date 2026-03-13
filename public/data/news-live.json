@@ -1,13 +1,13 @@
 {
-  "updated": "2026-03-13T01:14:52.439Z",
-  "count": 43,
+  "updated": "2026-03-13T02:38:43.298Z",
+  "count": 42,
   "items": [
     {
       "title": "",
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T01:14:51.703Z",
+      "pubDate": "2026-03-13T02:38:42.394Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
@@ -17,24 +17,314 @@
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T01:14:51.702Z",
+      "pubDate": "2026-03-13T02:38:42.359Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
     },
     {
-      "title": "",
-      "source": "twitter",
-      "sourceName": "Twitter",
-      "handle": "twitter",
-      "pubDate": "2026-03-13T01:14:51.693Z",
-      "link": "#",
+      "title": "عاجل | مساعد محافظ مدينة أراك: غارات استهدفت وحدتي إنتاج في المدينة الصناعية في أراك غربي البلاد ولا إصابات",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T02:37:46.000Z",
+      "link": "https://t.me/AjaNews/467011",
       "hasMedia": false,
-      "mediaUrl": null
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | مساعد محافظ مدينة أراك: مقتل امرأة وطفل وإصابة ٣٥ في غارة على مجمع سكني بالمدينة غربي البلاد",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T02:37:17.000Z",
+      "link": "https://t.me/AjaNews/467010",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | وكالة فارس: الانفجارات التي دوت في #طهران وقعت في المربعين رقم 13 و14 شرقي العاصمة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T02:30:46.000Z",
+      "link": "https://t.me/AjaNews/467009",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "&rlm;وسائل إعلام إيرانية: وقوع عدة انفجارات في طهران",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T02:28:02.000Z",
+      "link": "https://t.me/alhadath_brk/106673",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "&rlm;مسؤول أميركي للعربية إنكليزي: من حق إسرائيل الدفاع عن نفسها من تهديدات حزب الله",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T02:25:02.000Z",
+      "link": "https://t.me/alhadath_brk/106672",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | وزارة الصحة اللبنانية: شهيد في الغارة الإسرائيلية على سيارة في الجناح بالضاحية الجنوبية لبيروت",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T02:09:19.000Z",
+      "link": "https://t.me/AjaNews/467008",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "&rlm;مصادر طبية: 50 مصابًا جراء سقوط صاروخ إيراني شمال إسرائيل",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T02:09:02.000Z",
+      "link": "https://t.me/alhadath_brk/106671",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | وسائل إعلام إيرانية: دوي انفجارات في مدينتي كرمانشاه أراك غربي البلاد",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T02:05:18.000Z",
+      "link": "https://t.me/AjaNews/467007",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | حزب الله: قصفنا بدفعة صاروخية تجمعا لجنود العدو الإسرائيلي في كسارة كفرجلعادي",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T02:05:13.000Z",
+      "link": "https://t.me/AjaNews/467006",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "&rlm;مصادر طبية: 50 مصابًا جراء الهجمات الصاروخية شمال إسرائيل",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T02:01:02.000Z",
+      "link": "https://t.me/alhadath_brk/106670",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "&rlm;مصدر طبي إسرائيلي: التعامل مع 30 إصابة جراء الهجمات الصاروخية شمال إسرائيل",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T01:59:02.000Z",
+      "link": "https://t.me/alhadath_brk/106669",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | حزب الله: قصفنا بالصواريخ للمرة الثانية تجمعا للجنود الإسرائيليين في موقع المرج مقابل بلدة مركبا",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:58:17.000Z",
+      "link": "https://t.me/AjaNews/467005",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | حزب الله: قصفنا بالصواريخ تجمعا للجنود الإسرائيليين في خلة العصافير جنوب مدينة الخيام",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:53:16.000Z",
+      "link": "https://t.me/AjaNews/467004",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | المقاومة الإسلامية في #العراق: الطائرة هبطت اضطراريا في أحد مطارات العدو وطاقمها استطاع الهرب",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:52:41.000Z",
+      "link": "https://t.me/AjaNews/467003",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | المقاومة الإسلامية في #العراق: استهدفنا طائرة أمريكية ثانية غرب #العراق بالسلاح المناسب",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:50:46.000Z",
+      "link": "https://t.me/AjaNews/467002",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | وسائل إعلام إيرانية: دوي انفجارات في مدن الأهواز جنوبي البلاد وأصفهان وكاشان في الوسط وقم جنوب #طهران",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:47:15.000Z",
+      "link": "https://t.me/AjaNews/467001",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | حزب الله: ا��تهدفنا بالصواريخ تجمعا لجنود العدو الإسرائيلي في الموقع المستحدث في تلة الحمامص جنوب مدينة الخيام",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:46:45.000Z",
+      "link": "https://t.me/AjaNews/467000",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | القناة 12 الإسرائيلية: 33 مصابا إثر استهداف مبنى في الجليل",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:44:45.000Z",
+      "link": "https://t.me/AjaNews/466999",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | حزب الله: قصفنا بالصواريخ تجمعا للجنود الإسرائيليين في الحي الجنوبي لمدينة الخيام جنوبي #لبنان",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:43:45.000Z",
+      "link": "https://t.me/AjaNews/466998",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | حزب الله: قصفنا بالصواريخ تجمعا لجنود العدو الإسرائيلي قرب معتقل الخيام جنوبي #لبنان",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:37:14.000Z",
+      "link": "https://t.me/AjaNews/466997",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "&rlm;الدفاع السعودية: اعتراض 3 مسيرات بالمنطقة الشرقية",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T01:36:02.000Z",
+      "link": "https://t.me/alhadath_brk/106668",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | حزب الله: استهدفنا بالصواريخ تجمعا لجنود العدو الإسرائيلي في موقع المرج مقابل بلدة مركبا الحدودية",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:32:43.000Z",
+      "link": "https://t.me/AjaNews/466996",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "&rlm;مراسل الحدث: قصف يستهدف اللواء 40 للحشد في كركوك في العراق",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T01:31:02.000Z",
+      "link": "https://t.me/alhadath_brk/106667",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | فصيل عراقي مسلح: نفذنا 6 عمليات نوعية استهدفت القواعد الأمريكية داخل #العراق وخارجه خلال 24 ساعة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:30:18.000Z",
+      "link": "https://t.me/AjaNews/466995",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | مواقع واللا: 19 مصابا إثر استهداف مبنى في الجليل",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:26:48.000Z",
+      "link": "https://t.me/AjaNews/466994",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "&rlm;مراسل الحدث: قصف بالمسيرات يستهدف اللواء 40 للحشد في كركوك في العراق",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T01:25:02.000Z",
+      "link": "https://t.me/alhadath_brk/106666",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "&rlm;حكومة أربيل: أميركا لم تطلب تشجيع قوات المعارضة الكردية لدخول إيران",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T01:23:02.000Z",
+      "link": "https://t.me/alhadath_brk/106665",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "&rlm;مراسلة الحدث: ارتفاع عدد الإصابات في الجليل بإسرائيل إلى 13",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T01:21:02.000Z",
+      "link": "https://t.me/alhadath_brk/106664",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | مصدر أمني عراقي للجزيرة: قصف جوي استهدف مقر اللواء 40 في الحشد الشعبي بمحافظة كركوك",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:19:17.000Z",
+      "link": "https://t.me/AjaNews/466993",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | وزارة الدفاع #السعودية: اعتراض وتدمير 6 مسيرات بالمنطقة الشرقية",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T01:16:16.000Z",
+      "link": "https://t.me/AjaNews/466992",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;مراسلة الحدث: مؤشرات لتنفيذ عملية اغتيال في منطقة الجناح على مشارف الضاحية",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T01:14:02.000Z",
       "link": "https://t.me/alhadath_brk/106663",
@@ -43,38 +333,8 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | المقاومة الإسلامية بالعراق: نفذنا 31 عملية بمسيرات وصواريخ على قواعد الاحتلال بالعراق والمنطقة خلال 24 ساعة",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T01:06:16.000Z",
-      "link": "https://t.me/AjaNews/466991",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | سي إن إن عن مصادر: البنتاغون ومجلس الأمن القومي قللا بشكل كبير من تقدير مدى استعداد #إيران لإغلاق مضيق هرمز",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T01:03:44.000Z",
-      "link": "https://t.me/AjaNews/466990",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | ميلر: ارتفاع أسعار النفط وتوقف الملاحة بمضيق هرمز يؤكدان أن هذه هي الفرصة الأخيرة لاتخاذ إجراءات ضد نظام #إيران",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T01:02:44.000Z",
-      "link": "https://t.me/AjaNews/466989",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مراسلة الحدث: تفعيل الإنذارات بسبب تسلل مسيّرة إلى منطقة نهاريا وعكا",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T01:02:02.000Z",
       "link": "https://t.me/alhadath_brk/106662",
@@ -83,68 +343,8 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | مستشار البيت الأبيض ستيفن ميلر: لدى الشعب الإيراني فرصة لتحديد مستقبله وسنواصل تحقيق أهدافنا العسكرية",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T01:01:44.000Z",
-      "link": "https://t.me/AjaNews/466988",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | مستشار البيت الأبيض ستيفن ميلر: إيران لا تنتج سوى 2% من نفط العالم والرئيس يتخذ إجراءات لخفض الأسعار",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T01:00:44.000Z",
-      "link": "https://t.me/AjaNews/466987",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي في مناطق واسعة بالجليل الأعلى بعد رصد تسلل مسيرة",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T01:00:14.000Z",
-      "link": "https://t.me/AjaNews/466986",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | معاريف: 15 مصابا إثر  إصابة مبنى في الجليل",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:59:44.000Z",
-      "link": "https://t.me/AjaNews/466985",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي في مدينة نهاريا ومحيطها بعد رصد تسلل مسيرة",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:58:44.000Z",
-      "link": "https://t.me/AjaNews/466984",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | مستشار البيت الأبيض ستيفن ميلر: القضاء على الطبقة القيادية للنظام الإيراني بالكامل ومجتبى لم يظهر للعلن",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:57:44.000Z",
-      "link": "https://t.me/AjaNews/466983",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مراسلة الحدث: سقوط صاروخ جديد في الجليل الأسفل دون إصابات",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T00:57:02.000Z",
       "link": "https://t.me/alhadath_brk/106661",
@@ -153,28 +353,8 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | التلفزيون الإيراني: إطلاق 3 موجات صاروخية ضد العدو خلال ساعة",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:55:18.000Z",
-      "link": "https://t.me/AjaNews/466982",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | ماكرون: عدد من جنودنا أصيبوا بجروح والهجوم على قواتنا غير مقبول",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:54:13.000Z",
-      "link": "https://t.me/AjaNews/466981",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;ماكرون: مقتل ضابط فرنسي جراء هجوم في أربيل بالعراق",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T00:54:02.000Z",
       "link": "https://t.me/alhadath_brk/106660",
@@ -183,18 +363,8 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | ماكرون: الضابط أرنو فريون مات في سبيل فرنسا خلال هجوم في منطقة أربيل بالعراق",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:53:13.000Z",
-      "link": "https://t.me/AjaNews/466980",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;ماكرون: إصابة عدد من جنودنا جراء الهجوم في أربيل",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T00:53:03.000Z",
       "link": "https://t.me/alhadath_brk/106659",
@@ -203,18 +373,8 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | التلفزيون الإيراني: إطلاق 3 موجات صاروخية ضد العدو خلال الساعة الماضية",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:52:43.000Z",
-      "link": "https://t.me/AjaNews/466979",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;ماكرون: الهجوم على قواتنا في أربيل غير مقبول",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T00:52:03.000Z",
       "link": "https://t.me/alhadath_brk/106658",
@@ -223,18 +383,8 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | مستشار البيت الأبيض ستيفن ميلر: ما تحقق يمثل نجاحا  غير مسبوق ضد نظام مسؤول عن العنف وسقوط أرواح أمريكية",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:51:43.000Z",
-      "link": "https://t.me/AjaNews/466978",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;ماكرون: مقتل جندي فرنسي جراء هجوم في أربيل بالعراق",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T00:51:03.000Z",
       "link": "https://t.me/alhadath_brk/106657",
@@ -243,28 +393,8 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | مستشار البيت الأبيض ستيفن ميلر: العمليات الجارية تستهدف تدمير القاعدة الصناعية العسكرية الإيرانية",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:50:43.000Z",
-      "link": "https://t.me/AjaNews/466977",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | الحرس الثوري: استهدفنا كريات شمونة وحيفا والأسطول الخامس الأمريكي وقواعد أمريكية في المنطقة",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:49:43.000Z",
-      "link": "https://t.me/AjaNews/466976",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مشاهد لآثار سقوط صاروخ بالجليل في إسرائيل",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T00:49:02.000Z",
       "link": "https://t.me/alhadath_brk/106656",
@@ -273,48 +403,8 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | الحرس الثوري: استخدمنا في الموجة ٤٤ صواريخ دقيقة وثقيلة من طراز خرمشهر وخيبر شكن وفتاح وعماد",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:48:47.000Z",
-      "link": "https://t.me/AjaNews/466975",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | القناة 12 الإسرائيلية: 10مصابين إثر استهداف مبنى في الجليل",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:47:42.000Z",
-      "link": "https://t.me/AjaNews/466974",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | الحرس الثوري: إطلاق الموجة الصاروخية ٤٤ من عمليات الوعد الصادق ٤ تجاه الكيان الصهيوني والقواعد الأمريكية",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:46:43.000Z",
-      "link": "https://t.me/AjaNews/466972",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | الإسعاف الإسرائيلي: 10 مصابين إثر استهداف مبنى في الجليل",
-      "source": "twitter",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T00:46:43.000Z",
-      "link": "https://t.me/AjaNews/466973",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مراسلة الحدث: ارتفاع عدد الإصابات في الجليل بإسرائيل إلى 10",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T00:46:02.000Z",
       "link": "https://t.me/alhadath_brk/106655",
@@ -324,110 +414,10 @@
     },
     {
       "title": "&rlm;مراسلة الحدث: 5 إصابات في الجليل الأعلى جراء سقوط شظايا صاروخ",
-      "source": "twitter",
+      "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T00:44:02.000Z",
       "link": "https://t.me/alhadath_brk/106654",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;فصائل مسلحة عراقية تقول إنها أسقطت طائرة أميركية للتزود بالوقود",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:38:02.000Z",
-      "link": "https://t.me/alhadath_brk/106653",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسلة الحدث: رصد رشقة صاروخية إيرانية ثالثة تجاه حيفا والجليل",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:35:02.000Z",
-      "link": "https://t.me/alhadath_brk/106652",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسلة الحدث: اعتراض صاروخ في سماء الجليل شمال إسرائيل",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:31:02.000Z",
-      "link": "https://t.me/alhadath_brk/106651",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;الدفاع السعودية: اعتراض مسيرة بالمنطقة الشرقية",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:27:02.000Z",
-      "link": "https://t.me/alhadath_brk/106650",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسل الحدث: تفعيل الدفاعات الجوية بمحيط مطار بغداد",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:24:02.000Z",
-      "link": "https://t.me/alhadath_brk/106649",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسل الحدث: قصف مواقع للحشد الشعبي في قاعدة سبايكر بمحافظة صلاح الدين",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:23:01.000Z",
-      "link": "https://t.me/alhadath_brk/106648",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;CBS: مروحية أصابت السفينة الإيرانية التي اقتربت من حاملة الطائرات إبراهام لينكولن",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:21:02.000Z",
-      "link": "https://t.me/alhadath_brk/106647",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسل الحدث: استهداف مواقع للحشد الشعبي في قاعدة سبايكر بمحافظة صلاح الدين",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:20:02.000Z",
-      "link": "https://t.me/alhadath_brk/106646",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسلة الحدث: رصد موجة جديدة من الصواريخ الإيرانية تجاه إسرائيل",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:19:02.000Z",
-      "link": "https://t.me/alhadath_brk/106645",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسل الحدث: تفعيل منظومة الدفاع الجوي للتعامل مع أهداف بمحيط مطار بغداد",
-      "source": "twitter",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T00:18:02.000Z",
-      "link": "https://t.me/alhadath_brk/106644",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

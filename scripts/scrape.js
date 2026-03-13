@@ -9,8 +9,8 @@ const https = require('https');
 const path = require('path');
 const crypto = require('crypto');
 
-// Hard timeout: kill process after 2.5 minutes to prevent hanging GitHub Actions
-setTimeout(() => { console.log('⏰ Global timeout reached — exiting.'); process.exit(0); }, 150000);
+// Hard timeout: kill process after 5 minutes to allow for slow Apify runs
+setTimeout(() => { console.log('⏰ Global timeout reached — exiting.'); process.exit(0); }, 300000);
 
 const OUTPUT_FILE = path.join(__dirname, '../public/data/news-live.json');
 const MEDIA_DIR = path.join(__dirname, '../public/data/media');
@@ -60,7 +60,7 @@ async function fetchTwitterApify() {
     console.log('[Apify] 🚀 Fetching Twitter List...');
     const url = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`;
     const payload = JSON.stringify({
-        "listIds": [TWITTER_LIST_ID],
+        "startUrls": [{ "url": `https://x.com/i/lists/${TWITTER_LIST_ID}` }],
         "maxItems": 40
     });
 
@@ -112,7 +112,7 @@ function parseTelegram(html, handle) {
             if (clean.length < 5) continue;
             posts.push({
                 title: clean.substring(0, 500),
-                source: 'twitter',
+                source: 'telegram',
                 handle: handle.toLowerCase(),
                 pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
                 link: postLinkMatch ? 'https://t.me/' + postLinkMatch[1] : `https://t.me/${handle}`,
@@ -164,6 +164,7 @@ async function scrapeAll() {
 
     // 1. Fetch Twitter via Apify
     const twitterItems = await fetchTwitterApify();
+    console.log(`✅ [Twitter] Total items fetched: ${twitterItems.length}`);
     twitterItems.forEach(it => {
         const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
         if (!seen.has(hash)) {

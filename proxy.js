@@ -172,7 +172,7 @@ async function fetchViaApify() {
     
     // Actor input: list URLs/IDs and max items
     const payload = JSON.stringify({
-        "listIds": [TWITTER_LIST_ID],
+        "startUrls": [{ "url": `https://x.com/i/lists/${TWITTER_LIST_ID}` }],
         "maxItems": 40
     });
 

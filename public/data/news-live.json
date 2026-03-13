@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-13T11:34:59.879Z",
+  "updated": "2026-03-13T11:35:16.652Z",
   "count": 41,
   "items": [
     {
@@ -7,10 +7,20 @@
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:34:58.108Z",
+      "pubDate": "2026-03-13T11:35:15.698Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "&rlm;مراسل الحدث: إطلاق صفارات الإنذار في القدس",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T11:35:02.000Z",
+      "link": "https://t.me/alhadath_brk/106770",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
     },
     {
       "title": "عاجل | وكالة تسنيم: إطلاق موجة جديدة من الصواريخ باتجاه الأراضي المحتلة",
@@ -398,16 +408,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T10:16:02.000Z",
       "link": "https://t.me/alhadath_brk/106751",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;الأمين العام للأمم المتحدة يعلن وصوله إلى لبنان في &quot;زيارة تضامن&quot;",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T10:12:02.000Z",
-      "link": "https://t.me/alhadath_brk/106750",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

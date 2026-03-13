@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T12:34:18.215Z",
+  "updated": "2026-03-13T12:35:19.869Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | الرئيس اللبناني: أبدينا استعدادنا للتفاوض لكن حتى الآن لم نتلق جوابا من الطرف الآخر",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:34:58.000Z",
+      "link": "https://t.me/AjaNews/467221",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | الدفاع الإماراتية: تعاملنا اليوم مع 7 صواريخ باليستية و27 مسيرة قادمة من #إيران",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:34:33.000Z",
+      "link": "https://t.me/AjaNews/467220",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm; وزير الحرب الأميركي: ضربات اليوم على إيران أكثر كثافة بنسبة 30%",
       "source": "telegram",
@@ -203,7 +223,7 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | وزير الحرب الأمريكي: تضحيات جنودنا القتلى ستزيد من عزيمتنا",
+      "title": "عاجل | وزير الحرب الأمريكي: تضحيات جنودنا القتلى ستز��د من عزيمتنا",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T12:14:00.000Z",
@@ -341,26 +361,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | وزير الحرب الأمريكي: سندمر قريبا جميع الشركات الدفاعية في #إيران",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:07:59.000Z",
-      "link": "https://t.me/AjaNews/467201",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | وزير الحرب الأمريكي: نعمل بناء على خطة لتدمير جميع القدرات العسكرية الإيرانية بوتيرة لم يشهدها العالم من قبل",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:07:29.000Z",
-      "link": "https://t.me/AjaNews/467200",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;وزير الحرب الأميركي: إيران فقدت قواتها الدفاعية والجوية والبحرية",

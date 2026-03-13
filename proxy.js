@@ -30,7 +30,8 @@ try {
 
 const CHANNELS = [
     { handle: 'ajanews', name: 'الجزيرة عاجل', interval: 10000 },
-    { handle: 'alhadath_brk', name: 'الحدث عاجل', interval: 10000 }
+    { handle: 'alhadath_brk', name: 'الحدث عاجل', interval: 10000 },
+    { handle: 'alarabiyaBr', name: 'العربية عاجل', interval: 10000 }
 ];
 
 // Helper: Fetch Page with Redirect Support
@@ -71,7 +72,8 @@ function parseTelegram(html, channel) {
     // Use Absolute URLs to ensure they load everywhere
     const AVATARS = {
         'ajanews': 'https://abadycodes07.github.io/ras-mirqab/public/logos/aljazeera.png',
-        'alhadath_brk': 'https://abadycodes07.github.io/ras-mirqab/public/logos/alhadath_brk.png'
+        'alhadath_brk': 'https://abadycodes07.github.io/ras-mirqab/public/logos/alhadath_brk.png',
+        'alarabiyaBr': 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png'
     };
 
     const blocks = html.split(/class="[^"]*tgme_widget_message_wrap[^"]*"/);
@@ -83,9 +85,9 @@ function parseTelegram(html, channel) {
         const linkMatch = block.match(/data-post="([^"]+)"/);
         
         let mediaUrl = null;
-        if (channel.handle === 'alhadath_brk') {
-            // FORCED: Al Hadath items ALWAYS use the logo as thumbnail
-            mediaUrl = AVATARS.alhadath_brk;
+        if (channel.handle === 'alhadath_brk' || channel.handle === 'alarabiyaBr') {
+            // FORCED: Al Hadath & Al Arabiya items ALWAYS use the logo as thumbnail
+            mediaUrl = AVATARS[channel.handle];
         } else {
             // Standard media extraction for others (Al Jazeera stays as is)
             const photoMatch = block.match(/tgme_widget_message_photo_wrap[^>]*background-image:url\('([^']+)'\)/);
@@ -103,7 +105,7 @@ function parseTelegram(html, channel) {
                 handle: channel.handle,
                 pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
                 link: linkMatch ? `https://t.me/${linkMatch[1]}` : `https://t.me/s/${channel.handle}`,
-                hasMedia: (channel.handle === 'alhadath_brk') ? true : !!mediaUrl,
+                hasMedia: (channel.handle === 'alhadath_brk' || channel.handle === 'alarabiyaBr') ? true : !!mediaUrl,
                 mediaUrl: mediaUrl,
                 customAvatar: AVATARS[channel.handle] || AVATARS['ajanews'],
                 id: linkMatch ? linkMatch[1] : (cleanText.substring(0, 50) + (timeMatch ? timeMatch[1] : ''))
@@ -143,8 +145,8 @@ async function startTelegramLoop(channel) {
                     if (!seen.has(item.id)) { 
                         newsCache.unshift(item); 
                         added++; 
-                    } else if (item.handle === 'alhadath_brk') {
-                        // FORCED UPDATE for Al Hadath icons on existing items in memory
+                    } else if (item.handle === 'alhadath_brk' || item.handle === 'alarabiyaBr') {
+                        // FORCED UPDATE for Al Hadath/Al Arabiya icons on existing items in memory
                         const existing = newsCache.find(i => i.id === item.id);
                         if (existing) {
                             existing.customAvatar = item.customAvatar;

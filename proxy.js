@@ -251,10 +251,16 @@ async function startTwitterLoop() {
                 console.log(`[Twitter] ✨ Dataset received (${tweets.length} items).`);
                 
                 if (Array.isArray(tweets) && tweets.length > 0) {
-                    console.log(`[Twitter] ℹ️ First item keys: ${Object.keys(tweets[0]).join(', ')}`);
+                    const firstItemKeys = Object.keys(tweets[0]);
+                    console.log(`[Twitter] ℹ️ First item keys: ${firstItemKeys.join(', ')}`);
                     
-                    if (tweets[0].id_str === 'demo' || tweets[0].is_demo) {
-                        console.warn('[Twitter] ⚠️ APIFY RETURNS DEMO DATA. Subscription may be missing or token invalid.');
+                    const isDemoRun = tweets[0].demo || tweets[0].is_demo || firstItemKeys.includes('demo');
+                    if (isDemoRun) {
+                        console.warn('═══════════════════════════════════════════════');
+                        console.warn('⚠️  APIFY IS IN DEMO MODE');
+                        console.warn('The current account/token is returning placeholder data.');
+                        console.warn('Please check your Apify billing, credits, or plan.');
+                        console.warn('═══════════════════════════════════════════════');
                     }
 
                     let added = 0;
@@ -268,8 +274,12 @@ async function startTwitterLoop() {
                         const data = t.legacy || t;
                         const id = t.id_str || t.id || data.id_str || data.id;
                         
+                        if (t.demo || (typeof t === 'object' && Object.keys(t).includes('demo'))) {
+                            skippedDemo++;
+                            return;
+                        }
+
                         if (!id) { skippedNoId++; return; }
-                        if (id === 'demo') { skippedDemo++; return; }
 
                         if (!seen.has(id)) {
                             const user = t.user || data.user || itemUser || {};

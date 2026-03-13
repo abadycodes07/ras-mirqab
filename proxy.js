@@ -239,8 +239,9 @@ async function startTwitterLoop() {
                 
                 console.log(`[Twitter] Polling status (Attempt ${attempts + 1}/20): ${status}`);
                 
-                if (status === 'SUCCEEDED') finished = true;
-                else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) {
+                if (status === 'SUCCEEDED') {
+                    finished = true;
+                } else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) {
                     const msg = statusData.data ? statusData.data.errorMessage : 'No error message';
                     throw new Error(`Actor ${status}: ${msg}`);
                 }
@@ -248,6 +249,8 @@ async function startTwitterLoop() {
             }
 
             if (finished) {
+                const itemsRes = await fetchPage(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_TOKEN}`);
+                const tweets = JSON.parse(itemsRes);
                 console.log(`[Twitter] ✨ Run succeeded. Received ${tweets.length} items from dataset.`);
                 
                 if (!Array.isArray(tweets) || tweets.length === 0) {

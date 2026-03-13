@@ -1,7 +1,37 @@
 {
-  "updated": "2026-03-13T15:51:18.322Z",
+  "updated": "2026-03-13T15:53:22.896Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | المتحدث باسم مقر خاتم الأنبياء الإيراني: استهدفنا الأسطول الخامس للبحرية الأمريكية وقواعد أمريكية بالمنطقة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T15:52:32.000Z",
+      "link": "https://t.me/AjaNews/467327",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | وسائل إعلام إسرائيلية: دوي انفجار قوي وسط إسرائيل إثر سقوط صاروخ في البحر أطلق من #لبنان",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T15:51:32.000Z",
+      "link": "https://t.me/AjaNews/467325",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | المتحدث باسم مقر خاتم الأنبياء الإيراني: استهدفنا بعدد كبير من الطائرات المسيرة أهدافا عدة في الأراضي المحتلة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T15:51:32.000Z",
+      "link": "https://t.me/AjaNews/467326",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | مراسل #الجزيرة: غارة إسرائيلية على سهل القاسمية جنوبي #لبنان",
       "source": "telegram",
@@ -203,36 +233,6 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | رئيس البرلمان اللبناني: يجب إلزام إسرائيل بوقف عدوانها وتطبيق اتفاق وقف الأعمال العدائية",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T15:29:04.000Z",
-      "link": "https://t.me/AjaNews/467306",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | رئيس البرلمان اللبناني: متمسكون بالقرار 1701 وبقوات اليونيفيل لمؤازرة الجيش اللبناني",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T15:29:04.000Z",
-      "link": "https://t.me/AjaNews/467307",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | وزارة الصحة اللبنانية: 773 شهيدا و1933 مصابا منذ بدء العدوان الإسرائيلي على البلاد",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T15:28:04.000Z",
-      "link": "https://t.me/AjaNews/467305",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مراسل الحدث: غارة إسرائيلية استهدفت مركزا للدفاع المدني في الصوانة جنوب لبنان",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -273,7 +273,7 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "&rlm;مراسلة الحدث: صفارات الإنذار تدوي بمدين�� تل أبيب",
+      "title": "&rlm;مراسلة الحدث: صفارات الإنذار تدوي بمدينة تل أبيب",
       "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T15:06:02.000Z",

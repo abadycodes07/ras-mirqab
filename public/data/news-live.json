@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T12:57:21.125Z",
+  "updated": "2026-03-13T12:58:22.706Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي في المطلة بشمال إسرائيل",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:58:00.000Z",
+      "link": "https://t.me/AjaNews/467228",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | فايننشال تايمز عن مسؤولين: دول أوروبية بدأت محادثات مع #طهران للتفاوض بشأن اتفاق لمرور آمن لسفنها في مضيق هرمز",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:57:30.000Z",
+      "link": "https://t.me/AjaNews/467227",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm;الرئيس اللبناني: أبديت استعدادي للتفاوض لكننا لم نتلق جواباً من الطرف الآخر",
       "source": "telegram",
@@ -243,7 +263,7 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | رئيس الأركان الأ��ريكي: قمنا بإعطاء أولوية لمهاجمة القواعد البحرية الإيرانية وسفنها الحربية",
+      "title": "عاجل | رئيس الأركان الأمريكي: قمنا بإعطاء أولوية لمهاجمة القواعد البحرية الإيرانية وسفنها الحربية",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T12:18:00.000Z",
@@ -353,16 +373,6 @@
       "sourceName": "الحدث عاجل"
     },
     {
-      "title": "عاجل | وزير الحرب الأمريكي: نستخدم قدرات متطورة بينها الذكاء الاصطناعي لإضعاف أعدائنا",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:12:30.000Z",
-      "link": "https://t.me/AjaNews/467208",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;وزير الحرب الأميركي: قادة إيران يختبئون في الأنفاق",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -371,16 +381,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | وزير الحرب الأمريكي: اليوم سيكون أعلى مستوى من الضربات في أجواء #إيران",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:12:00.000Z",
-      "link": "https://t.me/AjaNews/467207",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;وزير الحرب الأميركي: المرشد الإيراني الجديد مصاب وخائف من الاستهداف",

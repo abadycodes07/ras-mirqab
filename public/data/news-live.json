@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T12:22:18.842Z",
+  "updated": "2026-03-13T12:23:18.588Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | رئيس الأركان الأمريكي: شهدنا انخفاضا في عمليات إطلاق الصواريخ الإيرانية والمسيرات الهجومية الانتحارية",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:22:26.000Z",
+      "link": "https://t.me/AjaNews/467216",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm; رئيس الأركان الأميركي: نواصل تدمير مصانع الأسلحة والمنشآت العسكرية في إيران",
       "source": "telegram",
@@ -311,16 +321,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | وزير الخزانة الأمريكي لسكاي نيوز: الحرب على #إيران كلفت الولايات المتحدة 11 مليار دولار حتى الآن",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:03:59.000Z",
-      "link": "https://t.me/AjaNews/467196",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;روس آتوم الروسية: لا تواصل حتى الآن مع المسؤولين النوويين الإيرانيين",

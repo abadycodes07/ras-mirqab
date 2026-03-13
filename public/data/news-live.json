@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T12:14:18.537Z",
+  "updated": "2026-03-13T12:15:20.290Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | رئيس الأركان الأمريكي: فقدنا طائرة تزود بالوقود في غربي #العراق ولم يكن ذلك بسبب نيران معادية أو صديقة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:15:00.000Z",
+      "link": "https://t.me/AjaNews/467211",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm;وزير الحرب الأميركي: هدفنا تدمير الصورايخ ومنصاتها ومنع إيران من حيازة سلاح نووي",
       "source": "telegram",
@@ -291,16 +301,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | مراسل #الجزيرة: غارة إسرائيلية على أطراف بلدة النبي شيت في البقاع شرقي #لبنان",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:50:57.000Z",
-      "link": "https://t.me/AjaNews/467191",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;الوكالة الدولية للطاقة : نأمل استئناف المحادثات للتوصل لحل طويل الأمد بشأن النووي الإيراني",

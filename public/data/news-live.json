@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T14:00:31.077Z",
+  "updated": "2026-03-13T14:01:23.653Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | الداخلية الإماراتية: دفاعاتنا الجوية تتعامل مع تهديد صاروخي ويرجى البقاء في مكان آمن ومتابعة التحذيرات",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:00:32.000Z",
+      "link": "https://t.me/AjaNews/467247",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | وول ستريت جورنال عن مصادر: البنتاغون يدرس إرسال مزيد من السفن الحربية لمرافقة ناقلات النفط عبر مضيق هرمز",
       "source": "telegram",
@@ -258,16 +268,6 @@
       "handle": "ajanews",
       "pubDate": "2026-03-13T12:58:00.000Z",
       "link": "https://t.me/AjaNews/467228",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | فايننشال تايمز عن مسؤولين: دول أوروبية بدأت محادثات مع #طهران للتفاوض بشأن اتفاق لمرور آمن لسفنها في مضيق هرمز",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:57:30.000Z",
-      "link": "https://t.me/AjaNews/467227",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

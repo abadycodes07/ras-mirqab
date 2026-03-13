@@ -28,26 +28,40 @@ const CHANNELS = [
     { handle: 'alhadath_brk', name: 'الحدث عاجل', interval: 5000 }
 ];
 
-// Helper: Fetch Page
-function fetchPage(targetUrl) {
+// Helper: Fetch Page with Redirect Support
+function fetchPage(targetUrl, redirects = 0) {
+    if (redirects > 3) return Promise.reject(new Error('Too many redirects'));
     return new Promise((resolve, reject) => {
         const mod = targetUrl.startsWith('https') ? https : http;
-        const req = mod.get(targetUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' }
-        }, (res) => {
+        const options = {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' },
+            timeout: 10000
+        };
+        const req = mod.get(targetUrl, options, (res) => {
+            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                let next = res.headers.location;
+                if (!next.startsWith('http')) next = new URL(next, targetUrl).href;
+                return fetchPage(next, redirects + 1).then(resolve).catch(reject);
+            }
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => resolve(data));
         });
         req.on('error', reject);
-        req.setTimeout(8000, () => { req.destroy(); reject(new Error('Timeout')); });
+        req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
     });
 }
 
 // Simple Parser
 function parseTelegram(html, channel) {
     const items = [];
-    const blocks = html.split('tgme_widget_message_wrap');
+    if (!html || !html.includes('tgme_widget_message')) {
+        console.log(`[${channel.handle}] ⚠️ No message containers found in HTML (Length: ${html.length})`);
+        return [];
+    }
+    
+    // Flexible split
+    const blocks = html.split(/class="[^"]*tgme_widget_message_wrap[^"]*"/);
     blocks.shift();
 
     blocks.forEach(block => {
@@ -67,24 +81,52 @@ function parseTelegram(html, channel) {
                 handle: channel.handle,
                 pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
                 link: linkMatch ? `https://t.me/${linkMatch[1]}` : `https://t.me/s/${channel.handle}`,
-                hasMedia: !!imgMatch && channel.handle !== 'ajanews', // AjaNews usually doesn't need images per older requests
+                hasMedia: !!imgMatch && channel.handle !== 'ajanews',
                 mediaUrl: imgMatch ? imgMatch[1] : null,
-                id: linkMatch ? linkMatch[1] : (cleanText.substring(0, 50) + timeMatch)
+                id: linkMatch ? linkMatch[1] : (cleanText.substring(0, 50) + (timeMatch ? timeMatch[1] : ''))
             });
         }
     });
     return items.reverse();
 }
 
+// Global debug state
+let lastLoopStatus = {};
+
 // Loop for each channel
 async function startLoop(channel) {
     console.log(`[Loop] Starting loop for @${channel.handle} (${channel.interval}ms)`);
+    lastLoopStatus[channel.handle] = { status: 'starting', lastAttempt: null, successCount: 0, errorCount: 0 };
+
     while (true) {
+        lastLoopStatus[channel.handle].lastAttempt = new Date().toISOString();
         try {
-            const html = await fetchPage(`https://t.me/s/${channel.handle}`);
+            // Try direct, then try a known mirror if it fails
+            const urls = [
+                `https://t.me/s/${channel.handle}`,
+                `https://tel.ge/s/${channel.handle}`
+            ];
+            
+            let html = '';
+            let usedUrl = '';
+            for (const url of urls) {
+                try {
+                    html = await fetchPage(url);
+                    if (html.includes('tgme_widget_message')) {
+                        usedUrl = url;
+                        break;
+                    }
+                } catch (e) { console.log(`[${channel.handle}] Mirror ${url} failed: ${e.message}`); }
+            }
+
             const freshItems = parseTelegram(html, channel);
             
             if (freshItems.length > 0) {
+                lastLoopStatus[channel.handle].status = 'ok';
+                lastLoopStatus[channel.handle].successCount++;
+                lastLoopStatus[channel.handle].lastCount = freshItems.length;
+                lastLoopStatus[channel.handle].usedUrl = usedUrl;
+
                 const seen = new Set(newsCache.map(i => i.id));
                 let added = 0;
                 
@@ -99,11 +141,16 @@ async function startLoop(channel) {
                     newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
                     newsCache = newsCache.slice(0, 100);
                     fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
-                    console.log(`[${channel.handle}] ✅ Added ${added} new items.`);
+                    console.log(`[${channel.handle}] ✅ Added ${added} new items from ${usedUrl}`);
                 }
+            } else {
+                lastLoopStatus[channel.handle].status = 'empty_response';
+                lastLoopStatus[channel.handle].errorCount++;
             }
         } catch (e) {
             console.error(`[${channel.handle}] ❌ Loop Error:`, e.message);
+            lastLoopStatus[channel.handle].status = 'error: ' + e.message;
+            lastLoopStatus[channel.handle].errorCount++;
         }
         await new Promise(r => setTimeout(r, channel.interval));
     }
@@ -120,9 +167,15 @@ const server = http.createServer((req, res) => {
     if (parsed.pathname === '/news' || parsed.pathname === '/telegram') {
         res.writeHead(200);
         res.end(JSON.stringify({ ok: true, count: newsCache.length, items: newsCache }));
-    } else if (parsed.pathname === '/health') {
+    } else if (parsed.pathname === '/health' || parsed.pathname === '/debug') {
         res.writeHead(200);
-        res.end(JSON.stringify({ status: 'ok', uptime: process.uptime() }));
+        res.end(JSON.stringify({ 
+            status: 'ok', 
+            uptime: process.uptime(),
+            loops: lastLoopStatus,
+            cacheCount: newsCache.length,
+            time: new Date().toISOString()
+        }));
     } else {
         res.writeHead(404);
         res.end(JSON.stringify({ error: 'Not found' }));

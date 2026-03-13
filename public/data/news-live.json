@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-13T11:44:19.918Z",
+  "updated": "2026-03-13T11:45:23.715Z",
   "count": 41,
   "items": [
     {
@@ -7,10 +7,20 @@
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:44:18.398Z",
+      "pubDate": "2026-03-13T11:45:22.251Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "عاجل | وسائل إعلام إسرائيلية: الدفاعات الحوية اعترضت صاروخا أطلق من #إيران",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:45:01.000Z",
+      "link": "https://t.me/AjaNews/467190",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;الوكالة الدولية للطاقة : نأمل استئناف المحادثات للتوصل لحل طويل الأمد بشأن النووي الإيراني",
@@ -341,16 +351,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | ترمب لفوكس نيوز: سنقوم بمرافقة السفن في مضيق هرمز إن تطلب الأمر",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:08:57.000Z",
-      "link": "https://t.me/AjaNews/467170",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;جعجع للحدث:  حزب الله لم يف بتعهداته بوقف نشاطه العسكري باتفاق 2024",

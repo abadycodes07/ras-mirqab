@@ -24,8 +24,8 @@ try {
 } catch (e) { console.error('[Init] Cache load failed:', e.message); }
 
 const CHANNELS = [
-    { handle: 'ajanews', name: 'الجزيرة عاجل', interval: 2000 },
-    { handle: 'alhadath_brk', name: 'الحدث عاجل', interval: 2000 }
+    { handle: 'ajanews', name: 'الجزيرة عاجل', interval: 10000 },
+    { handle: 'alhadath_brk', name: 'الحدث عاجل', interval: 10000 }
 ];
 
 // Helper: Fetch Page with Redirect Support
@@ -35,7 +35,7 @@ function fetchPage(targetUrl, redirects = 0) {
         const mod = targetUrl.startsWith('https') ? https : http;
         const options = {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' },
-            timeout: 10000
+            timeout: 8000 // Slightly shorter timeout to avoid hanging
         };
         const req = mod.get(targetUrl, options, (res) => {
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
@@ -47,7 +47,7 @@ function fetchPage(targetUrl, redirects = 0) {
             res.on('data', chunk => data += chunk);
             res.on('end', () => resolve(data));
         });
-        req.on('error', reject);
+        req.on('error', (err) => { req.destroy(); reject(err); });
         req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
     });
 }

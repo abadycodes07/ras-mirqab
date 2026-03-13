@@ -129,8 +129,8 @@ var BreakingNewsWidget = (function () {
         // Refresh ONLY the "time ago" labels every second to prevent flicker
         refreshTimer = setInterval(updateTimeLabels, 1000);
         
-        // Fetch fresh data every 5 seconds for near-real-time updates
-        setInterval(loadNews, 5000);
+        // Fetch fresh data every 3 seconds for truly instant updates
+        setInterval(loadNews, 3000);
         
         checkProxyStatus();
     }

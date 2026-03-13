@@ -62,11 +62,14 @@ function getCachedTelegram(handle) {
 async function telegramLoop(handle) {
     while (true) {
         try {
-            const html = await fetchPage('https://t.me/s/' + handle, 6000);
+            // Direct fetch from Telegram public view with a short timeout
+            const html = await fetchPage('https://t.me/s/' + handle, 5000);
             const posts = parseTelegram(html, handle);
             if (posts.length > 0) setCachedTelegram(handle, posts);
-        } catch (e) { /* silent — cache keeps last good data */ }
-        await new Promise(r => setTimeout(r, 1000)); // 1s pause for near-instant updates as requested
+        } catch (e) { 
+            // Silent failure — keep old cache
+        }
+        await new Promise(r => setTimeout(r, 500)); // 500ms pause for truly instant feel
     }
 }
 
@@ -99,15 +102,14 @@ async function scrapeDirectTwitterList() {
         return []; // No new items needed yet
     }
 
-    // 2. Select Method (Scrape.do -> Apify -> RapidAPI)
+    // 2. Select Method (Scrape.do ONLY as requested)
     if (PAID_CONFIG.scrapedoToken) {
-        const items = await fetchViaScrapeDo();
-        if (items.length > 0) return items;
+        return fetchViaScrapeDo();
     }
 
+    // Fallbacks if Scrape.do is not configured
     if (PAID_CONFIG.method === 'apify' && PAID_CONFIG.apifyToken) {
-        const items = await fetchViaApify();
-        if (items.length > 0) return items;
+        return fetchViaApify();
     }
 
     if (PAID_CONFIG.method === 'rapidapi' && PAID_CONFIG.rapidapiKey) {
@@ -182,33 +184,14 @@ async function fetchViaApify() {
 }
 
 async function fetchViaScrapeDo() {
-    console.log('[Scrape.do] 🚀 Fetching Twitter List via Nitter Mirror...');
+    console.log('[Scrape.do] 🚀 Fetching Twitter List (Priority Engine)...');
     const TWITTER_LIST_ID = '2031445708524421549';
     const mirror = getRandomNitterMirror();
     const targetUrl = `${mirror}/i/lists/${TWITTER_LIST_ID}/rss`;
     const apiURL = `https://api.scrape.do?token=${PAID_CONFIG.scrapedoToken}&url=${encodeURIComponent(targetUrl)}&geo=us`;
 
     try {
-        const xml = await fetchPage(apiURL, 30000);
-        if (xml.includes('<item>')) {
-            PAID_CONFIG.lastTwitterFetch = Date.now();
-            return processRSSData(xml, { name: 'Twitter List', handle: 'twitter' });
-        }
-        return [];
-    } catch (e) {
-        console.error('[Scrape.do] ❌ Error:', e.message);
-        return [];
-    }
-}
-async function fetchViaScrapeDo() {
-    console.log('[Scrape.do] 🚀 Fetching Twitter List via Nitter Mirror...');
-    const TWITTER_LIST_ID = '2031445708524421549';
-    const mirror = getRandomNitterMirror();
-    const targetUrl = `${mirror}/i/lists/${TWITTER_LIST_ID}/rss`;
-    const apiURL = `https://api.scrape.do?token=${PAID_CONFIG.scrapedoToken}&url=${encodeURIComponent(targetUrl)}&geo=us`;
-
-    try {
-        const xml = await fetchPage(apiURL, 30000);
+        const xml = await fetchPage(apiURL, 20000);
         if (xml.includes('<item>')) {
             PAID_CONFIG.lastTwitterFetch = Date.now();
             return processRSSData(xml, { name: 'Twitter List', handle: 'twitter' });
@@ -362,8 +345,8 @@ async function twitterListLoop() {
             console.error(`[Scraper] Fatal Loop Error: ${e.message}`);
         }
         
-        // 30 seconds interval as requested
-        await new Promise(r => setTimeout(r, 30000)); 
+        // 15 seconds interval for faster Twitter updates from proxy
+        await new Promise(r => setTimeout(r, 15000)); 
     }
 }
 

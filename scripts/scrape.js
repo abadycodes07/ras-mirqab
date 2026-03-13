@@ -102,75 +102,8 @@ async function fetchTwitterApify() {
 }
 
 async function fetchTwitterRapidAPI() {
-    console.log('[RapidAPI] 🚀 Fetching Twitter List (RapidAPI/Twttr)...');
-    const url = `https://twitter241.p.rapidapi.com/list-timeline?listId=${TWITTER_LIST_ID}`;
-    
-    return new Promise((resolve) => {
-        const req = https.get(url, {
-            headers: {
-                'X-RapidAPI-Key': RAPIDAPI_KEY,
-                'X-RapidAPI-Host': 'twitter241.p.rapidapi.com'
-            }
-        }, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    const parsed = JSON.parse(data);
-                    let raw = [];
-                    if (parsed.result && parsed.result.timeline && parsed.result.timeline.instructions) {
-                        const instructions = parsed.result.timeline.instructions;
-                        const addEntries = instructions.find(i => i.type === 'TimelineAddEntries');
-                        if (addEntries && addEntries.entries) {
-                            raw = addEntries.entries
-                                .filter(e => e.content && e.content.itemContent && e.content.itemContent.tweet_results)
-                                .map(e => e.content.itemContent.tweet_results.result);
-                        }
-                    } else {
-                        raw = (parsed.result && Array.isArray(parsed.result)) ? parsed.result : 
-                              (parsed.tweets && Array.isArray(parsed.tweets)) ? parsed.tweets : 
-                              (Array.isArray(parsed) ? parsed : []);
-                    }
-
-                    if (!Array.isArray(raw)) {
-                        console.warn('[RapidAPI] ⚠️ Unexpected Data Format');
-                        return resolve([]);
-                    }
-                    
-                    const mapped = raw.map(item => {
-                        const tweet = item.legacy || item;
-                        const user = item.core && item.core.user_results ? item.core.user_results.result.legacy : (item.user || {});
-                        let mediaUrl = null;
-                        const entities = tweet.extended_entities || tweet.entities;
-                        if (entities && entities.media && entities.media.length > 0) {
-                            mediaUrl = entities.media[0].media_url_https;
-                        }
-
-                        return {
-                            title: (tweet.full_text || tweet.text || '').substring(0, 500),
-                            source: 'twitter',
-                            sourceName: user.name || 'Twitter',
-                            handle: user.screen_name || 'twitter',
-                            pubDate: tweet.created_at ? new Date(tweet.created_at).toISOString() : new Date().toISOString(),
-                            link: `https://x.com/${user.screen_name}/status/${item.rest_id || item.id_str}`,
-                            hasMedia: !!mediaUrl,
-                            mediaUrl: mediaUrl,
-                            customAvatar: user.profile_image_url_https ? user.profile_image_url_https.replace('_normal', '_400x400') : null,
-                            customName: user.name
-                        };
-                    });
-                    resolve(mapped);
-                } catch (e) {
-                    console.warn('[RapidAPI] ⚠️ Parse Failed');
-                    resolve([]);
-                }
-            });
-        });
-        req.on('error', (e) => {
-            console.warn('[RapidAPI] ⚠️ Request Failed');
-            resolve([]);
-        });
-    });
+    // RapidAPI removed as per user request to use Apify Free
+    return [];
 }
 
 function parseTelegram(html, handle) {
@@ -247,12 +180,12 @@ async function scrapeAll() {
     const allItems = [];
     const seen = new Set();
 
-    // 1. Fetch Twitter via RapidAPI (Primary) or Apify (Backup)
-    let twitterItems = await fetchTwitterRapidAPI();
-    
-    if (twitterItems.length === 0 && APIFY_TOKEN) {
-        console.log('[Scraper] ⚠️ RapidAPI returned 0, trying Apify fallback...');
+    // 1. Fetch Twitter via Apify (Primary as per user request)
+    let twitterItems = [];
+    if (APIFY_TOKEN) {
         twitterItems = await fetchTwitterApify();
+    } else {
+        console.warn('[Scraper] ⚠️ APIFY_TOKEN is missing. Skipping Twitter.');
     }
 
     console.log(`✅ [Twitter] Total items fetched: ${twitterItems.length}`);
@@ -264,36 +197,24 @@ async function scrapeAll() {
         }
     });
 
-    // 2. Original Telegram Scraper Logic
+    // 2. Direct Telegram Scraper Logic (No Nitter fallbacks)
     for (const member of LIST_MEMBERS) {
-        let memberItems = [];
-        // 1. Try Telegram
-        if (member.telegram) {
-            try {
-                const html = await fetchWithTimeout(`https://t.me/s/${member.telegram}`);
-                memberItems = parseTelegram(html, member.telegram);
-                if (memberItems.length > 0) console.log(`✅ [Telegram] @${member.handle}: ${memberItems.length}`);
-            } catch (e) { }
-        }
-        // 2. Fallback to Nitter
-        if (memberItems.length === 0) {
-            const mirror = getMirror();
-            try {
-                const xml = await fetchWithTimeout(`${mirror}/${member.handle}/rss`);
-                memberItems = parseRSS(xml, member);
-                console.log(`✅ [Nitter] @${member.handle}: ${memberItems.length}`);
-            } catch (e) {
-                console.log(`❌ [Nitter] @${member.handle} failed on ${mirror}`);
-                mirrorIdx++;
+        console.log(`[Telegram] 📡 Scraping direct: @${member.telegram}...`);
+        try {
+            const html = await fetchWithTimeout(`https://t.me/s/${member.telegram}`);
+            const memberItems = parseTelegram(html, member.telegram);
+            if (memberItems.length > 0) {
+                console.log(`✅ [Telegram] @${member.handle}: ${memberItems.length}`);
+                for (const it of memberItems) {
+                    const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
+                    if (!seen.has(hash)) {
+                        seen.add(hash);
+                        allItems.push({ ...it, sourceName: member.name });
+                    }
+                }
             }
-        }
-
-        for (const it of memberItems) {
-            const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
-            if (!seen.has(hash)) {
-                seen.add(hash);
-                allItems.push({ ...it, sourceName: member.name });
-            }
+        } catch (e) {
+            console.warn(`[Telegram] ⚠️ Failed to scrape @${member.telegram}: ${e.message}`);
         }
     }
 

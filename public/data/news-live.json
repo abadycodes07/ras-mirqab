@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T13:11:20.283Z",
+  "updated": "2026-03-13T13:12:37.705Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | مراسلة #الجزيرة: قصف بصواريخ ومسيرات على موقع الحزب الديمقراطي الكردستاني الإيراني المعارض شرق أربيل",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T13:11:32.000Z",
+      "link": "https://t.me/AjaNews/467230",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | وكالة مهر: مقتل 2 وإصابة 9 في هجوم أمريكي إسرائيلي استهدف مركزا للشرطة في منطقة فشافوية جنوبي #طهران",
       "source": "telegram",
@@ -351,16 +361,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | وزير الحرب الأمريكي: تضحيات جنودنا القتلى ستزيد من عزيمتنا",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:14:00.000Z",
-      "link": "https://t.me/AjaNews/467210",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;وزير الحرب الأميركي: ترمب لديه الكلمة الأخيرة حول المدى الزمني لهذه الحرب",

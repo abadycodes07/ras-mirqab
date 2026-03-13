@@ -23,8 +23,11 @@ const TWITTER_LIST_ID = '2031445708524421549';
 // Load existing cache
 try {
     if (fs.existsSync(CACHE_FILE)) {
-        newsCache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
-        console.log(`[Init] Loaded ${newsCache.length} items from disk.`);
+        const raw = fs.readFileSync(CACHE_FILE, 'utf8');
+        newsCache = JSON.parse(raw);
+        console.log(`[Init] ✅ Loaded ${newsCache.length} items from ${CACHE_FILE}`);
+    } else {
+        console.log(`[Init] ℹ️ Cache file not found. Starting with empty cache.`);
     }
 } catch (e) { console.error('[Init] Cache load failed:', e.message); }
 
@@ -252,7 +255,11 @@ async function startTwitterLoop() {
                 const itemsRes = await fetchPage(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_TOKEN}`);
                 const tweets = JSON.parse(itemsRes);
                 console.log(`[Twitter] ✨ Run succeeded. Received ${tweets.length} items from dataset.`);
-                
+                if (tweets.length > 0) {
+                    console.log(`[Twitter] ℹ️ Sample Tweet Keys: ${Object.keys(tweets[0]).join(', ')}`);
+                    if (tweets[0].legacy) console.log(`[Twitter] ℹ️ Legacy Keys: ${Object.keys(tweets[0].legacy).join(', ')}`);
+                }
+
                 if (!Array.isArray(tweets) || tweets.length === 0) {
                     console.log('[Twitter] ℹ️ Dataset is empty. Check if list ID is correct or has public tweets.');
                     lastLoopStatus['twitter'].status = 'ok_but_empty';
@@ -261,19 +268,28 @@ async function startTwitterLoop() {
                     const seen = new Set(newsCache.map(i => i.id));
 
                     tweets.forEach(t => {
-                        const id = t.id_str || t.id;
-                        if (!id) return;
+                        // Support both direct and legacy structure
+                        const data = t.legacy || t;
+                        const id = t.id_str || t.id || data.id_str || data.id;
+                        
+                        if (!id) {
+                            console.warn('[Twitter] ⚠️ Could not find ID for tweet');
+                            return;
+                        }
+
                         if (!seen.has(id)) {
-                            const profileImg = (t.user && t.user.profile_image_url_https) ? t.user.profile_image_url_https : 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png';
+                            const user = t.user || data.user || {};
+                            const profileImg = user.profile_image_url_https || 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png';
+                            
                             newsCache.unshift({
-                                title: t.full_text || t.text || '',
+                                title: t.full_text || t.text || data.full_text || data.text || '',
                                 source: 'twitter',
-                                sourceName: t.user ? t.user.name : 'تويتر',
-                                handle: t.user ? t.user.screen_name : 'twitter',
-                                pubDate: new Date(t.created_at).toISOString(),
+                                sourceName: user.name || 'تويتر',
+                                handle: user.screen_name || 'twitter',
+                                pubDate: new Date(t.created_at || data.created_at).toISOString(),
                                 link: `https://x.com/i/status/${id}`,
-                                hasMedia: !!(t.entities && t.entities.media),
-                                mediaUrl: (t.entities && t.entities.media) ? t.entities.media[0].media_url_https : null,
+                                hasMedia: !!(t.entities && t.entities.media) || !!(data.entities && data.entities.media),
+                                mediaUrl: (t.entities && t.entities.media) ? t.entities.media[0].media_url_https : (data.entities && data.entities.media ? data.entities.media[0].media_url_https : null),
                                 customAvatar: profileImg,
                                 id: id
                             });

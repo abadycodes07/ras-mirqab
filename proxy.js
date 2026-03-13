@@ -25,7 +25,7 @@ try {
 
 const CHANNELS = [
     { handle: 'ajanews', name: 'الجزيرة عاجل', interval: 2000 },
-    { handle: 'alhadath_brk', name: 'الحدث عاجل', interval: 5000 }
+    { handle: 'alhadath_brk', name: 'الحدث عاجل', interval: 2000 }
 ];
 
 // Helper: Fetch Page with Redirect Support

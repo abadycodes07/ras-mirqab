@@ -1,5 +1,5 @@
 {
-  "updated": "2026-03-13T11:37:15.046Z",
+  "updated": "2026-03-13T11:38:16.195Z",
   "count": 41,
   "items": [
     {
@@ -7,10 +7,30 @@
       "source": "twitter",
       "sourceName": "Twitter",
       "handle": "twitter",
-      "pubDate": "2026-03-13T11:37:13.996Z",
+      "pubDate": "2026-03-13T11:38:15.239Z",
       "link": "#",
       "hasMedia": false,
       "mediaUrl": null
+    },
+    {
+      "title": "&rlm;مراسل الحدث: دوي انفجارات بالقدس جراء عمليات اعتراض صواريخ إيرانية",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T11:38:02.000Z",
+      "link": "https://t.me/alhadath_brk/106771",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | وسائل إعلام إسرائيلية: الدفاعات الجوية تعترض صواريخ أطلقت من #إيران في أجواء وسط إسرائيل",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:37:56.000Z",
+      "link": "https://t.me/AjaNews/467185",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي في مناطق واسعة جنوب تل أبيب وأسدود وعسقلان والقدس",
@@ -163,7 +183,7 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | الجيش الإسرائيلي: إنذار بقصف مبنى في منطقة العباسية بصور جنوبي #لبنان",
+      "title": "عاجل | ال��يش الإسرائيلي: إنذار بقصف مبنى في منطقة العباسية بصور جنوبي #لبنان",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:16:02.000Z",
@@ -173,7 +193,7 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | مراس��ة #الجزيرة: غارة إسرائيلية في محيط بلدتي القوزح وعيتا الشعب جنوبي #لبنان",
+      "title": "عاجل | مراسلة #الجزيرة: غارة إسرائيلية في محيط بلدتي القوزح وعيتا الشعب جنوبي #لبنان",
       "source": "telegram",
       "handle": "ajanews",
       "pubDate": "2026-03-13T11:14:27.000Z",
@@ -333,16 +353,6 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | مراسلة #الجزيرة: غارتان إسرائيليتان على بلدتي القنطرة وقبريخا جنوبي #لبنان",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:02:56.000Z",
-      "link": "https://t.me/AjaNews/467165",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مراسل الحدث: تراجع حركة المسافرين على منفذ الشلامجة فيما بقيت الحركة التجارية",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -398,16 +408,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T10:20:02.000Z",
       "link": "https://t.me/alhadath_brk/106752",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسل الحدث: دفعة صواريخ ثانية من القطاع الأوسط باتجاه شمال إسرائيل",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T10:16:02.000Z",
-      "link": "https://t.me/alhadath_brk/106751",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

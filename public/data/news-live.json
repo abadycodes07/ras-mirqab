@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T13:35:21.144Z",
+  "updated": "2026-03-13T13:37:22.612Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | الرئيس الإيراني: مسؤولو البلاد سيلتزمون برسالة القائد وتوجيهاته وتجاوز الأزمة ممكن وسهل بالتعاون مع شعبنا",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T13:37:06.000Z",
+      "link": "https://t.me/AjaNews/467241",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "عاجل | الرئيس الإيراني: رسالة القائد مجتبى خامنئي أمس أوضحت وحددت مسار مستقبل البلاد في هذه المرحلة المصيرية",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T13:36:35.000Z",
+      "link": "https://t.me/AjaNews/467240",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | الجبهة الداخلية الإسرائيلية: صفارات الإنذار تدوي في صفد ومحيطها عقب إطلاق صواريخ من #لبنان",
       "source": "telegram",
@@ -271,26 +291,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | الرئيس اللبناني: أبدينا استعدادنا للتفاوض لكن حتى الآن لم نتلق جوابا من الطرف الآخر",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:34:58.000Z",
-      "link": "https://t.me/AjaNews/467221",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | الدفاع الإماراتية: تعاملنا اليوم مع 7 صواريخ باليستية و27 مسيرة قادمة من #إيران",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T12:34:33.000Z",
-      "link": "https://t.me/AjaNews/467220",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm; وزير الحرب الأميركي: ضربات اليوم على إيران أكثر كثافة بنسبة 30%",

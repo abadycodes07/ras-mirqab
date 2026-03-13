@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T11:55:17.243Z",
+  "updated": "2026-03-13T11:56:21.104Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | حزب الله: قصفنا بالصواريخ مستوطنة كابري شمال فلسطين المحتلة",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T11:55:58.000Z",
+      "link": "https://t.me/AjaNews/467192",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm;روس آتوم الروسية: لا تواصل حتى الآن مع المسؤولين النوويين الإيرانيين",
       "source": "telegram",
@@ -311,16 +321,6 @@
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "عاجل | متحدث باسم النيتو: نجحنا مجددا في اعتراض صاروخ باليستي إيراني كان متجها إلى #تركيا",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:12:27.000Z",
-      "link": "https://t.me/AjaNews/467172",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
     },
     {
       "title": "&rlm;جعجع للحدث:  بعد قرار الحكومة حزب الله أصبح غير شرعي وغير قانوني",

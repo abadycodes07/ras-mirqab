@@ -58,63 +58,78 @@ async function fetchWithTimeout(url, timeout = 15000) {
 }
 
 async function fetchTwitterApify() {
-    console.log('[Apify] 🚀 Fetching Twitter List...');
-    const url = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/run-sync-get-dataset-items?token=${APIFY_TOKEN}`;
+    if (!APIFY_TOKEN) {
+        console.warn('[Apify] ⚠️ APIFY_TOKEN is missing. Skipping.');
+        return [];
+    }
+    console.log(`[Apify] 🚀 Fetching... (Token starts with: ${APIFY_TOKEN.substring(0, 3)}***)`);
+    
+    // 1. Start the Actor Run (Async)
+    const runUrl = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs?token=${APIFY_TOKEN}`;
     const payload = JSON.stringify({
-        "startUrls": [{ "url": `https://x.com/i/lists/${TWITTER_LIST_ID}` }],
+        "listIds": [TWITTER_LIST_ID],
         "maxItems": 40
     });
 
-    return new Promise((resolve) => {
-        const req = https.request(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        }, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    const items = JSON.parse(data);
-                    if (!Array.isArray(items)) {
-                        console.warn('[Apify] ⚠️ Response is not an array:', typeof items);
-                        return resolve([]);
-                    }
-                    
-                    if (items.length > 0) {
-                        console.log('[Apify] 🔍 Sample Item Structure (Keys):', Object.keys(items[0]));
-                    }
-
-                    const mapped = items.map(it => {
-                        // Handle potential undefined/null items
-                        if (!it) return null;
-                        
-                        const author = it.author || {};
-                        const title = it.text || it.fullText || it.full_text || it.description || '';
-                        
-                        return {
-                            title: title.substring(0, 500),
-                            source: 'twitter',
-                            sourceName: author.name || 'Twitter',
-                            handle: author.userName || author.screenName || 'twitter',
-                            pubDate: it.createdAt ? new Date(it.createdAt).toISOString() : new Date().toISOString(),
-                            link: it.url || (it.id ? `https://x.com/i/status/${it.id}` : '#'),
-                            hasMedia: !!(it.media && it.media[0]),
-                            mediaUrl: (it.media && Array.isArray(it.media)) ? (typeof it.media[0] === 'string' ? it.media[0] : it.media[0].url) : null,
-                            customAvatar: author.profilePicture || author.profileImageUrl || author.avatar || null
-                        };
-                    }).filter(it => it && it.title.length > 3); // Filter out empty or too-short tweets
-
-                    resolve(mapped);
-                } catch (e) { 
-                    console.error('[Apify] ❌ Parse error:', e.message);
-                    resolve([]); 
-                }
+    try {
+        const runRes = await new Promise((resolve, reject) => {
+            const req = https.request(runUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } }, (res) => {
+                let d = ''; res.on('data', c => d += c);
+                res.on('end', () => resolve(JSON.parse(d)));
             });
+            req.on('error', reject);
+            req.write(payload);
+            req.end();
         });
-        req.on('error', () => resolve([]));
-        req.write(payload);
-        req.end();
-    });
+
+        const runId = runRes.data ? runRes.data.id : null;
+        const datasetId = runRes.data ? runRes.data.defaultDatasetId : null;
+        if (!runId || !datasetId) {
+            console.warn('[Apify] ⚠️ Failed to start run:', JSON.stringify(runRes));
+            return [];
+        }
+
+        console.log(`[Apify] ⏳ Run started: ${runId}. Waiting for completion...`);
+
+        // 2. Poll for completion (max 2 minutes)
+        let status = 'RUNNING';
+        const start = Date.now();
+        while (status === 'RUNNING' && (Date.now() - start < 120000)) {
+            await new Promise(r => setTimeout(r, 5000));
+            const statRes = await fetchWithTimeout(`https://api.apify.com/v2/actor-runs/${runId}?token=${APIFY_TOKEN}`);
+            const statJson = JSON.parse(statRes);
+            status = statJson.data ? statJson.data.status : 'FAILED';
+            process.stdout.write('.'); // Progress indicator
+        }
+        console.log(`\n[Apify] ✅ Run finished with status: ${status}`);
+
+        // 3. Get results from dataset
+        const itemsRes = await fetchWithTimeout(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_TOKEN}`);
+        const items = JSON.parse(itemsRes);
+        
+        if (!Array.isArray(items)) return [];
+        
+        return items.map(it => {
+            if (!it) return null;
+            const author = it.author || {};
+            const title = it.text || it.fullText || it.full_text || it.description || '';
+            return {
+                title: title.substring(0, 500),
+                source: 'twitter',
+                sourceName: author.name || 'Twitter',
+                handle: author.userName || author.screenName || 'twitter',
+                pubDate: it.createdAt ? new Date(it.createdAt).toISOString() : new Date().toISOString(),
+                link: it.url || (it.id ? `https://x.com/i/status/${it.id}` : '#'),
+                hasMedia: !!(it.media && it.media[0]),
+                mediaUrl: (it.media && Array.isArray(it.media)) ? (typeof it.media[0] === 'string' ? it.media[0] : it.media[0].url) : null,
+                customAvatar: author.profilePicture || author.profileImageUrl || author.avatar || null
+            };
+        }).filter(it => it && it.title.trim().length > 5);
+
+    } catch (e) {
+        console.warn('[Apify] ❌ Scrape error:', e.message);
+        return [];
+    }
 }
 
 async function fetchTwitterRapidAPI() {

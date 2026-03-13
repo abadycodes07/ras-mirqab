@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T14:54:33.087Z",
+  "updated": "2026-03-13T14:55:23.622Z",
   "count": 40,
   "items": [
+    {
+      "title": "&rlm;تركيا: سفينة مملوكة لنا عبرت مضيق هرمز بإذن إيراني",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T14:55:02.000Z",
+      "link": "https://t.me/alhadath_brk/106820",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | مراسل #الجزيرة: غارتان إسرائيليتان على مدينة بنت جبيل وبلدة الصوانة جنوبي #لبنان",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:54:35.000Z",
+      "link": "https://t.me/AjaNews/467286",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "&rlm;رئيس وزراء لبنان: لا مبرر لاحتجاز شعب بأكمله رهينة",
       "source": "telegram",
@@ -263,16 +283,6 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | الجيش الإسرائيلي: رئيس الأركان وجه بتعزيز القوات بشكل واسع النطاق لدعم الاسعدادات لسيناريوهات الهجوم والدفاع",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T14:34:02.000Z",
-      "link": "https://t.me/AjaNews/467266",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;كلمة لرئيس الوزراء اللبناني خلال استقباله أمين عام الأمم المتحدة",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -388,16 +398,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T13:29:02.000Z",
       "link": "https://t.me/alhadath_brk/106801",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;مراسل الحدث: غارة إسرائيلية استهدفت العباسية في جنوب لبنان",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T13:21:02.000Z",
-      "link": "https://t.me/alhadath_brk/106800",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

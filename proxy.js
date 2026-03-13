@@ -13,9 +13,7 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3001;
 
-// ══════ Nonstop Telegram Cache (always instant) ══════
-const telegramCache = {};  // { handle: posts[] }
-
+// ══════ Shared Memory Cache (Simple & Fast) ══════
 const twitterListCache = []; 
 const CACHE_FILE = path.join(__dirname, 'news-cache.json');
 
@@ -50,25 +48,10 @@ const USER_AGENTS = [
 ];
 function getRandomUA() { return USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)]; }
 
-function setCachedTelegram(handle, data) {
-    telegramCache[handle.toLowerCase()] = data;
-}
-
-function getCachedTelegram(handle) {
-    return telegramCache[handle.toLowerCase()] || null;
-}
+// No shared cache for Telegram - fetch directly on demand
 
 // Nonstop background loop: fetch → 2s pause → fetch → repeat forever
-async function telegramLoop(handle) {
-    while (true) {
-        try {
-            const html = await fetchPage('https://t.me/s/' + handle, 5000);
-            const posts = parseTelegram(html, handle);
-            if (posts.length > 0) setCachedTelegram(handle, posts);
-        } catch (e) { }
-        await new Promise(r => setTimeout(r, 500)); // 500ms interval for instant updates
-    }
-}
+// Removed background loops - fetching happens on request for instant simplicity
 
 // ══════ Simplified Direct Scraping Engine ══════
 
@@ -296,19 +279,8 @@ async function twitterListLoop() {
         console.log(`\n[Scraper] Cycle #${cycle} — Refreshing Sources (30s interval)...`);
         
         try {
-            // 1. Fetch Twitter List
+            // Fetch Twitter List (Strictly decoupled)
             const twitterResults = await scrapeDirectTwitterList();
-            
-            // 2. Fetch all Telegram items from the background caches
-            const telegramResults = [];
-            LIST_MEMBERS.forEach(m => {
-                if (m.telegram) {
-                    const cached = getCachedTelegram(m.telegram);
-                    if (cached && Array.isArray(cached)) {
-                        telegramResults.push(...cached);
-                    }
-                }
-            });
             
             const seenItems = new Set();
             twitterListCache.forEach(it => {
@@ -316,6 +288,18 @@ async function twitterListLoop() {
                 seenItems.add(hash);
             });
 
+            let addedCount = 0;
+            const newTotalResults = [...twitterListCache];
+
+            for (const it of twitterResults) {
+                const hash = (it.title.substring(0, 100) + it.pubDate).replace(/\s/g, '');
+                if (!seenItems.has(hash)) {
+                    seenItems.add(hash);
+                    newTotalResults.push(it);
+                    addedCount++;
+                }
+            }
+            
             newTotalResults.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
             twitterListCache.length = 0;
             twitterListCache.push(...newTotalResults.slice(0, 100)); 
@@ -442,18 +426,19 @@ const server = http.createServer(async (req, res) => {
         if (parsed.pathname === '/telegram') {
             const handle = parsed.query.channel;
             if (!handle) {
-                res.writeHead(400);
-                res.end(JSON.stringify({ error: 'Missing ?channel=xxx' }));
-                return;
+                res.writeHead(400); return res.end(JSON.stringify({ error: 'Missing ?channel=xxx' }));
             }
 
-            const cached = getCachedTelegram(handle);
-            if (cached) {
+            // Simple direct fetch - the "Old Way"
+            console.log(`[Proxy] ⚡ Direct fetch for Telegram: @${handle}`);
+            try {
+                const html = await fetchPage('https://t.me/s/' + handle, 8000);
+                const items = parseTelegram(html, handle);
                 res.writeHead(200);
-                res.end(JSON.stringify({ ok: true, count: cached.length, items: cached }));
-            } else {
-                res.writeHead(200);
-                res.end(JSON.stringify({ ok: true, count: 0, items: [], warming: true }));
+                res.end(JSON.stringify({ ok: true, count: items.length, items: items }));
+            } catch (err) {
+                res.writeHead(500);
+                res.end(JSON.stringify({ error: err.message }));
             }
             return;
         }
@@ -520,14 +505,6 @@ server.listen(PORT, () => {
     console.log('    /health');
     console.log('═══════════════════════════════════════');
 
-    // ── Start nonstop loops ──
-    console.log('[Loop] 🔥 Starting nonstop Telegram refreshes (5s)...');
-    LIST_MEMBERS.forEach(member => {
-        if (member.telegram) {
-            telegramLoop(member.telegram);
-        }
-    });
-    
-    console.log('[Loop] 🐦 Starting Twitter List scraper (Direct Approach, 40s)...');
+    console.log('[Loop] 🐦 Starting Twitter List scraper (15s interval)...');
     twitterListLoop();
 });

@@ -1,7 +1,17 @@
 {
-  "updated": "2026-03-13T14:18:19.900Z",
+  "updated": "2026-03-13T14:19:20.461Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | التلفزيون الإيراني: الحرس الثوري اعتقل أفرادا في محافظة فارس أرسلوا صورا مفبركة لقناة معارضة لإثارة الشغب",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T14:18:35.000Z",
+      "link": "https://t.me/AjaNews/467254",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | وكالة الصحافة الفرنسية: دوي انفجار في #دبي",
       "source": "telegram",
@@ -258,16 +268,6 @@
       "handle": "ajanews",
       "pubDate": "2026-03-13T13:28:29.000Z",
       "link": "https://t.me/AjaNews/467235",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
-      "title": "عاجل | وول ستريت جورنال عن مسؤول إيطالي: 100 جندي من أصل أكثر من 300 كانوا في إقليم كردستان #العراق عادوا إلى إيطاليا",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T13:27:59.000Z",
-      "link": "https://t.me/AjaNews/467234",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الجزيرة عاجل"

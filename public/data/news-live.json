@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T16:06:19.419Z",
+  "updated": "2026-03-13T16:07:20.775Z",
   "count": 40,
   "items": [
+    {
+      "title": "عاجل | مراسل #الجزيرة: غارتان إسرائيليتان على بلدتي شقرا وباتوليه جنوبي #لبنان",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T16:07:09.000Z",
+      "link": "https://t.me/AjaNews/467339",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
+    {
+      "title": "&rlm;رئيس إقليم كردستان: وضع حد للجماعات الخارجة عن القانون من مسؤولية الحكومة العراقية",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T16:07:02.000Z",
+      "link": "https://t.me/alhadath_brk/106833",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
     {
       "title": "عاجل | هيئة البث الإسرائيلية: سقوط صاروخ في وسط إسرائيل دون إطلاق صفارات الإنذار",
       "source": "telegram",
@@ -223,16 +243,6 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | وكالة تسنيم: إيران تطلق المزيد من الصواريخ على المناطق الشمالية من فلسطين المحتلة",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T15:37:36.000Z",
-      "link": "https://t.me/AjaNews/467319",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;مشاهد لغارة إسرائيلية استهدفت مركزا للدفاع المدني في الصوانة جنوب لبنان",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -388,16 +398,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T14:36:03.000Z",
       "link": "https://t.me/alhadath_brk/106814",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;رئيس وزراء لبنان: مجتمعنا يواجه اليوم ما يفوق قدرته على الاحتمال",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T14:35:02.000Z",
-      "link": "https://t.me/alhadath_brk/106813",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

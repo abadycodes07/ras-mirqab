@@ -1,7 +1,27 @@
 {
-  "updated": "2026-03-13T12:15:20.290Z",
+  "updated": "2026-03-13T12:16:18.302Z",
   "count": 40,
   "items": [
+    {
+      "title": "&rlm;بالفيديو.. إسرائيل تلقي مناشير فوق بيروت",
+      "source": "telegram",
+      "handle": "alhadath_brk",
+      "pubDate": "2026-03-13T12:16:02.000Z",
+      "link": "https://t.me/alhadath_brk/106785",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الحدث عاجل"
+    },
+    {
+      "title": "عاجل | رئيس الأركان الأمريكي: مطلعون على حادثة اندلاع نيران على متن الحاملة جيرالد فورد",
+      "source": "telegram",
+      "handle": "ajanews",
+      "pubDate": "2026-03-13T12:15:55.000Z",
+      "link": "https://t.me/AjaNews/467212",
+      "hasMedia": false,
+      "mediaUrl": null,
+      "sourceName": "الجزيرة عاجل"
+    },
     {
       "title": "عاجل | رئيس الأركان الأمريكي: فقدنا طائرة تزود بالوقود في غربي #العراق ولم يكن ذلك بسبب نيران معادية أو صديقة",
       "source": "telegram",
@@ -43,7 +63,7 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "&rlm;وزير الحرب الأميركي: ترمب لديه الكلمة الأخيرة حول المدى الزمني لهذه الحرب",
+      "title": "&rlm;وزير الحرب الأميركي: ترمب لديه الكلمة الأخيرة حول المدى الزمني لهذه ��لحرب",
       "source": "telegram",
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T12:13:02.000Z",
@@ -273,16 +293,6 @@
       "sourceName": "الجزيرة عاجل"
     },
     {
-      "title": "عاجل | حزب الله: قصفنا بالصواريخ مستوطنة كابري شمال فلسطين المحتلة",
-      "source": "telegram",
-      "handle": "ajanews",
-      "pubDate": "2026-03-13T11:55:58.000Z",
-      "link": "https://t.me/AjaNews/467192",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الجزيرة عاجل"
-    },
-    {
       "title": "&rlm;روس آتوم الروسية: لا تواصل حتى الآن مع المسؤولين النوويين الإيرانيين",
       "source": "telegram",
       "handle": "alhadath_brk",
@@ -388,16 +398,6 @@
       "handle": "alhadath_brk",
       "pubDate": "2026-03-13T11:18:02.000Z",
       "link": "https://t.me/alhadath_brk/106766",
-      "hasMedia": false,
-      "mediaUrl": null,
-      "sourceName": "الحدث عاجل"
-    },
-    {
-      "title": "&rlm;جعجع للحدث:  لا أؤمن بفرضية &quot; انقسام الجيش&quot; التي لوّح بها حزب الله",
-      "source": "telegram",
-      "handle": "alhadath_brk",
-      "pubDate": "2026-03-13T11:14:02.000Z",
-      "link": "https://t.me/alhadath_brk/106765",
       "hasMedia": false,
       "mediaUrl": null,
       "sourceName": "الحدث عاجل"

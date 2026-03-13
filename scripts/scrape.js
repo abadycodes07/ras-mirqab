@@ -28,6 +28,9 @@ const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY || '76dd92d274msh5f9d70a356151dbp1c194djsn85d2595a1c7b';
 const TWITTER_LIST_ID = '2031445708524421549';
 
+console.log(`[Config] RAPIDAPI_KEY: ${RAPIDAPI_KEY ? RAPIDAPI_KEY.substring(0, 4) + '...' : 'MISSING'}`);
+console.log(`[Config] APIFY_TOKEN: ${APIFY_TOKEN ? APIFY_TOKEN.substring(0, 4) + '...' : 'MISSING'}`);
+
 const NITTER_MIRRORS = [
     'https://nitter.privacyredirect.com',
     'https://nitter.net',
@@ -232,6 +235,16 @@ function parseRSS(xml, member) {
 
 async function scrapeAll() {
     console.log('--- Multi-Source Scrape Start ---');
+    console.log('[Network] Checking connectivity...');
+    try {
+        await new Promise((resolve, reject) => {
+            https.get('https://google.com', (res) => resolve()).on('error', reject);
+        });
+        console.log('✅ [Network] Connected to internet.');
+    } catch (e) {
+        console.error('❌ [Network] No internet connection:', e.message);
+    }
+
     const allItems = [];
     const seen = new Set();
 

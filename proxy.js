@@ -230,13 +230,13 @@ async function startTwitterLoop() {
             // Wait for completion (Simple polling)
             let finished = false;
             let attempts = 0;
-            while (!finished && attempts < 15) {
-                await new Promise(r => setTimeout(r, 20000)); // Wait 20s
+            while (!finished && attempts < 20) {
+                await new Promise(r => setTimeout(r, 10000)); // Wait 10s
                 const statusRes = await fetchPage(`https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs/${runId}?token=${APIFY_TOKEN}`);
                 const statusData = JSON.parse(statusRes);
-                const status = statusData.data.status;
+                const status = statusData.data ? statusData.data.status : 'UNKNOWN';
                 
-                console.log(`[Twitter] Polling status (Attempt ${attempts + 1}/15): ${status}`);
+                console.log(`[Twitter] Polling status (Attempt ${attempts + 1}/20): ${status}`);
                 
                 if (status === 'SUCCEEDED') finished = true;
                 else if (['FAILED', 'ABORTED', 'TIMED-OUT'].includes(status)) throw new Error('Actor failed: ' + status);
@@ -281,10 +281,11 @@ async function startTwitterLoop() {
                 lastLoopStatus['twitter'].lastCount = added;
                 if (added > 0) {
                     newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-                    fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache.slice(0, 100), null, 2));
+                    newsCache = newsCache.slice(0, 100);
+                    fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
                     console.log(`[Twitter] ✅ Added ${added} new tweets.`);
                 } else {
-                    console.log('[Twitter] ℹ️ No new tweets found.');
+                    console.log('[Twitter] ℹ️ No new tweets found (already in cache).');
                 }
             } else {
                 console.warn('[Twitter] ⏳ Actor timed out after polling.');

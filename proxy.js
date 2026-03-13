@@ -59,9 +59,11 @@ function fetchPage(targetUrl, redirects = 0) {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   🔴 CORE TELEGRAM ENGINE - DO NOT MODIFY WITHOUT EXPLICIT PERMISSION
-   This section handles ultra-fast direct polling and parsing.
-   It is isolated to ensure zero-regression when adding other sources.
+   🔴 CORE TELEGRAM ENGINE - [LOCKED] - DO NOT MODIFY
+   CRITICAL: This section is the production-ready Telegram scraping core.
+   PER USER REQUEST: Do NOT change logic, intervals, or branding for ajanews,
+   alhadath_brk, or alarabiyaBr. Any new sources MUST be added in the
+   "FUTURE SCRAPERS" section below. This core is PROTECTED.
    ══════════════════════════════════════════════════════════════════════════════ */
 
 // Flexible Telegram Page Parser

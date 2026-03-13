@@ -208,29 +208,36 @@
 
         var html = '';
         allNews.slice(0, 30).forEach((it, i) => {
-            var id = (it.link || '') + it.pubDate;
-            var displayTime = toggledTimes.has(id) ? 
-                new Date(it.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : 
-                timeAgoAr(it.pubDate);
-            
-            var avatar = it.customAvatar || LOGOS[it.handle] || '../public/logos/aljazeera.png';
-            if (!avatar.startsWith('http')) avatar = '../' + avatar.replace(/^\.\.\//, '');
-            var thumb = it.localMedia || it.mediaUrl || avatar;
+            try {
+                var id = (it.link || '') + it.pubDate;
+                var displayTime = toggledTimes.has(id) ? 
+                    new Date(it.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : 
+                    timeAgoAr(it.pubDate);
+                
+                var avatar = it.customAvatar || LOGOS[it.handle] || '../public/logos/aljazeera.png';
+                if (!avatar.startsWith('http')) {
+                    avatar = avatar.replace(/^\.\.\//, '');
+                    avatar = '../' + avatar;
+                }
+                var thumb = it.localMedia || it.mediaUrl || avatar;
 
-            html += `
-                <div class="news-item" onclick="window.open('${it.link}','_blank')">
-                    <div class="news-item-left">
-                        <span class="ni-time">${displayTime}</span>
-                        <img src="${avatar}" class="ni-avatar">
+                html += `
+                    <div class="news-item" onclick="window.open('${it.link}','_blank')">
+                        <div class="news-item-left">
+                            <span class="ni-time">${displayTime}</span>
+                            <img src="${avatar}" class="ni-avatar">
+                        </div>
+                        <div class="news-item-center">
+                            <div class="ni-text">${it.title}</div>
+                        </div>
+                        <div class="news-item-right">
+                            <img src="${thumb}" class="ni-thumb" onerror="this.src='${avatar}'">
+                        </div>
                     </div>
-                    <div class="news-item-center">
-                        <div class="ni-text">${it.title}</div>
-                    </div>
-                    <div class="news-item-right">
-                        <img src="${thumb}" class="ni-thumb" onerror="this.src='${avatar}'">
-                    </div>
-                </div>
-            `;
+                `;
+            } catch (err) {
+                console.error('[Mobile] Render error:', err, it);
+            }
         });
         list.innerHTML = html || '<div style="text-align:center; padding:20px; color:#555;">لا توجد أخبار حالية</div>';
     }

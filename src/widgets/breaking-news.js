@@ -301,30 +301,30 @@ var BreakingNewsWidget = (function () {
     }
 
     function renderItems(container, items) {
-        // To prevent flicker, we only rebuild if count changed or it's first load
-        // Or we can be smarter and only add new items to the top
-        var currentItemCount = container.querySelectorAll('.news-item').length;
+        console.log('[BN] Rendering', items.length, 'items');
         
-        // If it's a completely new list or first load, rebuild once
-        if (currentItemCount === 0 || items.length !== currentItemCount) {
-             container.innerHTML = '';
-        } else {
-            // Already rendered, updateTimeLabels will handle the countdowns
-            return;
-        }
+        // Remove optimization that prevents rendering when length is same
+        // as it doesn't account for content changes.
+        container.innerHTML = '';
 
         items.forEach(function (item) {
-            var id = (item.link || '') + (item.title ? item.title.substring(0, 50) : item.pubDate);
-            var isToggled = toggledTimes.has(id);
-            
-            var relativeTime = timeAgoAr(item.pubDate);
-            var absoluteTime = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-            
-            var displayTime = isToggled ? absoluteTime : relativeTime;
-            var highlightClass = item.isNew ? ' news-item-new' : '';
-            
-            var itemEl = document.createElement('div');
-            itemEl.className = 'news-item' + highlightClass;
+            try {
+                var id = (item.link || '') + (item.title ? item.title.substring(0, 50) : item.pubDate);
+                var isToggled = toggledTimes.has(id);
+                
+                var relativeTime = timeAgoAr(item.pubDate);
+                var absoluteTime = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                
+                var displayTime = isToggled ? absoluteTime : relativeTime;
+                var highlightClass = item.isNew ? ' news-item-new' : '';
+                
+                // [LEFT] Logo, Badge and Time
+                var avatarPath = item.customAvatar;
+                if (!avatarPath) avatarPath = (item.source === 'twitter') ? 'public/logos/twitter_bg.png' : 'public/logos/aljazeera.png';
+
+                var itemEl = document.createElement('div');
+                itemEl.className = 'news-item' + highlightClass;
+                itemEl.setAttribute('data-id', id);
             
             // Premium Platform Icons
             var twitterIcon = '<svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.045 4.126H5.078z"/></svg>';
@@ -371,48 +371,50 @@ var BreakingNewsWidget = (function () {
                 '<div class="news-item-time" data-date="' + item.pubDate + '" data-id="' + id + '" style="font-size:10px; color:#555; font-weight:600; font-family:\'Orbitron\', sans-serif; cursor:pointer; text-decoration:underline dashed rgba(255,255,255,0.1);" title="اضغط لتبديل عرض الوقت">' + displayTime + '</div>' +
                 '</div>';
 
-            itemEl.innerHTML = thumbnailHtml + contentHtml + logoHtml;
+                itemEl.innerHTML = thumbnailHtml + contentHtml + logoHtml;
 
-            var timeBtn = itemEl.querySelector('.news-item-time');
-            if (timeBtn) {
-                timeBtn.onclick = function(e) {
-                    e.stopPropagation();
-                    if (toggledTimes.has(id)) toggledTimes.delete(id);
-                    else toggledTimes.add(id);
-                    updateTimeLabels(); // Update text immediately
-                };
+                var timeBtn = itemEl.querySelector('.news-item-time');
+                if (timeBtn) {
+                    timeBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        if (toggledTimes.has(id)) toggledTimes.delete(id);
+                        else toggledTimes.add(id);
+                        updateTimeLabels(); 
+                    };
+                }
+
+                itemEl.addEventListener('mouseenter', function (e) {
+                    if (!hoverEnabled || !popupEl) return;
+                    var rect = itemEl.getBoundingClientRect();
+                    var media = item.localMedia || item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
+                    var imgHtml = media ? '<img src="' + media + '" class="bn-popup-image has-img" style="max-width:100%; border-radius:6px; margin:8px 0; border:1px solid #444;" />' : '';
+                    
+                    popupEl.innerHTML = 
+                        '<div class="bn-popup-header" style="color:#e67e22; font-weight:800; font-size:11px; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:6px; letter-spacing:1px;">🚨 BREAKING LIVE</div>' +
+                        imgHtml +
+                        '<div class="bn-popup-text" style="font-size:13.5px; line-height:1.6; margin-bottom:10px; color:#fff; font-family:\'Tajawal\', sans-serif;">' + (item.title || item.text || '') + '</div>' +
+                        '<div class="bn-popup-meta" style="font-size:9px; color:#666; display:flex; justify-content:space-between; font-family:\'Inter\', sans-serif; text-transform:uppercase;">' +
+                        '  <span>Source: ' + (item.customName || item.sourceName || item.source) + '</span>' +
+                        '  <span>' + timeAgoAr(item.pubDate) + '</span>' +
+                        '</div>';
+                    
+                    popupEl.classList.add('active');
+                    var pW = popupEl.offsetWidth || 350;
+                    var pH = popupEl.offsetHeight || 150;
+                    var left = rect.left - pW - 20;
+                    if (left < 20) left = rect.right + 20;
+                    var top = rect.top + (rect.height / 2) - (pH / 2);
+                    if (top < 20) top = 20;
+                    if (top + pH > window.innerHeight - 20) top = window.innerHeight - pH - 20;
+                    
+                    popupEl.style.left = left + 'px';
+                    popupEl.style.top = top + 'px';
+                });
+
+                container.appendChild(itemEl);
+            } catch (err) {
+                console.error('[BN] Failed to render news item:', err, item);
             }
-
-            // Hover preview support
-            itemEl.addEventListener('mouseenter', function (e) {
-                if (!hoverEnabled || !popupEl) return;
-                var rect = itemEl.getBoundingClientRect();
-                var media = item.localMedia || item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
-                var imgHtml = media ? '<img src="' + media + '" class="bn-popup-image has-img" style="max-width:100%; border-radius:6px; margin:8px 0; border:1px solid #444;" />' : '';
-                
-                popupEl.innerHTML = 
-                    '<div class="bn-popup-header" style="color:#e67e22; font-weight:800; font-size:11px; margin-bottom:10px; border-bottom:1px solid #222; padding-bottom:6px; letter-spacing:1px;">🚨 BREAKING LIVE</div>' +
-                    imgHtml +
-                    '<div class="bn-popup-text" style="font-size:13.5px; line-height:1.6; margin-bottom:10px; color:#fff; font-family:\'Tajawal\', sans-serif;">' + (item.title || item.text || '') + '</div>' +
-                    '<div class="bn-popup-meta" style="font-size:9px; color:#666; display:flex; justify-content:space-between; font-family:\'Inter\', sans-serif; text-transform:uppercase;">' +
-                    '  <span>Source: ' + (item.customName || item.sourceName || item.source) + '</span>' +
-                    '  <span>' + timeAgoAr(item.pubDate) + '</span>' +
-                    '</div>';
-                
-                popupEl.classList.add('active');
-                var pW = popupEl.offsetWidth || 350;
-                var pH = popupEl.offsetHeight || 150;
-                var left = rect.left - pW - 20;
-                if (left < 20) left = rect.right + 20;
-                var top = rect.top + (rect.height / 2) - (pH / 2);
-                if (top < 20) top = 20;
-                if (top + pH > window.innerHeight - 20) top = window.innerHeight - pH - 20;
-                
-                popupEl.style.left = left + 'px';
-                popupEl.style.top = top + 'px';
-            });
-
-            container.appendChild(itemEl);
         });
     }
 

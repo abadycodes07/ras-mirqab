@@ -218,7 +218,7 @@ async function startTwitterLoop() {
             console.log('[Twitter] 🚀 Triggering Apify Actor...');
             const runUrl = `https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs?token=${APIFY_TOKEN}`;
             const runRes = await postJSON(runUrl, {
-                startUrls: [`https://x.com/i/lists/${TWITTER_LIST_ID}`],
+                startUrls: [{ url: `https://x.com/i/lists/${TWITTER_LIST_ID}` }],
                 maxItems: 60,
                 proxyConfiguration: { useApifyProxy: true }
             });
@@ -231,11 +231,10 @@ async function startTwitterLoop() {
             const datasetId = runRes.data.defaultDatasetId;
             console.log(`[Twitter] 🏃 Actor started. Run ID: ${runId}`);
             
-            // Wait for completion (Simple polling)
             let finished = false;
             let attempts = 0;
             while (!finished && attempts < 20) {
-                await new Promise(r => setTimeout(r, 10000)); // Wait 10s
+                await new Promise(r => setTimeout(r, 10000));
                 const statusRes = await fetchPage(`https://api.apify.com/v2/acts/apidojo~twitter-list-scraper/runs/${runId}?token=${APIFY_TOKEN}`);
                 const statusData = JSON.parse(statusRes);
                 const status = statusData.data ? statusData.data.status : 'UNKNOWN';
@@ -254,28 +253,26 @@ async function startTwitterLoop() {
             if (finished) {
                 const itemsRes = await fetchPage(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${APIFY_TOKEN}`);
                 const tweets = JSON.parse(itemsRes);
+                
                 console.log(`[Twitter] ✨ Run succeeded. Received ${tweets.length} items from dataset.`);
-                if (tweets.length > 0) {
-                    console.log(`[Twitter] ℹ️ Sample Tweet Keys: ${Object.keys(tweets[0]).join(', ')}`);
-                    if (tweets[0].legacy) console.log(`[Twitter] ℹ️ Legacy Keys: ${Object.keys(tweets[0].legacy).join(', ')}`);
-                }
-
+                
                 if (!Array.isArray(tweets) || tweets.length === 0) {
-                    console.log('[Twitter] ℹ️ Dataset is empty. Check if list ID is correct or has public tweets.');
+                    console.log('[Twitter] ℹ️ Dataset is empty or contains no valid tweets.');
                     lastLoopStatus['twitter'].status = 'ok_but_empty';
                 } else {
+                    // Diagnostic check for "demo" data
+                    if (tweets[0].id_str === 'demo' || tweets[0].is_demo) {
+                        console.warn('[Twitter] ⚠️ WARNING: Receiving DEMO data. This usually means the Apify account is on a free/limited tier.');
+                    }
+
                     let added = 0;
                     const seen = new Set(newsCache.map(i => i.id));
 
                     tweets.forEach(t => {
-                        // Support both direct and legacy structure
                         const data = t.legacy || t;
                         const id = t.id_str || t.id || data.id_str || data.id;
                         
-                        if (!id) {
-                            console.warn('[Twitter] ⚠️ Could not find ID for tweet');
-                            return;
-                        }
+                        if (!id || id === 'demo') return;
 
                         if (!seen.has(id)) {
                             const user = t.user || data.user || {};
@@ -315,7 +312,7 @@ async function startTwitterLoop() {
             console.error(`[Twitter] ❌ Error:`, e.message);
             lastLoopStatus['twitter'].status = 'error: ' + e.message;
         }
-        await new Promise(r => setTimeout(r, 60000)); // 60 Seconds (1 Minute)
+        await new Promise(r => setTimeout(r, 60000));
     }
 }
 

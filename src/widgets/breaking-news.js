@@ -4,14 +4,28 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    var PROXY_BASE = 'http://' + (window.location.hostname || 'localhost') + ':3001';
-    var isProxyLive = false;
+    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'http://localhost:3001';
+    var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
+    var popupEl = null;
     var refreshTimer = null;
     var seenIds = new Set();
     var isFirstLoad = true;
     var settingsOpen = false;
-    var toggledTimes = new Set();
-    var lastFetchedItems = [];
+    var localCache = [];
+    var consecutiveFailures = 0;
+    var isProxyLive = true;
+    var sourceStatusMap = {};
+    var sourceDiagnostics = {}; // Stores { handle: timestamp }
+    var hiddenSources = new Set(JSON.parse(localStorage.getItem('rasmirqab_hidden_sources') || '[]'));
+    var currentMirrorIndex = 0;
+    var NITTER_MIRRORS = [
+        'https://ras-mirqab.onrender.com', // Primary
+        'https://nitter.net',
+        'https://nitter.cz',
+        'https://nitter.it',
+        'https://nitter.privacydev.net',
+        'https://nitter.dafrary.com'
+    ];
 
     function getSources() {
         try {
@@ -24,72 +38,66 @@ var BreakingNewsWidget = (function () {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
     }
 
-    function timeAgoAr(dateStr) {
-        var diff = Date.now() - new Date(dateStr);
-        var s = Math.floor(diff / 1000);
-        if (s < 1) return 'الآن';
-        if (s < 60) return 'قبل ' + s + ' ثانية';
-        var m = Math.floor(s / 60);
-        if (m === 1) return 'قبل دقيقة';
-        if (m < 11) return 'قبل ' + m + ' دقائق';
-        if (m < 60) return 'قبل ' + m + ' دقيقة';
-        var h = Math.floor(m / 60);
-        if (h === 1) return 'قبل ساعة';
-        if (h < 11) return 'قبل ' + h + ' ساعات';
-        if (h < 24) return 'قبل ' + h + ' ساعة';
-        var d = Math.floor(h / 24);
-        if (d === 1) return 'قبل يوم';
-        return 'قبل ' + d + ' أيام';
-    }
-
     function render() {
         return {
             header:
-                '<div class="widget-header breaking-header">' +
-                '  <div class="widget-title">' +
-                '    <span class="live-dot" id="bn-live-dot"></span>' +
-                '    <span class="breaking-title-text" id="bn-status-text">عاجل</span>' +
-                '    <span class="widget-badge badge-live">NEW</span>' +
+                '<div class="widget-header breaking-header-v12">' +
+                '  <div class="breaking-top-layer">' +
+                '    <div class="breaking-integrated-controls">' +
+                '      <button class="integrated-sync-btn" id="bn-refresh-btn-v12">' +
+                '        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 22v-6h6"/><path d="M21 12c0 4.97-4.03 9-9 9a9 9 0 0 1-9-9M3 12c0-4.97 4.03-9 9-9a9 9 0 0 1 9 9"/></svg>' +
+                '        <span>hard sync</span>' +
+                '      </button>' +
+                '      <button class="widget-action-btn" id="bn-gear-btn" title="إعدادات المصادر">⚙️</button>' +
+                '    </div>' +
+                '    <div class="breaking-title-wrap">' +
+                '      <div class="dropdown-arrow-wrap"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#e9a35e" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>' +
+                '      <span class="breaking-main-title">الأخبار العاجلة</span>' +
+                '    </div>' +
                 '  </div>' +
-                '  <div class="widget-actions">' +
-                '    <span id="bn-debug-info" style="font-size:7px; color:#555; margin-right:5px; opacity:0.5; font-family:monospace; display:none;"></span>' +
-                '    <button class="widget-action-btn" id="bn-refresh-btn" title="تحديث">↻</button>' +
-                '    <button class="widget-action-btn" id="bn-gear-btn" title="إضافة مصادر" style="font-size:14px;">⚙</button>' +
+                '  <div class="breaking-glow-header">' +
+                '    <div class="glow-title-flex">' +
+                '      <span class="glow-text-title">عاجل</span>' +
+                '      <div class="glow-active-dot"></div>' +
+                '    </div>' +
                 '  </div>' +
                 '</div>',
             body:
-                '  <div style="font-size:12px; color:#e67e22; font-weight:700; margin-bottom:12px; border-bottom:1px solid #333; padding-bottom:5px; display:flex; justify-content:space-between;">' +
-                '    <span>إدارة المصادر / MANAGE SOURCES</span>' +
-                '    <span style="cursor:pointer;" onclick="BreakingNewsWidget.toggleSettings()">✕</span>' +
-                '  </div>' +
-
-                '  <div style="font-size:12px; color:#e67e22; font-weight:700; margin-bottom:8px; border-bottom:1px solid #333; padding-bottom:5px;">مصادر إضافية / SOURCES</div>' +
-                '  <div style="font-size:10px; color:#666; margin-bottom:6px; text-align:right;">أدخل رابط X أو تليجرام + Enter ↵</div>' +
-                '  <input type="text" id="bn-add-source" placeholder="إضافة رابط جديد..." ' +
-                '    style="width:100%; padding:7px 10px; border-radius:6px; border:1px solid #444; background:#000; color:#fff; font-size:12px; direction:ltr; box-sizing:border-box;" />' +
-                '  <div id="bn-source-list" style="margin-top:8px; max-height:100px; overflow-y:auto; border-top:1px solid #222; padding-top:5px;"></div>' +
-                '</div>' +
-                '<div class="widget-body" id="breaking-news-body" style="scroll-behavior:smooth;">' +
-                '  <div style="color:#888; text-align:center; padding:40px; font-size:12px;">جاري الاتصال بمحرك الرصد...</div>' +
+                '<div class="widget-body" id="breaking-news-body" style="padding:0;">' +
+                '  <div style="color:#666; text-align:center; padding:40px; font-size:12px;">جاري الاتصال...</div>' +
                 '</div>',
         };
     }
 
-    async function init() {
-
+    function init() {
         var gearBtn = document.getElementById('bn-gear-btn');
-        if (gearBtn) gearBtn.addEventListener('click', function () {
-            if (window.RasMirqabModal) window.RasMirqabModal.open('bn-settings-modal');
+        if (gearBtn) gearBtn.addEventListener('click', toggleSettings);
+
+        var refreshBtn = document.getElementById('bn-refresh-btn');
+        if (refreshBtn) refreshBtn.addEventListener('click', function () {
+            rotateMirror();
+            loadNews(true);
         });
 
-        // Modal Specific Listeners
+        var refreshBtnV12 = document.getElementById('bn-refresh-btn-v12');
+        if (refreshBtnV12) refreshBtnV12.addEventListener('click', function () {
+            rotateMirror();
+            loadNews(true);
+        });
+
         var modalAddBtn = document.getElementById('bn-modal-btn-add');
-        var modalInput = document.getElementById('bn-modal-add-source');
-        if (modalAddBtn && modalInput) {
+        if (modalAddBtn) {
             modalAddBtn.addEventListener('click', function () {
-                addSource(modalInput.value.trim());
-                modalInput.value = '';
+                var input = document.getElementById('bn-modal-add-source');
+                if (input) {
+                    addSource(input.value.trim());
+                    input.value = '';
+                }
             });
+        }
+
+        var modalInput = document.getElementById('bn-modal-add-source');
+        if (modalInput) {
             modalInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     addSource(modalInput.value.trim());
@@ -98,120 +106,237 @@ var BreakingNewsWidget = (function () {
             });
         }
 
-        var refreshBtn = document.getElementById('bn-refresh-btn');
-        if (refreshBtn) refreshBtn.addEventListener('click', function () { loadNews(true); });
+        var closeBtn = document.getElementById('close-bn-settings-modal');
+        if (closeBtn) {
+            closeBtn.onclick = function () {
+                document.getElementById('bn-settings-modal').classList.add('hidden');
+                settingsOpen = false;
+            };
+        }
+
+        renderSourceList();
+        loadNews();
+        fetchDiagnostics();
 
         if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(updateTimeLabels, 1000);
+        refreshTimer = setInterval(function() {
+            loadNews();
+            fetchDiagnostics();
+        }, 30000); 
 
-        // Use a single robust news fetch interval (30s)
-        setInterval(loadNews, 30000);
+        checkProxyStatus();
 
-        await checkProxyStatus();
-        loadNews(); // First load after proxy check
+        // Initialize Hover Popup
+        if (!document.querySelector('.bn-hover-popup')) {
+            popupEl = document.createElement('div');
+            popupEl.className = 'bn-hover-popup';
+            document.body.appendChild(popupEl);
+        } else {
+            popupEl = document.querySelector('.bn-hover-popup');
+        }
     }
 
-    async function checkProxyStatus() {
-        var dot = document.getElementById('bn-live-dot');
-        var debugEl = document.getElementById('bn-debug-info');
+    function toggleSettings(force) {
+        if (force === true) settingsOpen = true;
+        else if (force === false) settingsOpen = false;
+        else settingsOpen = !settingsOpen;
 
-        try {
-            const currentHost = window.location.hostname || 'localhost';
-            const localRes = await fetch(`http://${currentHost}:3001/health`).catch(() => null);
-
-            if (localRes && localRes.ok) {
-                PROXY_BASE = `http://${currentHost}:3001`;
-                isProxyLive = true;
-                console.log(`[BN] ✅ Proxy Connected: ${PROXY_BASE}`);
-            } else if (currentHost !== 'localhost') {
-                const fallbackRes = await fetch('http://localhost:3001/health').catch(() => null);
-                if (fallbackRes && fallbackRes.ok) {
-                    PROXY_BASE = 'http://localhost:3001';
-                    isProxyLive = true;
-                } else {
-                    isProxyLive = false;
-                }
+        var modal = document.getElementById('bn-settings-modal');
+        if (modal) {
+            if (settingsOpen) {
+                modal.classList.remove('hidden');
+                renderSourceList();
             } else {
-                isProxyLive = false;
-            }
-        } catch (e) {
-            isProxyLive = false;
-            console.error('[BN] Proxy check failed:', e);
-            if (debugEl) {
-                debugEl.style.display = 'inline';
-                debugEl.style.color = '#e74c3c';
-                var cleanBase = PROXY_BASE.replace('http://', '');
-                debugEl.textContent = 'OFFLINE (' + cleanBase + ')';
-                console.error('[BN] Proxy Status Check Failed:', e);
-            }
-        }
-
-        if (dot) dot.style.background = isProxyLive ? '#2ecc71' : '#e74c3c';
-        if (debugEl) {
-            debugEl.style.display = 'inline';
-            if (isProxyLive) {
-                debugEl.style.color = '#555';
-                debugEl.textContent = 'LINK OK';
-            } else if (!debugEl.textContent.startsWith('ERR')) {
-                debugEl.textContent = 'OFFLINE: ' + PROXY_BASE.replace('http://', '');
+                modal.classList.add('hidden');
             }
         }
     }
 
-    function renderModalSourceList() {
-        var container = document.getElementById('bn-modal-source-list');
+    function checkProxyStatus() {
+        fetch(PROXY_BASE + '/health')
+            .then(function () {
+                isProxyLive = true;
+                consecutiveFailures = 0;
+                var dot = document.getElementById('bn-live-dot');
+                if (dot) dot.style.background = '#2ecc71';
+            })
+            .catch(function () {
+                consecutiveFailures++;
+                if (consecutiveFailures > 3) {
+                    isProxyLive = false;
+                    var dot = document.getElementById('bn-live-dot');
+                    if (dot) dot.style.background = '#e74c3c';
+                }
+            });
+    }
 
-        if (!container) return;
+    async function fetchDiagnostics() {
+        try {
+            const res = await fetch(PROXY_BASE + '/api/news-diagnostics');
+            if (!res.ok) return;
+            const data = await res.json();
+            sourceDiagnostics = data.sourceHealth || {};
+            renderSourceList();
+        } catch (e) {
+            console.error("Diagnostics fetch failed", e);
+        }
+    }
+
+    function addSource(url) {
+        if (!url) return;
+        var type = 'unknown';
+        var handle = url;
+        if (/x\.com|twitter\.com/i.test(url)) {
+            type = 'twitter';
+            var m = url.match(/(?:x\.com|twitter\.com)\/([^\/?#]+)/i);
+            handle = m ? m[1] : url;
+        } else if (/t\.me/i.test(url)) {
+            type = 'telegram';
+            var m2 = url.match(/t\.me\/(?:s\/)?([^\/?#]+)/i);
+            handle = m2 ? m2[1] : url;
+        }
+        var sources = getSources();
+        if (sources.some(function (s) { return s.handle === handle && s.type === type; })) return;
+        sources.push({ type: type, handle: handle, url: url });
+        saveSources(sources);
+        renderSourceList();
+        loadNews();
+    }
+
+    function removeSource(index) {
+        var sources = getSources();
+        sources.splice(index, 1);
+        saveSources(sources);
+        renderSourceList();
+        loadNews();
+    }
+
+    function toggleVisibility(handle) {
+        if (hiddenSources.has(handle)) {
+            hiddenSources.delete(handle);
+        } else {
+            hiddenSources.add(handle);
+        }
+        localStorage.setItem('rasmirqab_hidden_sources', JSON.stringify(Array.from(hiddenSources)));
+        renderSourceList();
+        loadNews();
+    }
+
+    function renderSourceList() {
+        var grid = document.getElementById('bn-modal-source-list');
+        if (!grid) return;
         var sources = getSources();
         var hardcoded = [
-            { type: 'telegram', handle: 'ajanews', fixed: true },
-            { type: 'telegram', handle: 'alhadath_brk', fixed: true },
-            { type: 'twitter', handle: 'X List: RasMirqab', fixed: true }
+            { type: 'twitter', handle: 'alrougui', name: 'الروقي / alrougui', avatar: 'public/logos/alrougui.jpg', fixed: true },
+            { type: 'twitter', handle: 'alekhbariyaNews', name: 'الإخبارية / alekhbariya', avatar: 'public/logos/alekhbariya.jpg', fixed: true },
+            { type: 'twitter', handle: 'alekhbariyabrk', name: 'الإخبارية - عاجل', avatar: 'public/logos/alekhbariya.jpg', fixed: true },
+            { type: 'twitter', handle: 'NewsNow4USA', name: 'News Now 4 USA', avatar: 'public/logos/newsnow.jpg', fixed: true },
+            { type: 'twitter', handle: 'modgovksa', name: 'MoD KSA / الدفاع', avatar: 'public/logos/modgovksa2.png', fixed: true },
+            { type: 'twitter', handle: 'AsharqNewsBrk', name: 'Asharq News / الشرق', avatar: 'public/logos/asharq2.jpg', fixed: true },
+            { type: 'twitter', handle: 'AlHadath', name: 'Al Hadath / الحدث', avatar: 'public/logos/alhadath3.png', fixed: true },
+            { type: 'twitter', handle: 'alarabiya_brk', name: 'العربية عاجل (𝕏)', avatar: 'public/logos/alarabiya.png', fixed: true },
+            { type: 'twitter', handle: 'skynewsarabia_B', name: 'سكاي نيوز عاجل (𝕏)', avatar: 'public/logos/skynews.png', fixed: true },
+            { type: 'twitter', handle: 'ajmubasher', name: 'الجزيرة مباشر', avatar: 'public/logos/aljazeera.png', fixed: true },
+            { type: 'twitter', handle: 'RTonline_ar', name: 'RT العربية (𝕏)', avatar: 'public/logos/rt.png', fixed: true },
+            { type: 'telegram', handle: 'SABQ_NEWS', name: 'صحيفة سبق', avatar: 'public/logos/sabq.png', fixed: true },
+            { type: 'telegram', handle: 'AjelNews24', name: 'عاجل السعودية', avatar: 'public/logos/ajelnews.jpg', fixed: true },
+            { type: 'telegram', handle: 'Alarabiya_brk', name: 'العربية عاجل', avatar: 'public/logos/alarabiya.png', fixed: true },
+            { type: 'telegram', handle: 'SkyNewsArabia_Breaking', name: 'سكاي نيوز عاجل', avatar: 'public/logos/skynews.png', fixed: true },
+            { type: 'telegram', handle: 'RT_Arabic', name: 'RT العربية', avatar: 'public/logos/rt.png', fixed: true },
+            { type: 'telegram', handle: 'ajanews', name: 'Al Jazeera / الجزيرة', avatar: 'public/logos/aljazeera.png', fixed: true },
+            { type: 'rss', handle: 'i24news-ar', name: 'اعلام الاحتلال الاسرائيلي', url: 'https://www.i24news.tv/ar/feed', avatar: 'https://www.i24news.tv/favicon.ico', fixed: true },
+            { type: 'rss', handle: 'sabq-org', name: 'صحيفة سبق (موقع)', url: 'https://sabq.org/rss.xml', avatar: 'https://sabq.org/favicon.ico', fixed: true }
         ];
         var all = hardcoded.concat(sources);
         var html = '';
         all.forEach(function (s, i) {
-            var icon = s.type === 'twitter' ? '𝕏' : '📱';
-            var color = s.type === 'twitter' ? '#ffffff' : '#24a1de';
-            var btn = s.fixed ? '<span style="font-size:10px; color:#555;">(رسمي)</span>' :
-                '<button onclick="BreakingNewsWidget.removeSource(' + (i - hardcoded.length) + ')" style="background:rgba(231,76,60,0.1); border:1px solid rgba(231,76,60,0.2); color:#ff4d4d; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:10px;">حذف (DEL)</button>';
+            var lastSeen = sourceDiagnostics[s.handle] || 0;
+            var diffMin = lastSeen ? Math.floor((Date.now() - lastSeen) / 60000) : null;
+            
+            var statusColor = '#888';
+            var statusText = 'انتظار';
+            
+            if (s.type === 'telegram') {
+                statusColor = '#2ecc71';
+                statusText = 'مباشر (Telegram)';
+            } else if (lastSeen) {
+                if (diffMin < 30) { statusColor = '#2ecc71'; statusText = 'نشط (' + diffMin + 'د)'; }
+                else if (diffMin < 120) { statusColor = '#f1c40f'; statusText = 'خامل (' + diffMin + 'د)'; }
+                else { statusColor = '#e74c3c'; statusText = 'منقطع'; }
+            }
 
-            html += '<div class="channel-card" style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05);">' +
-                '<div style="display:flex; align-items:center; gap:10px;">' +
-                '<span style="color:' + color + '; font-size:14px;">' + icon + '</span>' +
-                '<div>' +
-                '<div style="font-size:12px; font-weight:700; color:#fff;">' + s.handle + '</div>' +
-                '<div style="font-size:9px; color:#666; text-transform:uppercase;">' + s.type + '</div>' +
-                '</div>' +
-                '</div>' +
-                btn + '</div>';
+            var isSelected = s.fixed;
+            var isHidden = hiddenSources.has(s.handle);
+            var color = s.type === 'twitter' ? '#1DA1F2' : '#0088cc';
+            var icon = s.type === 'twitter' ? '𝕏' : '📱';
+
+            html +=
+                '<div class="channel-card ' + (isSelected ? 'selected' : '') + ' ' + (isHidden ? 'hidden-source' : '') + '" style="cursor:pointer; transition:all 0.3s ease; border:1px solid ' + (isHidden ? 'transparent' : 'var(--accent-dim)') + '; background:' + (isHidden ? 'rgba(255,255,255,0.02)' : 'rgba(255,106,0,0.05)') + ';" onclick="BreakingNewsWidget.toggleVisibility(\'' + s.handle + '\')">' +
+                '  <div class="channel-card-info">' +
+                '    <div class="channel-avatar" style="position:relative; overflow:hidden; border-radius:8px; border:1px solid ' + (isHidden ? '#333' : 'var(--accent)') + '; filter:' + (isHidden ? 'grayscale(100%)' : 'none') + '; opacity:' + (isHidden ? '0.4' : '1') + ';">' +
+                '      <img src="' + (s.avatar || 'public/logos/default.png') + '" style="width:100%; height:100%; object-fit:cover;">' +
+                '      <span style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:' + statusColor + '; border:2px solid #111; z-index:5;"></span>' +
+                '    </div>' +
+                '    <div class="channel-name-v" style="opacity:' + (isHidden ? '0.5' : '1') + ';">' +
+                '      <div style="display:flex; justify-content:space-between; align-items:center;">' +
+                '        <span class="ch-title">' + (s.name || s.handle) + '</span>' +
+                '        <span style="font-size:9px; color:' + statusColor + ';">' + (isHidden ? 'مخفي' : statusText) + '</span>' +
+                '      </div>' +
+                '      <span class="ch-handle">' + s.handle.toUpperCase() + '</span>' +
+                '    </div>' +
+                '  </div>' +
+                '  <div class="ch-status-icon" style="display:flex; gap:10px; align-items:center;">' +
+                '    <button class="vis-toggle-btn" onclick="BreakingNewsWidget.toggleVisibility(\'' + s.handle + '\')" style="background:none; border:none; cursor:pointer; color:#888; padding:5px;">' + (isHidden ? '👁️‍🗨️' : '👁️') + '</button>' +
+                (isSelected ? '<span class="ch-check">✓</span>' : '<span class="ch-remove-icon" style="color:var(--danger); cursor:pointer;" onclick="BreakingNewsWidget.removeSource(' + (i - hardcoded.length) + ')">✕</span>') +
+                '  </div>' +
+                '</div>';
         });
-        container.innerHTML = html || '<div style="color:#444; text-align:center; padding:20px; font-size:12px;">لم يتم إضافة مصادر مخصصة بعد.</div>';
+        grid.innerHTML = html;
     }
 
-    async function loadNews() {
+    async function loadNews(force) {
         var container = document.getElementById('breaking-news-body');
         if (!container) return;
 
+        // NEW: Load from localStorage cache immediately (Fast Loading)
+        if (isFirstLoad) {
+            var cached = localStorage.getItem('rasmirqab_bn_cache');
+            if (cached) {
+                try {
+                    var items = JSON.parse(cached);
+                    localCache = items;
+                    renderItems(container, items);
+                    // Don't set isFirstLoad = false yet, so the notification logic works on the real fetch
+                } catch(e) {}
+            }
+        }
+
         var items = await fetchAllFeeds();
         if (!items || items.length === 0) {
-            if (isFirstLoad) container.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">لا توجد أخبار حالياً...</div>';
+            if (isFirstLoad && localCache.length === 0) {
+                container.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">جاري تحديث البيانات...</div>';
+            }
             return;
         }
 
-        items.sort(function (a, b) {
-            var da = new Date(a.pubDate).getTime();
-            var db = new Date(b.pubDate).getTime();
-            if (isNaN(da)) da = 0;
-            if (isNaN(db)) db = 0;
-            return db - da;
-        });
+        // NEW: Save to localStorage for next time
+        localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(items));
+
+        // V11.2: Limit to top 4 for mobile precisely
+        if (window.innerWidth <= 768) {
+            items = items.slice(0, 4);
+        }
+
+        localCache = items;
 
         var newCount = 0;
         items.forEach(function (item) {
-            var id = (item.link || '') + (item.title ? item.title.substring(0, 50) : item.pubDate);
+            var id = item.link + (item.title ? item.title.substring(0, 20) : item.pubDate);
             if (!seenIds.has(id)) {
-                if (!isFirstLoad) { newCount++; item.isNew = true; }
+                if (!isFirstLoad) { 
+                    newCount++; 
+                    item.isNew = true; 
+                }
                 seenIds.add(id);
             }
         });
@@ -221,249 +346,143 @@ var BreakingNewsWidget = (function () {
         }
 
         isFirstLoad = false;
-
-        // Smarter merging for the UI
-        if (lastFetchedItems.length === 0) {
-            lastFetchedItems = items;
-        } else {
-            // Updated merging logic: Replace items if they have new/better data
-            var updatedItems = [...items];
-            lastFetchedItems.forEach(function (oldItem) {
-                var oldId = (oldItem.link || '') + (oldItem.title ? oldItem.title.substring(0, 50) : oldItem.pubDate);
-                if (!updatedItems.some(function (ni) {
-                    var newId = (ni.link || '') + (ni.title ? ni.title.substring(0, 50) : ni.pubDate);
-                    return newId === oldId;
-                })) {
-                    updatedItems.push(oldItem);
-                }
-            });
-
-            updatedItems.sort(function (a, b) {
-                var da = new Date(a.pubDate);
-                var db = new Date(b.pubDate);
-                if (isNaN(da.getTime())) return 1;
-                if (isNaN(db.getTime())) return -1;
-                return db - da;
-            });
-            lastFetchedItems = updatedItems.slice(0, 120);
-        }
-
-
-        renderItems(container, lastFetchedItems);
+        renderItems(container, items);
         checkProxyStatus();
     }
 
     async function fetchAllFeeds() {
         try {
-            const url = PROXY_BASE + '/news?t=' + Date.now();
-            const res = await fetch(url);
-            if (res.ok) {
-                const data = await res.json();
-                return data.items || [];
-            } else {
-                console.warn('[BN] Proxy response not OK:', res.status);
-            }
+            const res = await fetch(PROXY_BASE + '/api/news-v4-list');
+            if (!res.ok) return [];
+            const data = await res.json();
+            return data.items || [];
         } catch (e) {
-            console.error('[BN] Proxy fetch failed:', e.message);
+            console.error("Cache fetch failed:", e);
+            return [];
         }
+    }
 
-        // Fallback to static cache if proxy fails
-        try {
-            const staticUrl = 'https://abadycodes07.github.io/ras-mirqab/public/data/news-live.json?t=' + Date.now();
-            const staticRes = await fetch(staticUrl);
-            if (staticRes.ok) {
-                const staticData = await staticRes.json();
-                return staticData.items || [];
-            }
-        } catch (e) { }
-
-        return [];
+    function rotateMirror() {
+        // Obsolete but kept for UI compatibility
+        var btn = document.getElementById('bn-refresh-btn');
+        if (btn) {
+            btn.classList.add('loading');
+            setTimeout(() => {
+                btn.classList.remove('loading');
+                loadNews();
+            }, 1000);
+        }
     }
 
     function renderItems(container, items) {
-        console.log('[BN] Rendering', items.length, 'items');
-
         container.innerHTML = '';
-        console.log('[BN] Items for rendering:', items.filter(i => i.source === 'twitter').length, 'Twitter items found.');
+        var AVATARS = {
+            'alrougui': 'public/logos/alrougui.jpg',
+            'alekhbariyaNews': 'public/logos/alekhbariya.jpg',
+            'NewsNow4USA': 'public/logos/newsnow.jpg',
+            'modgovksa': 'public/logos/modgovksa2.png',
+            'AsharqNewsBrk': 'public/logos/asharq2.jpg',
+            'AlHadath': 'public/logos/alhadath3.png',
+            'AlArabiya_Brk': 'public/logos/alarabiya.png',
+            'SkyNewsArabia_B': 'public/logos/skynews.png',
+            'RTonline_ar': 'public/logos/rt.png',
+            'araReuters': 'https://www.reuters.com/pf/resources/images/reuters/favicon.ico',
+            'SABQ_NEWS': 'public/logos/sabq.png',
+            'AjelNews24': 'public/logos/ajelnews.jpg',
+            'SkyNewsArabia_Breaking': 'public/logos/skynews.png',
+            'RT_Arabic': 'public/logos/rt.png',
+            'ajanews': 'public/logos/aljazeera.png',
+            'i24news-ar': 'public/logos/i24news.png',
+            'sabq-org': 'public/logos/sabq.png'
+        };
 
         items.forEach(function (item) {
-            try {
-                var id = (item.link || '') + (item.title ? item.title.substring(0, 50) : item.pubDate);
-                var isToggled = toggledTimes.has(id);
-                var relativeTime = timeAgoAr(item.pubDate);
-                var absoluteTime = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                var displayTime = isToggled ? absoluteTime : relativeTime;
-                var highlightClass = item.isNew ? ' news-item-new' : '';
+            var handle = item.sourceHandle || '';
+            var source = item.source || 'rss';
+            
+            // Try to find avatar: 1. Item-specific, 2. Mapping by handle (lower case), 3. Default
+            var avatar = item.customAvatar || AVATARS[handle] || AVATARS[handle.toLowerCase()] || 'public/logos/default.png';
+            
+            // Platform Badge
+            var badgeIcon = source === 'twitter' ? '𝕏' : (source === 'telegram' ? '📱' : '🌐');
+            var badgeColor = source === 'twitter' ? '#fff' : (source === 'telegram' ? '#0088cc' : '#f1c40f');
 
-                // [SOURCE LOGO] Keep logos separate from media.
-                var sourceLogo = item.customAvatar || (item.source === 'twitter' ? 'https://abadycodes07.github.io/ras-mirqab/public/logos/twitter_bg.png' : 'https://abadycodes07.github.io/ras-mirqab/public/logos/aljazeera.png');
+            var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
 
-                var itemEl = document.createElement('div');
-                itemEl.className = 'news-item' + highlightClass;
-                itemEl.setAttribute('data-id', id);
+            var itemEl = document.createElement('div');
+            itemEl.className = 'news-item' + (item.isNew ? ' news-item-new' : '');
+            itemEl.style = 'padding:0; margin-bottom:8px; cursor:pointer; display:flex; transition: transform 0.2s;';
+            itemEl.onclick = function () { window.open(item.link, '_blank'); };
 
-                // [DYNAMIC LAYOUT] Column for Media-Rich, Row for Text-Only
-                var hasValidMedia = (item.hasMedia && item.mediaUrl && !item.mediaUrl.includes('placeholder') && !item.mediaUrl.includes('profile_images'));
+            var media = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
 
-                var baseStyle = 'padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer; display:flex; direction:rtl; transition: background 0.2s;';
-                if (hasValidMedia) {
-                    itemEl.style = baseStyle + ' flex-direction:column; gap:10px;';
-                } else {
-                    itemEl.style = baseStyle + ' flex-direction:row; align-items:center; gap:12px;';
-                }
-
-                itemEl.onclick = function () { showDetailPopup(item); };
-                itemEl.onmouseenter = function () { itemEl.style.background = 'rgba(255,255,255,0.04)'; };
-                itemEl.onmouseleave = function () { itemEl.style.background = 'transparent'; };
-
-                // [MEDIA EMBED] Full-width top or hidden
-                var mediaHtml = '';
-                if (hasValidMedia) {
-                    var proxied = PROXY_BASE + '/image-proxy?url=' + encodeURIComponent(item.mediaUrl);
-                    mediaHtml = '<div class="bn-embed-container" style="width:100%; height:160px; border-radius:10px; overflow:hidden; background:#111; border:1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 15px rgba(0,0,0,0.4); position:relative;">' +
-                        '<img src="' + proxied + '" style="width:100%; height:100%; object-fit:cover; display:block;" ' +
-                        'onerror="if(!this.dataset.triedDirect){ this.dataset.triedDirect=true; this.src=\'' + item.mediaUrl + '\'; } else { this.parentElement.style.display=\'none\'; }" />' +
-                        (item.mediaType === 'video' ? '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:36px; height:36px; background:rgba(230,126,34,0.8); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#000; font-size:18px;">▶</div>' : '') +
-                        '</div>';
-                }
-
-                // [CONTENT AREA]
-                var contentHtml = '<div style="flex:1; direction:rtl; text-align:right;">' +
-                    '<div style="font-size:13px; line-height:1.45; color:#fff; font-weight:500; margin-bottom:6px; max-height:2.9em; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; font-family:\'Tajawal\', sans-serif;">' + (item.title || '') + '</div>' +
-                    '<div style="display:flex; align-items:center; gap:8px; font-size:10px; color:#777; font-family:\'Inter\', sans-serif;">' +
-                    '<span style="color:#e67e22; font-weight:600;">' + (item.customName || item.sourceName || '') + '</span>' +
-                    '<span>•</span>' +
-                    '<span class="time-label" data-date="' + item.pubDate + '">' + displayTime + '</span>' +
-                    '</div>' + '</div>';
+            itemEl.innerHTML =
+                '  <div class="item-v12-inner">' +
+                '    <div class="item-v12-left">' +
+                '      <div class="v12-thumb-wrap">' +
+                (media ? '<img src="' + media + '" class="v12-thumb-img">' : 
+                         '<div class="v12-thumb-placeholder"><img src="' + avatar + '" style="opacity:0.8; width:70%; filter: grayscale(0.5) contrast(1.2);"></div>') +
+                '      </div>' +
+                '    </div>' +
+                '    <div class="item-v12-right">' +
+                '      <div class="v12-news-title">' + (item.title || '') + '</div>' +
+                '      <div class="v12-meta-row">' +
+                '        <div class="v12-time">' + (item.isNew ? '<span class="v12-new-badge">جديد</span> ' : '') + timeStr + ' ' + (item.relativeTime || 'قبل قليل') + '</div>' +
+                '        <div class="v12-source-info">' +
+                '          <span class="v12-source-name">' + (item.sourceName || handle) + '</span>' +
+                '          <div class="v12-source-logo-wrap">' +
+                '            <img src="' + avatar + '" class="v12-source-logo">' +
+                '            <div class="v12-platform-badge ' + source + '">' + badgeIcon + '</div>' +
+                '          </div>' +
+                '        </div>' +
+                '      </div>' +
+                '    </div>' +
+                '  </div>';
 
 
-                var timeBtn = itemEl.querySelector('.news-item-time');
-                if (timeBtn) {
-                    timeBtn.onclick = function (e) {
-                        e.stopPropagation();
-                        if (toggledTimes.has(id)) toggledTimes.delete(id);
-                        else toggledTimes.add(id);
-                        updateTimeLabels();
-                    };
-                }
+            itemEl.addEventListener('mouseenter', function (e) {
+                if (!hoverEnabled || !popupEl) return;
+                var rect = itemEl.getBoundingClientRect();
+                var media = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
+                
+                // Construct Popup Content: Media first, then text
+                var imgHtml = media ? '<img src="' + media + '" class="bn-popup-image has-img" style="width:100%; border-radius:8px; margin-bottom:12px; border:1px solid #333;" />' : '';
 
-                container.appendChild(itemEl);
-            } catch (err) {
-                console.error('[BN] Failed to render news item:', err, item);
-            }
+                popupEl.innerHTML =
+                    '<div class="bn-popup-header" style="color:#e67e22; font-weight:800; font-size:12px; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">' +
+                    '  <span>🚨 معاينة الخبر العاجل</span>' +
+                    '  <span style="font-size:10px; color:#666;">' + (item.sourceName || source) + '</span>' +
+                    '</div>' +
+                    imgHtml +
+                    '<div class="bn-popup-text" style="font-size:14px; line-height:1.6; color:#fff; font-weight:500;">' + (item.title || item.text || '') + '</div>' +
+                    '<div class="bn-popup-meta" style="margin-top:12px; font-size:11px; color:#888; display:flex; justify-content:space-between; border-top:1px solid #222; padding-top:8px;">' +
+                    '  <span>المصدر: ' + (item.customName || item.sourceName || item.source) + '</span>' +
+                    '  <span>الوقت: ' + timeStr + '</span>' +
+                    '</div>';
+
+                popupEl.classList.add('active');
+                var pW = popupEl.offsetWidth || 380;
+                var pH = popupEl.offsetHeight || 200;
+                
+                // Position logic (Premium)
+                var left = rect.left - pW - 25;
+                if (left < 20) left = rect.right + 25;
+                
+                var top = rect.top + (rect.height / 2) - (pH / 2);
+                if (top < 20) top = 20;
+                if (top + pH > window.innerHeight - 20) top = window.innerHeight - pH - 20;
+
+                popupEl.style.left = left + 'px';
+                popupEl.style.top = top + 'px';
+            });
+
+            itemEl.addEventListener('mouseleave', function () {
+                if (popupEl) popupEl.classList.remove('active');
+            });
+
+            container.appendChild(itemEl);
         });
     }
 
-    function showDetailPopup(item) {
-        var modal = document.getElementById('bn-detail-modal');
-        if (!modal) return;
-
-        var sourceEl = document.getElementById('bn-detail-source');
-        var mediaCont = document.getElementById('bn-detail-media');
-        var titleEl = document.getElementById('bn-detail-title');
-        var timeEl = document.getElementById('bn-detail-time');
-        var linkEl = document.getElementById('bn-detail-link');
-
-        if (sourceEl) sourceEl.textContent = (item.customName || item.sourceName || item.source).toUpperCase();
-        if (titleEl) titleEl.innerHTML = (item.title || item.text || '').replace(/\n/g, '<br>');
-        if (timeEl) timeEl.textContent = new Date(item.pubDate).toLocaleString('ar-SA');
-        if (linkEl) linkEl.href = item.link;
-
-        if (mediaCont) {
-            mediaCont.innerHTML = '';
-            var mediaUrl = item.mediaUrl || item.localMedia || item.image;
-            var hasValidMedia = mediaUrl && !mediaUrl.includes('placeholder') && !mediaUrl.includes('profile_images');
-
-            if (hasValidMedia && mediaUrl.startsWith('http')) {
-                var proxied = PROXY_BASE + '/image-proxy?url=' + encodeURIComponent(mediaUrl);
-                mediaCont.style.display = 'block';
-
-                if (item.mediaType === 'video') {
-                    var video = document.createElement('video');
-                    video.controls = true;
-                    video.autoplay = true;
-                    video.style.width = '100%';
-                    video.style.display = 'block';
-                    var source = document.createElement('source');
-                    source.src = proxied;
-                    source.type = 'video/mp4';
-                    video.appendChild(source);
-
-                    // Fallback to original if proxied fails
-                    video.onerror = function () { source.src = mediaUrl; video.load(); };
-                    mediaCont.appendChild(video);
-                } else {
-                    var img = document.createElement('img');
-                    img.src = proxied;
-                    img.style.width = '100%';
-                    img.style.display = 'block';
-                    img.onerror = function () {
-                        if (!img.dataset.triedDirect) {
-                            img.dataset.triedDirect = true;
-                            img.src = mediaUrl;
-                        } else {
-                            mediaCont.style.display = 'none';
-                        }
-                    };
-                    mediaCont.appendChild(img);
-                }
-            } else {
-                mediaCont.style.display = 'none';
-            }
-        }
-
-        if (window.RasMirqabModal) {
-            window.RasMirqabModal.open('bn-detail-modal');
-        } else {
-            modal.classList.remove('hidden');
-        }
-    }
-
-    function toggleSettings() {
-        var panel = document.getElementById('bn-settings-panel');
-        if (panel) {
-            settingsOpen = !settingsOpen;
-            panel.style.display = settingsOpen ? 'block' : 'none';
-            if (settingsOpen) renderModalSourceList();
-        }
-    }
-
-    function addSource(url) {
-        if (!url) return;
-        var sources = getSources();
-        var type = url.includes('t.me') ? 'telegram' : 'twitter';
-        var handle = url.split('/').pop() || url;
-        sources.push({ type: type, handle: handle });
-        saveSources(sources);
-        renderModalSourceList();
-        loadNews(true);
-    }
-
-    function removeSource(index) {
-        var sources = getSources();
-        sources.splice(index, 1);
-        saveSources(sources);
-        renderModalSourceList();
-        loadNews(true);
-    }
-
-    function updateTimeLabels() {
-        var labels = document.querySelectorAll('.time-label');
-        labels.forEach(function (label) {
-            var date = label.getAttribute('data-date');
-            if (date) {
-                var item = label.closest('.news-item');
-                if (item) {
-                   var id = item.getAttribute('data-id');
-                   if (toggledTimes.has(id)) {
-                       label.textContent = new Date(date).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                   } else {
-                       label.textContent = timeAgoAr(date);
-                   }
-                }
-            }
-        });
-    }
-
-    return { render: render, init: init, removeSource: removeSource, toggleSettings: toggleSettings, showDetailPopup: showDetailPopup };
+    return { render: render, init: init, removeSource: removeSource, toggleSettings: toggleSettings, toggleVisibility: toggleVisibility };
 })();

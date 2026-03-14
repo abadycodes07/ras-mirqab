@@ -240,23 +240,23 @@ var BreakingNewsWidget = (function () {
         if (!grid) return;
         var sources = getSources();
         var hardcoded = [
-            { type: 'twitter', handle: 'alrougui', name: 'الروقي / alrougui', avatar: 'public/logos/alrougui.jpg', fixed: true },
-            { type: 'twitter', handle: 'alekhbariyaNews', name: 'الإخبارية / alekhbariya', avatar: 'public/logos/alekhbariya.jpg', fixed: true },
-            { type: 'twitter', handle: 'alekhbariyabrk', name: 'الإخبارية - عاجل', avatar: 'public/logos/alekhbariya.jpg', fixed: true },
-            { type: 'twitter', handle: 'NewsNow4USA', name: 'News Now 4 USA', avatar: 'public/logos/newsnow.jpg', fixed: true },
-            { type: 'twitter', handle: 'modgovksa', name: 'MoD KSA / الدفاع', avatar: 'public/logos/modgovksa2.png', fixed: true },
-            { type: 'twitter', handle: 'AsharqNewsBrk', name: 'Asharq News / الشرق', avatar: 'public/logos/asharq2.jpg', fixed: true },
-            { type: 'twitter', handle: 'AlHadath', name: 'Al Hadath / الحدث', avatar: 'public/logos/alhadath3.png', fixed: true },
-            { type: 'twitter', handle: 'alarabiya_brk', name: 'العربية عاجل (𝕏)', avatar: 'public/logos/alarabiya.png', fixed: true },
-            { type: 'twitter', handle: 'skynewsarabia_B', name: 'سكاي نيوز عاجل (𝕏)', avatar: 'public/logos/skynews.png', fixed: true },
-            { type: 'twitter', handle: 'ajmubasher', name: 'الجزيرة مباشر', avatar: 'public/logos/aljazeera.png', fixed: true },
-            { type: 'twitter', handle: 'RTonline_ar', name: 'RT العربية (𝕏)', avatar: 'public/logos/rt.png', fixed: true },
-            { type: 'telegram', handle: 'SABQ_NEWS', name: 'صحيفة سبق', avatar: 'public/logos/sabq.png', fixed: true },
-            { type: 'telegram', handle: 'AjelNews24', name: 'عاجل السعودية', avatar: 'public/logos/ajelnews.jpg', fixed: true },
-            { type: 'telegram', handle: 'Alarabiya_brk', name: 'العربية عاجل', avatar: 'public/logos/alarabiya.png', fixed: true },
-            { type: 'telegram', handle: 'SkyNewsArabia_Breaking', name: 'سكاي نيوز عاجل', avatar: 'public/logos/skynews.png', fixed: true },
-            { type: 'telegram', handle: 'RT_Arabic', name: 'RT العربية', avatar: 'public/logos/rt.png', fixed: true },
-            { type: 'telegram', handle: 'ajanews', name: 'Al Jazeera / الجزيرة', avatar: 'public/logos/aljazeera.png', fixed: true },
+            { type: 'twitter', handle: 'alrougui', name: 'الروقي / alrougui', avatar: '/public/logos/alrougui.jpg', fixed: true },
+            { type: 'twitter', handle: 'alekhbariyaNews', name: 'الإخبارية / alekhbariya', avatar: '/public/logos/alekhbariya.jpg', fixed: true },
+            { type: 'twitter', handle: 'alekhbariyabrk', name: 'الإخبارية - عاجل', avatar: '/public/logos/alekhbariya.jpg', fixed: true },
+            { type: 'twitter', handle: 'NewsNow4USA', name: 'News Now 4 USA', avatar: '/public/logos/newsnow.jpg', fixed: true },
+            { type: 'twitter', handle: 'modgovksa', name: 'MoD KSA / الدفاع', avatar: '/public/logos/modgovksa2.png', fixed: true },
+            { type: 'twitter', handle: 'AsharqNewsBrk', name: 'Asharq News / الشرق', avatar: '/public/logos/asharq2.jpg', fixed: true },
+            { type: 'twitter', handle: 'AlHadath', name: 'Al Hadath / الحدث', avatar: '/public/logos/alhadath3.png', fixed: true },
+            { type: 'twitter', handle: 'alarabiya_brk', name: 'العربية عاجل (𝕏)', avatar: '/public/logos/alarabiya.png', fixed: true },
+            { type: 'twitter', handle: 'skynewsarabia_B', name: 'سكاي نيوز عاجل (𝕏)', avatar: '/public/logos/skynews.png', fixed: true },
+            { type: 'twitter', handle: 'ajmubasher', name: 'الجزيرة مباشر', avatar: '/public/logos/aljazeera.png', fixed: true },
+            { type: 'twitter', handle: 'RTonline_ar', name: 'RT العربية (𝕏)', avatar: '/public/logos/rt.png', fixed: true },
+            { type: 'telegram', handle: 'SABQ_NEWS', name: 'صحيفة سبق', avatar: '/public/logos/sabq.png', fixed: true },
+            { type: 'telegram', handle: 'AjelNews24', name: 'عاجل السعودية', avatar: '/public/logos/ajelnews.jpg', fixed: true },
+            { type: 'telegram', handle: 'Alarabiya_brk', name: 'العربية عاجل', avatar: '/public/logos/alarabiya.png', fixed: true },
+            { type: 'telegram', handle: 'SkyNewsArabia_Breaking', name: 'سكاي نيوز عاجل', avatar: '/public/logos/skynews.png', fixed: true },
+            { type: 'telegram', handle: 'RT_Arabic', name: 'RT العربية', avatar: '/public/logos/rt.png', fixed: true },
+            { type: 'telegram', handle: 'ajanews', name: 'Al Jazeera / الجزيرة', avatar: '/public/logos/aljazeera.png', fixed: true },
             { type: 'rss', handle: 'i24news-ar', name: 'اعلام الاحتلال الاسرائيلي', url: 'https://www.i24news.tv/ar/feed', avatar: 'https://www.i24news.tv/favicon.ico', fixed: true },
             { type: 'rss', handle: 'sabq-org', name: 'صحيفة سبق (موقع)', url: 'https://sabq.org/rss.xml', avatar: 'https://sabq.org/favicon.ico', fixed: true }
         ];
@@ -287,7 +287,7 @@ var BreakingNewsWidget = (function () {
                 '<div class="channel-card ' + (isSelected ? 'selected' : '') + ' ' + (isHidden ? 'hidden-source' : '') + '" style="cursor:pointer; transition:all 0.3s ease; border:1px solid ' + (isHidden ? 'transparent' : 'var(--accent-dim)') + '; background:' + (isHidden ? 'rgba(255,255,255,0.02)' : 'rgba(255,106,0,0.05)') + ';" onclick="BreakingNewsWidget.toggleVisibility(\'' + s.handle + '\')">' +
                 '  <div class="channel-card-info">' +
                 '    <div class="channel-avatar" style="position:relative; overflow:hidden; border-radius:8px; border:1px solid ' + (isHidden ? '#333' : 'var(--accent)') + '; filter:' + (isHidden ? 'grayscale(100%)' : 'none') + '; opacity:' + (isHidden ? '0.4' : '1') + ';">' +
-                '      <img src="' + (s.avatar || 'public/logos/default.png') + '" style="width:100%; height:100%; object-fit:cover;">' +
+                '      <img src="' + (s.avatar || '/public/logos/default.png') + '" onerror="this.src=\'/public/logos/default.png\'" style="width:100%; height:100%; object-fit:cover;">' +
                 '      <span style="position:absolute; bottom:0; right:0; width:10px; height:10px; border-radius:50%; background:' + statusColor + '; border:2px solid #111; z-index:5;"></span>' +
                 '    </div>' +
                 '    <div class="channel-name-v" style="opacity:' + (isHidden ? '0.5' : '1') + ';">' +
@@ -390,23 +390,23 @@ var BreakingNewsWidget = (function () {
     function renderItems(container, items) {
         container.innerHTML = '';
         var AVATARS = {
-            'alrougui': 'public/logos/alrougui.jpg',
-            'alekhbariyaNews': 'public/logos/alekhbariya.jpg',
-            'NewsNow4USA': 'public/logos/newsnow.jpg',
-            'modgovksa': 'public/logos/modgovksa2.png',
-            'AsharqNewsBrk': 'public/logos/asharq2.jpg',
-            'AlHadath': 'public/logos/alhadath3.png',
-            'AlArabiya_Brk': 'public/logos/alarabiya.png',
-            'SkyNewsArabia_B': 'public/logos/skynews.png',
-            'RTonline_ar': 'public/logos/rt.png',
+            'alrougui': '/public/logos/alrougui.jpg',
+            'alekhbariyaNews': '/public/logos/alekhbariya.jpg',
+            'NewsNow4USA': '/public/logos/newsnow.jpg',
+            'modgovksa': '/public/logos/modgovksa2.png',
+            'AsharqNewsBrk': '/public/logos/asharq2.jpg',
+            'AlHadath': '/public/logos/alhadath3.png',
+            'AlArabiya_Brk': '/public/logos/alarabiya.png',
+            'SkyNewsArabia_B': '/public/logos/skynews.png',
+            'RTonline_ar': '/public/logos/rt.png',
             'araReuters': 'https://www.reuters.com/pf/resources/images/reuters/favicon.ico',
-            'SABQ_NEWS': 'public/logos/sabq.png',
-            'AjelNews24': 'public/logos/ajelnews.jpg',
-            'SkyNewsArabia_Breaking': 'public/logos/skynews.png',
-            'RT_Arabic': 'public/logos/rt.png',
-            'ajanews': 'public/logos/aljazeera.png',
-            'i24news-ar': 'public/logos/i24news.png',
-            'sabq-org': 'public/logos/sabq.png'
+            'SABQ_NEWS': '/public/logos/sabq.png',
+            'AjelNews24': '/public/logos/ajelnews.jpg',
+            'SkyNewsArabia_Breaking': '/public/logos/skynews.png',
+            'RT_Arabic': '/public/logos/rt.png',
+            'ajanews': '/public/logos/aljazeera.png',
+            'i24news-ar': '/public/logos/i24news.png',
+            'sabq-org': '/public/logos/sabq.png'
         };
 
         items.forEach(function (item) {
@@ -414,7 +414,7 @@ var BreakingNewsWidget = (function () {
             var source = item.source || 'rss';
             
             // Try to find avatar: 1. Item-specific, 2. Mapping by handle (lower case), 3. Default
-            var avatar = item.customAvatar || AVATARS[handle] || AVATARS[handle.toLowerCase()] || 'public/logos/default.png';
+            var avatar = item.customAvatar || AVATARS[handle] || AVATARS[handle.toLowerCase()] || '/public/logos/default.png';
             
             // Platform Badge
             var badgeIcon = source === 'twitter' ? '𝕏' : (source === 'telegram' ? '📱' : '🌐');
@@ -439,7 +439,7 @@ var BreakingNewsWidget = (function () {
                 '  <div class="item-v12-inner-ref">' +
                 '    <div class="v12-col-left">' +
                 '      <div class="v12-thumbnail">' +
-                (media ? '<img src="' + media + '" class="v12-media-img">' : 
+                (media ? '<img src="' + media + '" class="v12-media-img" onerror="this.src=\'' + avatar + '\'; this.className=\'v12-media-fallback\'">' : 
                          '<img src="' + avatar + '" class="v12-media-fallback">') +
                 '      </div>' +
                 '    </div>' +
@@ -448,7 +448,7 @@ var BreakingNewsWidget = (function () {
                 '    </div>' +
                 '    <div class="v12-col-right">' +
                 '      <div class="v12-source-logo-container">' +
-                '        <img src="' + avatar + '" class="v12-circle-logo">' +
+                '        <img src="' + avatar + '" class="v12-circle-logo" onerror="this.src=\'/public/logos/default.png\'">' +
                 '        <div class="v12-platform-overlap ' + source + '">' + badgeIcon + '</div>' +
                 '      </div>' +
                 '      <div class="v12-source-name-ref">' + 

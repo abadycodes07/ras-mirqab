@@ -8,9 +8,11 @@ const https = require('https');
 const url = require('url');
 const fs = require('fs');
 const path = require('path');
+const cheerio = require('cheerio');
+
 
 const PORT = process.env.PORT || 3001;
-const CACHE_FILE = path.join(__dirname, 'telegram-cache.json');
+const CACHE_FILE = path.join(__dirname, 'news-cache.json');
 
 // Memory Cache & Status
 let newsCache = [];
@@ -20,7 +22,16 @@ const lastLoopStatus = {};
 const APIFY_TOKEN = process.env.APIFY_TOKEN || '';
 const SCRAPEDO_TOKEN = process.env.SCRAPEDO_TOKEN || 'eea432d317304d27be0c8f9ee2090a6562f0d002379';
 const TWITTER_LIST_ID = '2031445708524421549';
-const NITTER_URL = `https://nitter.net/i/lists/${TWITTER_LIST_ID}`;
+const NITTER_MIRRORS = [
+    'https://nitter.net',
+    'https://nitter.cz',
+    'https://nitter.privacydev.net',
+    'https://nitter.moomoo.me',
+    'https://nitter.it',
+    'https://nitter.bird.trom.tf',
+    'https://nitter.rawbit.ninja'
+];
+let currentMirrorIdx = 0;
 
 // Load existing cache
 try {
@@ -46,7 +57,7 @@ function fetchPage(targetUrl, redirects = 0) {
         const mod = targetUrl.startsWith('https') ? https : http;
         const options = {
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' },
-            timeout: 10000 
+            timeout: 10000
         };
         const req = mod.get(targetUrl, options, (res) => {
             if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
@@ -77,11 +88,22 @@ function parseTelegram(html, channel) {
         const textMatch = block.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
         const timeMatch = block.match(/datetime="([^"]*)"/);
         const linkMatch = block.match(/data-post="([^"]+)"/);
-        let mediaUrl = (channel.handle === 'alhadath_brk' || channel.handle === 'alarabiyaBr') ? AVATARS[channel.handle] : null;
-        if (!mediaUrl) {
-            const photoMatch = block.match(/tgme_widget_message_photo_wrap[^>]*background-image:url\('([^']+)'\)/);
-            if (photoMatch) mediaUrl = photoMatch[1];
+        let mediaType = 'image';
+        let mediaUrl = null;
+
+        const photoMatch = block.match(/tgme_widget_message_photo_wrap[^>]*background-image:url\('([^']+)'\)/);
+        const videoMatch = block.match(/tgme_widget_message_video_player/);
+        const roundedVideoMatch = block.match(/tgme_widget_message_roundvideo/);
+
+        if (photoMatch) mediaUrl = photoMatch[1];
+
+        if (videoMatch || roundedVideoMatch) {
+            mediaType = 'video';
+            // If it's a video but we don't have a thumbnail, try to find the video preview image
+            const videoThumbMatch = block.match(/tgme_widget_message_video_thumb[^>]*background-image:url\('([^']+)'\)/);
+            if (videoThumbMatch && !mediaUrl) mediaUrl = videoThumbMatch[1];
         }
+
         if (textMatch) {
             const cleanText = textMatch[1].replace(/<[^>]+>/g, '').trim();
             if (cleanText.length < 5) return;
@@ -89,7 +111,7 @@ function parseTelegram(html, channel) {
                 title: cleanText, source: 'telegram', sourceName: channel.name, handle: channel.handle,
                 pubDate: timeMatch ? new Date(timeMatch[1]).toISOString() : new Date().toISOString(),
                 link: linkMatch ? `https://t.me/${linkMatch[1]}` : `https://t.me/s/${channel.handle}`,
-                hasMedia: !!mediaUrl, mediaUrl: mediaUrl,
+                hasMedia: !!mediaUrl, mediaUrl: mediaUrl, mediaType: mediaType,
                 customAvatar: AVATARS[channel.handle] || AVATARS['ajanews'],
                 id: linkMatch ? linkMatch[1] : (cleanText.substring(0, 50) + Date.now())
             });
@@ -157,9 +179,27 @@ async function startTwitterLoop() {
                         const seen = new Set(newsCache.map(i => i.id));
                         let added = 0;
                         tweets.forEach(t => {
-                            const data = t.legacy || t; const id = t.id_str || t.id;
+                            const data = t.legacy || t;
+                            const id = t.id_str || t.id;
                             if (id && !seen.has(id)) {
-                                newsCache.unshift({ title: t.full_text || t.text, source: 'twitter', sourceName: (t.user || data.user)?.name || 'تويتر', pubDate: new Date(t.created_at || data.created_at).toISOString(), link: `https://x.com/i/status/${id}`, id: id });
+                                // Extract Media (Image or Video Thumbnail)
+                                let mediaUrl = null;
+                                const entities = t.extended_entities || t.entities || data.extended_entities || data.entities;
+                                if (entities && entities.media && entities.media.length > 0) {
+                                    mediaUrl = entities.media[0].media_url_https || entities.media[0].media_url;
+                                }
+
+                                newsCache.unshift({
+                                    title: t.full_text || t.text,
+                                    source: 'twitter',
+                                    sourceName: (t.user || data.user)?.name || 'تويتر',
+                                    pubDate: new Date(t.created_at || data.created_at).toISOString(),
+                                    link: `https://x.com/i/status/${id}`,
+                                    id: id,
+                                    hasMedia: !!mediaUrl,
+                                    mediaUrl: mediaUrl,
+                                    customAvatar: (t.user || data.user)?.profile_image_url_https || null
+                                });
                                 added++;
                             }
                         });
@@ -178,95 +218,140 @@ async function startTwitterLoop() {
 
 function parseNitter(html) {
     const items = [];
-    if (!html) return [];
-    
-    // Split by timeline-item to isolate each tweet
-    const blocks = html.split('class="timeline-item');
-    blocks.shift(); // Header part
+    if (!html || html.length < 500) return [];
 
-    console.log(`[Nitter] ℹ️ parsing HTML (length: ${html.length}), found ${blocks.length} raw blocks.`);
+    try {
+        const $ = cheerio.load(html);
+        const mirror = NITTER_MIRRORS[currentMirrorIdx] || 'https://nitter.net';
 
-    blocks.forEach((block, idx) => {
-        try {
-            // Flexible regex to handle different Nitter layouts
-            const textMatch = block.match(/<div class="tweet-content[^>]*>([\s\S]*?)<\/div>/);
-            const dateMatch = block.match(/class="tweet-date"[^>]*title="([^"]+)"/);
-            const fullnameMatch = block.match(/class="fullname"[^>]*title="([^"]+)"/);
-            const usernameMatch = block.match(/class="username"[^>]*>@?([^<]+)<\/a>/);
-            const linkMatch = block.match(/class="tweet-link"[^>]*href="([^"]+)"/);
-            const avatarMatch = block.match(/<img class="avatar[^"]*" src="([^"]+)"/);
-            
-            if (textMatch && linkMatch) {
-                const handle = usernameMatch ? usernameMatch[1] : 'twitter';
-                const sourceName = fullnameMatch ? fullnameMatch[1] : (usernameMatch ? usernameMatch[1] : 'تويتر');
-                
-                let link = linkMatch[1];
-                if (link.startsWith('/')) link = 'https://x.com' + link.replace('#m', '');
-                
-                let avatar = avatarMatch ? avatarMatch[1] : null;
-                if (avatar && avatar.startsWith('/')) avatar = 'https://nitter.net' + avatar;
+        // More robust selector: look for any div containing timeline-item
+        const timelineItems = $('div[class*="timeline-item"]');
 
-                const id = link.split('/').pop();
+        timelineItems.each((i, el) => {
+            const tweetNode = $(el);
 
-                // Clean Nitter date string (remove the middot '·' so Date() can parse it)
-                let dateStr = dateMatch ? dateMatch[1].replace('·', '').trim() : new Date().toISOString();
-                let pubDate = new Date(dateStr).toISOString();
+            // 1. Basic Info
+            const textContent = tweetNode.find('.tweet-content').text().trim();
+            const fullname = tweetNode.find('.fullname').first().attr('title') || tweetNode.find('.fullname').first().text().trim();
+            const username = tweetNode.find('.username').first().text().trim().replace('@', '');
+            const tweetLink = tweetNode.find('.tweet-link').first().attr('href');
+            let avatar = tweetNode.find('.avatar').first().attr('src');
 
-                // Advanced Media Extraction (Images)
-                let mediaUrl = null;
-                const mediaMatch = block.match(/<div class="attachment image">[\s\S]*?<img[^>]*src="([^"]+)"/);
-                if (mediaMatch) {
-                    mediaUrl = mediaMatch[1];
-                    if (mediaUrl.startsWith('/')) mediaUrl = 'https://nitter.net' + mediaUrl;
+            if (!tweetLink) return;
+
+            let link = tweetLink;
+            if (link.startsWith('/')) link = 'https://x.com' + link.replace('#m', '');
+            const id = link.split('/').pop()?.replace('#m', '');
+
+            if (avatar && avatar.startsWith('/')) avatar = mirror + avatar;
+
+            // 2. Date Parsing
+            const dateTitle = tweetNode.find('.tweet-date a').first().attr('title');
+            let pubDate = new Date().toISOString();
+            if (dateTitle) {
+                // Remove special chars like middle dots
+                const cleanDate = dateTitle.replace(/[·•]/g, '').trim();
+                const parsed = new Date(cleanDate);
+                if (!isNaN(parsed.getTime())) pubDate = parsed.toISOString();
+            }
+
+            // 3. Media Extraction (Enhanced & Verified)
+            let mediaUrl = null;
+            let mediaType = 'image';
+
+            const attachments = tweetNode.find('.attachments');
+            if (attachments.length > 0) {
+                // Check Videos
+                const videoSrc = attachments.find('video source').first().attr('src');
+                const videoTag = attachments.find('video').first().attr('src');
+                const rawVideo = videoSrc || videoTag;
+
+                if (rawVideo) {
+                    mediaUrl = rawVideo.startsWith('/') ? mirror + rawVideo : rawVideo;
+                    mediaType = 'video';
+                } else {
+                    const imageTag = attachments.find('img').first().attr('src');
+                    if (imageTag) {
+                        mediaUrl = imageTag.startsWith('/') ? mirror + imageTag : imageTag;
+                        mediaType = 'image';
+                    }
                 }
+            }
+            
+            // Fallback: If still no media, check for .still-image links
+            if (!mediaUrl) {
+                const stillHref = tweetNode.find('.still-image').first().attr('href');
+                if (stillHref) {
+                    mediaUrl = stillHref.startsWith('/') ? mirror + stillHref : stillHref;
+                }
+            }
 
+            // [POWER FIX] Convert to original Twitter CDN if it's a Nitter proxy link
+            if (mediaUrl && mediaUrl.includes('/pic/')) {
+                try {
+                    const decoded = decodeURIComponent(mediaUrl);
+                    const mediaPart = decoded.split('/media/')[1] || decoded.split('/media%2F')[1];
+                    if (mediaPart) {
+                        mediaUrl = 'https://pbs.twimg.com/media/' + mediaPart.split('?')[0].split('&')[0];
+                    }
+                } catch (e) {}
+            }
+
+            if (textContent || mediaUrl) {
                 items.push({
-                    title: textMatch[1].replace(/<[^>]+>/g, '').trim(),
+                    title: textContent,
                     source: 'twitter',
-                    sourceName: sourceName,
-                    handle: handle,
+                    sourceName: fullname || username || 'تويتر',
+                    handle: username,
                     pubDate: pubDate,
                     link: link,
                     hasMedia: !!mediaUrl,
                     mediaUrl: mediaUrl,
+                    mediaType: mediaType,
                     customAvatar: avatar || 'https://abadycodes07.github.io/ras-mirqab/public/logos/alarabiya.png',
                     id: id
                 });
-            } else if (idx === 0) {
-                console.log(`[Nitter] ⚠️ Block 0 parse failed. Text: ${!!textMatch}, Link: ${!!linkMatch}`);
             }
-        } catch (e) {
-            console.error(`[Nitter] ❌ Parse error for block ${idx}:`, e.message);
-        }
-    });
+        });
+    } catch (e) {
+        console.error(`[Nitter] ❌ Parse error:`, e.message);
+    }
+
+    console.log(`[Nitter] 📊 Parsed ${items.length} items using Cheerio.`);
     return items;
 }
+
 
 async function startScrapedoLoop() {
     console.log('[Scrape.do] 🚀 Starting Nitter layer (Nitter.net)');
     lastLoopStatus['nitter'] = { status: 'starting', type: 'scraped_nitter' };
-    
+
     while (true) {
         lastLoopStatus['nitter'].lastAttempt = new Date().toISOString();
         try {
-            const encodedUrl = encodeURIComponent(NITTER_URL);
+            const mirror = NITTER_MIRRORS[currentMirrorIdx];
+            const targetUrl = `${mirror}/i/lists/${TWITTER_LIST_ID}`;
+            const encodedUrl = encodeURIComponent(targetUrl);
             const proxyUrl = `https://api.scrape.do/?token=${SCRAPEDO_TOKEN}&url=${encodedUrl}`;
-            
-            console.log('[Scrape.do] 📡 Fetching Nitter...');
+
+            console.log(`[Scrape.do] 📡 Fetching Nitter (Mirror: ${mirror})...`);
             const html = await fetchPage(proxyUrl);
-            
+            console.log(`[Scrape.do] 📥 Received ${html ? html.length : 0} bytes from ${mirror}`);
+
             if (!html || html.length < 500) {
-                console.warn(`[Scrape.do] ⚠️ Received very short HTML (${html ? html.length : 0} bytes). Possibly blocked.`);
-                if (html) console.log(`[Scrape.do] HTML Snippet: ${html.substring(0, 200)}`);
-                lastLoopStatus['nitter'].status = 'blocked_or_short_response';
+                console.warn(`[Scrape.do] ⚠️ Mirror ${mirror} failed or blocked. Trying next mirror...`);
+                currentMirrorIdx = (currentMirrorIdx + 1) % NITTER_MIRRORS.length;
+                lastLoopStatus['nitter'].status = 'mirror_failed_switching';
+                await new Promise(r => setTimeout(r, 5000));
+                continue;
             } else {
                 const freshItems = parseNitter(html);
-                console.log(`[Scrape.do] 📊 Results: Found ${freshItems.length} items.`);
+                console.log(`[Scrape.do] 📊 Results: Found ${freshItems.length} items from ${mirror}.`);
 
                 if (freshItems.length > 0) {
                     const seen = new Set(newsCache.map(i => i.id));
                     let added = 0;
-                    
+
                     freshItems.forEach(item => {
                         if (!seen.has(item.id)) {
                             newsCache.unshift(item);
@@ -277,53 +362,166 @@ async function startScrapedoLoop() {
 
                     lastLoopStatus['nitter'].status = 'ok';
                     lastLoopStatus['nitter'].lastCount = added;
-                    
+
                     if (added > 0) {
                         newsCache.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
                         newsCache = newsCache.slice(0, 100);
-                        fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
-                        console.log(`[Scrape.do] ✅ Added ${added} new items.`);
+                        try {
+                            fs.writeFileSync(CACHE_FILE, JSON.stringify(newsCache, null, 2));
+                            console.log(`[Scrape.do] ✅ Added ${added} new items and saved to cache.`);
+                        } catch (err) {
+                            console.error('[Scrape.do] ❌ Failed to write cache:', err.message);
+                        }
                     } else {
                         console.log('[Scrape.do] ℹ️ All items already in cache.');
                     }
                 } else {
-                    lastLoopStatus['nitter'].status = 'parser_found_zero';
-                    console.warn('[Scrape.do] ⚠️ No items parsed. Mirror might have changed layout.');
+                    console.warn(`[Scrape.do] ⚠️ No items parsed from ${mirror}. Mirror might be blocked or changed. Trying next...`);
+                    currentMirrorIdx = (currentMirrorIdx + 1) % NITTER_MIRRORS.length;
+                    lastLoopStatus['nitter'].status = 'parser_found_zero_switching';
+                    await new Promise(r => setTimeout(r, 5000));
+                    continue;
                 }
             }
         } catch (e) {
             console.error('[Scrape.do] ❌ Loop Error:', e.message);
             lastLoopStatus['nitter'].status = 'error: ' + e.message;
         }
-        console.log('[Scrape.do] ⏳ Sleeping for 3 mins...');
-        await new Promise(r => setTimeout(r, 180000));
+        console.log('[Scrape.do] ⏳ Sleeping for 45s...');
+        await new Promise(r => setTimeout(r, 45000));
     }
 }
 
-// Server logic remains same...
+// Globe Sync State
+let lastPOV = { lat: 25, lng: 45, altitude: 2.2 };
+
+// Server logic
 const server = http.createServer((req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
     const parsed = url.parse(req.url, true);
-    const path = (parsed.pathname || '/').toLowerCase().replace(/\/$/, '') || '/';
-    if (['/', '/index', '/health', '/debug'].includes(path)) {
+    const pathName = (parsed.pathname || '/').toLowerCase().replace(/\/$/, '') || '/';
+    console.log(`[Proxy] 📥 ${req.method} ${pathName}`);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+
+    if (['/', '/index', '/health', '/debug'].includes(pathName)) {
         res.writeHead(200);
         return res.end(JSON.stringify({ status: 'ok', loops: lastLoopStatus, newsCount: newsCache.length, time: new Date().toISOString() }));
     }
-    if (path === '/wipe') {
-        newsCache = []; if (fs.existsSync(CACHE_FILE)) fs.unlinkSync(CACHE_FILE);
+
+    if (pathName === '/image-proxy') {
+        const targetUrl = parsed.query.url;
+        if (!targetUrl) { res.writeHead(400); return res.end('Missing URL'); }
+
+        const tryFetch = async (originalUrl) => {
+            let fetchUrl = originalUrl;
+
+            // [POWER PROXY] Convert Nitter pic URLs back to original Twitter
+            if (originalUrl.includes('/pic/')) {
+                try {
+                    const decoded = decodeURIComponent(originalUrl);
+                    const mediaPart = decoded.split('/media/')[1] || decoded.split('/media%2F')[1];
+                    if (mediaPart) {
+                        fetchUrl = `https://pbs.twimg.com/media/${mediaPart.split('?')[0].split('&')[0]}`;
+                        console.log(`[Proxy] ⚡ Converted Nitter -> Twitter: ${fetchUrl}`);
+                    }
+                } catch (e) { console.warn('[Proxy] URL conversion failed:', e.message); }
+            }
+
+            const isExternalMedia = fetchUrl.includes('twimg.com') ||
+                fetchUrl.includes('/pic/') ||
+                fetchUrl.includes('telesco.pe') ||
+                fetchUrl.includes('nitter');
+
+            if (isExternalMedia) {
+                const proxyUrl = `https://api.scrape.do?token=${SCRAPEDO_TOKEN}&url=${encodeURIComponent(fetchUrl)}`;
+                console.log(`[Proxy] 📡 Fetching via Scrape.do: ${fetchUrl}`);
+
+                return new Promise((resolve) => {
+                    const mod = https;
+                    const proxyReq = mod.get(proxyUrl, { timeout: 15000 }, (targetRes) => {
+                        if (targetRes.statusCode === 200) {
+                            res.writeHead(200, {
+                                'Content-Type': targetRes.headers['content-type'] || 'image/jpeg',
+                                'Cache-Control': 'public, max-age=86400',
+                                'Access-Control-Allow-Origin': '*'
+                            });
+                            targetRes.pipe(res);
+                            resolve(true);
+                        } else {
+                            console.warn(`[Proxy] ❌ Scrape.do failed (${targetRes.statusCode}) for: ${fetchUrl}`);
+                            resolve(false);
+                        }
+                    });
+                    proxyReq.on('error', (err) => { resolve(false); });
+                    proxyReq.on('timeout', () => { proxyReq.destroy(); resolve(false); });
+                });
+            }
+
+            return new Promise((resolve) => {
+                const mod = fetchUrl.startsWith('https') ? https : http;
+                const proxyReq = mod.get(fetchUrl, { timeout: 15000 }, (targetRes) => {
+                    if (targetRes.statusCode === 200) {
+                        res.writeHead(200, {
+                            'Content-Type': targetRes.headers['content-type'] || 'image/jpeg',
+                            'Cache-Control': 'public, max-age=86400',
+                            'Access-Control-Allow-Origin': '*'
+                        });
+                        targetRes.pipe(res);
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                });
+                proxyReq.on('error', () => resolve(false));
+                proxyReq.on('timeout', () => { proxyReq.destroy(); resolve(false); });
+            });
+        };
+
+        tryFetch(targetUrl).then(success => {
+            if (!success) {
+                res.writeHead(404);
+                res.end('Proxy Fetch Failed');
+            }
+        });
+        return;
+    }
+
+    if (pathName === '/sync') {
+        if (req.method === 'POST') {
+            let body = '';
+            req.on('data', chunk => body += chunk);
+            req.on('end', () => {
+                try {
+                    const data = JSON.parse(body);
+                    if (data.pov) {
+                        lastPOV = data.pov;
+                        res.writeHead(200); res.end(JSON.stringify({ ok: true }));
+                    } else { res.writeHead(400); res.end(JSON.stringify({ error: 'Missing POV' })); }
+                } catch (e) { res.writeHead(400); res.end(JSON.stringify({ error: 'Invalid JSON' })); }
+            });
+            return;
+        } else {
+            res.writeHead(200); return res.end(JSON.stringify({ pov: lastPOV }));
+        }
+    }
+
+    if (pathName === '/wipe') {
+        newsCache = []; if (fs.existsSync(CACHE_FILE)) { try { fs.unlinkSync(CACHE_FILE); } catch(e){} }
         res.writeHead(200); return res.end(JSON.stringify({ status: 'wiped' }));
     }
-    if (['/news', '/telegram', '/twitter'].includes(path)) {
+    if (['/news', '/telegram', '/twitter'].includes(pathName)) {
         res.writeHead(200); return res.end(JSON.stringify({ ok: true, items: newsCache }));
     }
     res.writeHead(404); res.end(JSON.stringify({ error: 'Not found' }));
 });
 
-server.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB PROXY LIVE ON ${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 RAS MIRQAB PROXY LIVE ON 0.0.0.0:${PORT}`);
     CHANNELS.forEach(startTelegramLoop);
     startTwitterLoop();
     startScrapedoLoop();

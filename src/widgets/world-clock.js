@@ -5,41 +5,11 @@
 var WorldClockWidget = (function () {
     var is12Hour = localStorage.getItem('rasmirqab_clock_12h') !== 'false';
     var selectedCities = [];
-    var settingsOpen = false;
     var searchQuery = '';
 
-    var ALL_CITIES = [
-        { name: 'الرياض', tz: 'Asia/Riyadh', country: 'السعودية' },
-        { name: 'مكة المكرمة', tz: 'Asia/Riyadh', country: 'السعودية' },
-        { name: 'أبو ظبي', tz: 'Asia/Dubai', country: 'الإمارات' },
-        { name: 'دبي', tz: 'Asia/Dubai', country: 'الإمارات' },
-        { name: 'الكويت', tz: 'Asia/Kuwait', country: 'الكويت' },
-        { name: 'الدوحة', tz: 'Asia/Qatar', country: 'قطر' },
-        { name: 'مسقط', tz: 'Asia/Muscat', country: 'عمان' },
-        { name: 'المنامة', tz: 'Asia/Bahrain', country: 'البحرين' },
-        { name: 'عمان', tz: 'Asia/Amman', country: 'الأردن' },
-        { name: 'القاهرة', tz: 'Africa/Cairo', country: 'مصر' },
-        { name: 'إسطنبول', tz: 'Europe/Istanbul', country: 'تركيا' },
-        { name: 'لندن', tz: 'Europe/London', country: 'بريطانيا' },
-        { name: 'باريس', tz: 'Europe/Paris', country: 'فرنسا' },
-        { name: 'برلين', tz: 'Europe/Berlin', country: 'ألمانيا' },
-        { name: 'موسكو', tz: 'Europe/Moscow', country: 'روسيا' },
-        { name: 'نيويورك', tz: 'America/New_York', country: 'أمريكا' },
-        { name: 'واشنطن العاصمة', tz: 'America/New_York', country: 'أمريكا' },
-        { name: 'لوس أنجلوس', tz: 'America/Los_Angeles', country: 'أمريكا' },
-        { name: 'شيكاغو', tz: 'America/Chicago', country: 'أمريكا' },
-        { name: 'تورونتو', tz: 'America/Toronto', country: 'كندا' },
-        { name: 'بكين', tz: 'Asia/Shanghai', country: 'الصين' },
-        { name: 'شنغهاي', tz: 'Asia/Shanghai', country: 'الصين' },
-        { name: 'طوكيو', tz: 'Asia/Tokyo', country: 'اليابان' },
-        { name: 'سول', tz: 'Asia/Seoul', country: 'كوريا الجنوبية' },
-        { name: 'هونغ كونغ', tz: 'Asia/Hong_Kong', country: 'الصين' },
-        { name: 'سنغافورة', tz: 'Asia/Singapore', country: 'سنغافورة' },
-        { name: 'مومباي', tz: 'Asia/Kolkata', country: 'الهند' },
-        { name: 'سيدني', tz: 'Australia/Sydney', country: 'أستراليا' },
-        { name: 'ساو باولو', tz: 'America/Sao_Paulo', country: 'البرازيل' },
-        { name: 'مكسيكو سيتي', tz: 'America/Mexico_City', country: 'المكسيك' }
-    ];
+    function getCitiesDatabase() {
+        return window.WORLD_CITIES || [];
+    }
 
     function getSelected() {
         try {
@@ -49,12 +19,13 @@ var WorldClockWidget = (function () {
                 if (parsed.length > 0) return parsed;
             }
         } catch(e) {}
-        // Default to: Riyadh, Abu Dhabi, Kuwait, New York
+        // Default to: Riyadh, Abu Dhabi, London, New York
+        var db = getCitiesDatabase();
         return [
-            ALL_CITIES[0],  // الرياض
-            ALL_CITIES[2],  // أبو ظبي
-            ALL_CITIES[4],  // الكويت
-            ALL_CITIES[15]  // نيويورك
+            db[0] || { name: 'الرياض', tz: 'Asia/Riyadh' },
+            db[4] || { name: 'أبو ظبي', tz: 'Asia/Dubai' },
+            db[25] || { name: 'لندن', tz: 'Europe/London' },
+            db[41] || { name: 'نيويورك', tz: 'America/New_York' }
         ];
     }
 
@@ -69,7 +40,7 @@ var WorldClockWidget = (function () {
                 '<div class="widget-header">' +
                 '  <div class="widget-title">' +
                 '    <span>🌐</span>' +
-                '    <span>توقيت العالم</span>' +
+                '    <span>توقيت العالم / WORLD CLOCK</span>' +
                 '  </div>' +
                 '  <div class="widget-actions">' +
                 '    <button class="widget-action-btn" id="world-clock-format-btn" title="تبديل 12/24 ساعة">🕒</button>' +
@@ -95,15 +66,8 @@ var WorldClockWidget = (function () {
 
         var settingsBtn = document.getElementById('world-clock-settings-btn');
         if (settingsBtn) {
-            settingsBtn.addEventListener('click', toggleSettings);
-        }
-
-        // Modal Events
-        var closeBtn = document.getElementById('close-world-clock-modal');
-        if (closeBtn) {
-            closeBtn.onclick = function() {
-                document.getElementById('world-clock-modal').classList.add('hidden');
-                settingsOpen = false;
+            settingsBtn.onclick = function() {
+                if (window.RasMirqabModal) window.RasMirqabModal.open('world-clock-modal');
             };
         }
 
@@ -111,7 +75,7 @@ var WorldClockWidget = (function () {
         if (searchInput) {
             searchInput.oninput = function(e) {
                 searchQuery = e.target.value.toLowerCase();
-                renderSettings();
+                renderModalList();
             };
         }
 
@@ -119,40 +83,34 @@ var WorldClockWidget = (function () {
         setInterval(updateClocks, 1000);
     }
 
-    function toggleSettings() {
-        settingsOpen = !settingsOpen;
-        var modal = document.getElementById('world-clock-modal');
-        if (modal) {
-            if (settingsOpen) {
-                modal.classList.remove('hidden');
-                renderSettings();
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
-    }
+    function renderModalList() {
+        var resultsGroup = document.getElementById('world-clock-results');
+        if (!resultsGroup) return;
 
-    function renderSettings() {
-        var grid = document.getElementById('available-cities-grid');
-        if (!grid) return;
-
-        var filtered = ALL_CITIES.filter(function(city) {
-            var searchLower = searchQuery.toLowerCase();
-            return city.name.toLowerCase().includes(searchLower) || 
-                   city.country.toLowerCase().includes(searchLower);
+        var db = getCitiesDatabase();
+        var filtered = db.filter(function(city) {
+            var q = searchQuery.toLowerCase();
+            return city.name.toLowerCase().includes(q) || 
+                   city.nameEn.toLowerCase().includes(q) ||
+                   city.country.toLowerCase().includes(q) ||
+                   city.countryEn.toLowerCase().includes(q);
         });
 
+        // Limit results to 50 for performance
+        var limit = 50;
+        var display = filtered.slice(0, limit);
+
         var html = '';
-        filtered.forEach(function(city) {
+        display.forEach(function(city) {
             var isSelected = selectedCities.some(function(s) { return s.tz === city.tz && s.name === city.name; });
             
             html +=
-                '<div class="channel-card ' + (isSelected ? 'selected' : '') + '" onclick="WorldClockWidget.toggleCity(\'' + city.name + '\',\'' + city.tz + '\')">' +
-                '  <div class="channel-card-info">' +
-                '    <div class="channel-avatar">' + city.name[0] + '</div>' +
+                '<div class="channel-card ' + (isSelected ? 'selected' : '') + '" onclick="WorldClockWidget.toggleCity(\'' + city.name.replace(/'/g, "\\'") + '\',\'' + city.tz + '\')">' +
+                '  <div class="channel-card-info" style="flex:1;">' +
+                '    <div class="channel-avatar" style="background:var(--accent-dim); color:var(--accent);">' + city.name[0] + '</div>' +
                 '    <div class="channel-name-v">' +
-                '      <span class="ch-title">' + city.name + '</span>' +
-                '      <span class="ch-handle">' + city.country.toUpperCase() + '</span>' +
+                '      <span class="ch-title">' + city.name + ' <span style="font-size:10px; opacity:0.6;">(' + city.nameEn + ')</span></span>' +
+                '      <span class="ch-handle">' + city.country + ' | ' + city.countryEn.toUpperCase() + '</span>' +
                 '    </div>' +
                 '  </div>' +
                 '  <div class="ch-status-icon">' +
@@ -160,7 +118,12 @@ var WorldClockWidget = (function () {
                 '  </div>' +
                 '</div>';
         });
-        grid.innerHTML = html;
+
+        if (display.length === 0) {
+            html = '<div style="color:var(--text-muted); text-align:center; padding:20px; font-size:12px;">لم يتم العثور على نتائج.</div>';
+        }
+
+        resultsGroup.innerHTML = html;
     }
 
     function toggleCity(name, tz) {
@@ -168,11 +131,12 @@ var WorldClockWidget = (function () {
         if (idx > -1) {
             if (selectedCities.length > 1) selectedCities.splice(idx, 1);
         } else {
-            var city = ALL_CITIES.find(function(c) { return c.tz === tz && c.name === name; });
+            var db = getCitiesDatabase();
+            var city = db.find(function(c) { return c.tz === tz && c.name === name; });
             if (city) selectedCities.push(city);
         }
         saveSelected(selectedCities);
-        renderSettings();
+        renderModalList();
         updateClocks();
     }
 
@@ -211,5 +175,5 @@ var WorldClockWidget = (function () {
         container.innerHTML = html;
     }
 
-    return { render: render, init: init, toggleCity: toggleCity, toggleSettings: toggleSettings };
+    return { render: render, init: init, toggleCity: toggleCity, renderModalList: renderModalList };
 })();

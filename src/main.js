@@ -5,6 +5,39 @@
 (function () {
     'use strict';
 
+    /* ─── MODAL SYSTEM ─── */
+    window.RasMirqabModal = {
+        open: function(id) {
+            var modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('hidden');
+                // Auto-focus search if exists
+                var search = modal.querySelector('input[type="text"]');
+                if (search) setTimeout(() => search.focus(), 100);
+            }
+        },
+        close: function(id) {
+            var modal = document.getElementById(id);
+            if (modal) modal.classList.add('hidden');
+        },
+        initClosing: function() {
+            // Global listener for closing on outside click
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal-overlay')) {
+                    var modal = e.target.closest('.modal-container');
+                    if (modal) modal.classList.add('hidden');
+                }
+            });
+            // Global listener for close buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.modal-close')) {
+                    var modal = e.target.closest('.modal-container');
+                    if (modal) modal.classList.add('hidden');
+                }
+            });
+        }
+    };
+
     /* ─── SPLASH SCREEN ─── */
     function runSplash(callback) {
         var splash = document.getElementById('splash-screen');
@@ -21,7 +54,7 @@
         // Start booting in the background immediately!
         if (callback) callback();
 
-        // Wait for the loader animation to finish (3 seconds)
+        // Wait for the loader animation to finish (Reduces wait from 3s to 1s for speed)
         setTimeout(function () {
             splash.classList.add('fade-out');
 
@@ -31,8 +64,8 @@
                     app.classList.remove('app-hidden');
                     app.classList.add('app-visible');
                 }
-            }, 800);
-        }, 3000);
+            }, 600);
+        }, 1000);
     }
 
 
@@ -243,9 +276,11 @@
             if (this.audioEnabled) {
                 var audio = document.getElementById('breaking-news-audio');
                 if (audio) {
-                    console.log('Attempting to play notification audio...');
+                    var savedVol = localStorage.getItem('rasmirqab_notif_volume');
+                    var volume = savedVol !== null ? parseFloat(savedVol) : 0.5;
+                    
                     audio.muted = false;
-                    audio.volume = 1.0;
+                    audio.volume = volume;
                     audio.currentTime = 0;
 
                     var playPromise = audio.play();
@@ -297,19 +332,55 @@
 
         var toggleVis = document.getElementById('toggle-visual-notif');
         var toggleAud = document.getElementById('toggle-audio-notif');
+        var volSlider = document.getElementById('notif-volume-slider');
+        var volValue = document.getElementById('notif-volume-value');
 
         if (!btn || !dropdown) return;
 
         // Init states from localStorage
         var visState = localStorage.getItem('rasmirqab_visual_notif') !== 'false';
-        var audState = localStorage.getItem('rasmirqab_audio_notif') !== 'false'; // Default ON
+        var audState = localStorage.getItem('rasmirqab_audio_notif') !== 'false';
+        var volState = localStorage.getItem('rasmirqab_notif_volume') || "0.5";
 
         if (toggleVis) toggleVis.checked = visState;
         if (toggleAud) toggleAud.checked = audState;
+        if (volSlider) {
+            volSlider.value = volState;
+            if (volValue) volValue.innerText = Math.round(volState * 100) + '%';
+        }
 
-        if (visState && badge) badge.classList.add('active'); // Start pulsing if armed
+        // 🔊 Volume Slider Logic
+        if (volSlider) {
+            volSlider.addEventListener('input', function() {
+                var val = parseFloat(this.value);
+                if (volValue) volValue.innerText = Math.round(val * 100) + '%';
+                localStorage.setItem('rasmirqab_notif_volume', val);
+                
+                // Optional: Play short test sound when sliding
+                var audio = document.getElementById('breaking-news-audio');
+                if (audio) {
+                    audio.volume = val;
+                }
+            });
+        }
 
-        // Helper to update Bell Glow for Audio
+        // 🔔 Audio Toggle Logic
+        if (toggleAud) {
+            toggleAud.addEventListener('change', function() {
+                window.RasMirqabNotification.audioEnabled = this.checked;
+                localStorage.setItem('rasmirqab_audio_notif', this.checked);
+                updateBellGlow();
+            });
+        }
+        
+        // 👁️ Visual Toggle Logic
+        if (toggleVis) {
+            toggleVis.addEventListener('change', function() {
+                window.RasMirqabNotification.visualEnabled = this.checked;
+                localStorage.setItem('rasmirqab_visual_notif', this.checked);
+            });
+        }
+
         function updateBellGlow() {
             if (window.RasMirqabNotification.audioEnabled) {
                 btn.classList.add('audio-active');
@@ -319,23 +390,23 @@
         }
         updateBellGlow();
 
-        // Hover events for the dropdown
-        var dropdownContainer = btn.parentElement;
-        dropdownContainer.addEventListener('mouseenter', function () {
-            dropdown.classList.remove('hidden');
-        });
-        dropdownContainer.addEventListener('mouseleave', function () {
-            dropdown.classList.add('hidden');
-        });
-
-        // Click on bell to mute/unmute audio directly
+        // 🖱️ Toggle Dropdown on Bell Click
         btn.addEventListener('click', function (e) {
             e.preventDefault();
-            var newAudioState = !window.RasMirqabNotification.audioEnabled;
-            window.RasMirqabNotification.audioEnabled = newAudioState;
-            localStorage.setItem('rasmirqab_audio_notif', newAudioState);
-            if (toggleAud) toggleAud.checked = newAudioState;
-            updateBellGlow();
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        // 🚪 Close on Outside Click
+        document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Stop propagation inside dropdown to prevent immediate closing
+        dropdown.addEventListener('click', function(e) {
+            e.stopPropagation();
         });
 
         // Listeners for switches inside the dropdown
@@ -362,27 +433,39 @@
     /* ─── BOOT ─── */
     function boot() {
         console.log('Starting Ras Marqab boot process...');
+        try {
+            // Initialize globe
+            if (window.RasMirqabGlobe) RasMirqabGlobe.init();
 
-        // Initialize globe
-        RasMirqabGlobe.init();
+            // Initialize grid with all widgets
+            if (window.RasMirqabGrid) RasMirqabGrid.init();
 
-        // Initialize grid with all widgets
-        RasMirqabGrid.init();
+            // Start clocks
+            updateHeaderClock();
+            setInterval(updateHeaderClock, 1000);
 
-        // Start clocks
-        updateHeaderClock();
-        setInterval(updateHeaderClock, 1000);
+            if (window.RasMirqabGlobe) {
+                RasMirqabGlobe.updateTime();
+                setInterval(function () { RasMirqabGlobe.updateTime(); }, 1000);
+            }
 
-        RasMirqabGlobe.updateTime();
-        setInterval(function () { RasMirqabGlobe.updateTime(); }, 1000);
+            // Initialize modals and UI hooks
+            initCameraModal();
+            initSettingsModal();
+            initMapToggle();
+            initNotifications();
+            if (window.RasMirqabModal) window.RasMirqabModal.initClosing();
 
-        // Initialize modals and UI hooks
-        initCameraModal();
-        initSettingsModal();
-        initMapToggle();
-        initNotifications();
-
-        console.log('Ras Marqab boot completed!');
+            console.log('Ras Marqab boot completed!');
+        } catch (err) {
+            console.error('CRITICAL BOOT ERROR:', err);
+            // Even if boot fails, we attempt to show the app so the user isn't stuck
+            var app = document.getElementById('app');
+            if (app) {
+                app.classList.remove('app-hidden');
+                app.classList.add('app-visible');
+            }
+        }
 
         // 🔓 BROWSER AUTOPLAY UNLOCK (Workaround for Chrome/Edge)
         window.RasMirqabAudioUnlocked = false;

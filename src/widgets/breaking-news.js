@@ -70,23 +70,15 @@ var BreakingNewsWidget = (function () {
         return {
             header:
                 '<div class="widget-header breaking-header-v12">' +
-                '  <div class="breaking-top-layer">' +
-                '    <div class="breaking-integrated-controls">' +
-                '      <button class="integrated-sync-btn" id="bn-refresh-btn-v12">' +
-                '        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 22v-6h6"/><path d="M21 12c0 4.97-4.03 9-9 9a9 9 0 0 1-9-9M3 12c0-4.97 4.03-9 9-9a9 9 0 0 1 9 9"/></svg>' +
-                '        <span>hard sync</span>' +
-                '      </button>' +
-                '      <button class="widget-action-btn" id="bn-gear-btn" title="إعدادات المصادر">⚙️</button>' +
+                '  <div class="breaking-top-layer-ref">' +
+                '    <div class="breaking-controls-left">' +
+                '      <button class="square-action-btn" id="bn-gear-btn-ref" title="الإعدادات"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>' +
+                '      <button class="square-action-btn" id="bn-refresh-btn-ref" title="تحديث"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>' +
                 '    </div>' +
-                '    <div class="breaking-title-wrap">' +
-                '      <div class="dropdown-arrow-wrap"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#e9a35e" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>' +
-                '      <span class="breaking-main-title">الأخبار العاجلة</span>' +
-                '    </div>' +
-                '  </div>' +
-                '  <div class="breaking-glow-header">' +
-                '    <div class="glow-title-flex">' +
-                '      <span class="glow-text-title">عاجل</span>' +
-                '      <div class="glow-active-dot"></div>' +
+                '    <div class="breaking-title-right">' +
+                '      <span class="breaking-badge-new">NEW</span>' +
+                '      <span class="breaking-text-ar">عاجل</span>' +
+                '      <div class="breaking-status-dot"></div>' +
                 '    </div>' +
                 '  </div>' +
                 '</div>',
@@ -98,18 +90,11 @@ var BreakingNewsWidget = (function () {
     }
 
     function init() {
-        var gearBtn = document.getElementById('bn-gear-btn');
+        var gearBtn = document.getElementById('bn-gear-btn-ref');
         if (gearBtn) gearBtn.addEventListener('click', toggleSettings);
 
-        var refreshBtn = document.getElementById('bn-refresh-btn');
+        var refreshBtn = document.getElementById('bn-refresh-btn-ref');
         if (refreshBtn) refreshBtn.addEventListener('click', function () {
-            rotateMirror();
-            loadNews(true);
-        });
-
-        var refreshBtnV12 = document.getElementById('bn-refresh-btn-v12');
-        if (refreshBtnV12) refreshBtnV12.addEventListener('click', function () {
-            rotateMirror();
             loadNews(true);
         });
 
@@ -451,29 +436,25 @@ var BreakingNewsWidget = (function () {
             var media = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
 
             itemEl.innerHTML =
-                '  <div class="item-v12-inner">' +
-                '    <div class="item-v12-left">' +
-                '      <div class="v12-thumb-wrap">' +
-                (media ? '<img src="' + media + '" class="v12-thumb-img">' : 
-                         '<div class="v12-thumb-placeholder"><img src="' + avatar + '" style="opacity:0.9; width:75%; filter: drop-shadow(0 0 5px rgba(230,126,34,0.3));"></div>') +
+                '  <div class="item-v12-inner-ref">' +
+                '    <div class="v12-col-left">' +
+                '      <div class="v12-thumbnail">' +
+                (media ? '<img src="' + media + '" class="v12-media-img">' : 
+                         '<img src="' + avatar + '" class="v12-media-fallback">') +
                 '      </div>' +
                 '    </div>' +
-                '    <div class="item-v12-right">' +
-                '      <div class="v12-news-title">' + (item.title || '') + '</div>' +
-                '      <div class="v12-meta-row">' +
-                '        <div class="v12-time">' + 
-                           (item.isNew ? '<span class="v12-new-badge">جديد</span> ' : '') + 
-                           (isFresh ? '<span class="v12-live-badge">مباشر</span> ' : '') +
-                           relativeTime + 
-                         '</div>' +
-                '        <div class="v12-source-info">' +
-                '          <span class="v12-source-name">' + (item.sourceName || handle) + '</span>' +
-                '          <div class="v12-source-logo-wrap">' +
-                '            <img src="' + avatar + '" class="v12-source-logo">' +
-                '            <div class="v12-platform-badge ' + source + '">' + badgeIcon + '</div>' +
-                '          </div>' +
-                '        </div>' +
+                '    <div class="v12-col-center">' +
+                '      <div class="v12-title-text">' + (item.title || '') + '</div>' +
+                '    </div>' +
+                '    <div class="v12-col-right">' +
+                '      <div class="v12-source-logo-container">' +
+                '        <img src="' + avatar + '" class="v12-circle-logo">' +
+                '        <div class="v12-platform-overlap ' + source + '">' + badgeIcon + '</div>' +
                 '      </div>' +
+                '      <div class="v12-source-name-ref">' + 
+                           (item.sourceName || handle).substring(0, 15) + (source === 'twitter' ? ' Breaking' : '') + 
+                       '</div>' +
+                '      <div class="v12-time-ref">' + relativeTime + '</div>' +
                 '    </div>' +
                 '  </div>';
 
@@ -487,15 +468,20 @@ var BreakingNewsWidget = (function () {
                 var imgHtml = media ? '<img src="' + media + '" class="bn-popup-image has-img" style="width:100%; border-radius:8px; margin-bottom:12px; border:1px solid #333;" />' : '';
 
                 popupEl.innerHTML =
-                    '<div class="bn-popup-header" style="color:#e67e22; font-weight:800; font-size:12px; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">' +
-                    '  <span>🚨 معاينة الخبر العاجل</span>' +
-                    '  <span style="font-size:10px; color:#666;">' + (item.sourceName || source) + '</span>' +
+                    '<div class="bn-popup-live-header">' +
+                    '  <span>BREAKING LIVE 🚨</span>' +
                     '</div>' +
-                    imgHtml +
-                    '<div class="bn-popup-text" style="font-size:14px; line-height:1.6; color:#fff; font-weight:500;">' + (item.title || item.text || '') + '</div>' +
-                    '<div class="bn-popup-meta" style="margin-top:12px; font-size:11px; color:#888; display:flex; justify-content:space-between; border-top:1px solid #222; padding-top:8px;">' +
-                    '  <span>المصدر: ' + (item.customName || item.sourceName || item.source) + '</span>' +
-                    '  <span>الوقت: ' + timeStr + '</span>' +
+                    '<div class="bn-popup-media-frame">' +
+                    (media ? '<img src="' + media + '" class="bn-popup-media-content" />' : 
+                             '<img src="' + avatar + '" class="bn-popup-media-content" style="padding:20%; opacity:0.3;" />') +
+                    '  <div class="bn-popup-media-bottom-bar"></div>' +
+                    '</div>' +
+                    '<div class="bn-popup-body">' +
+                    '  <div class="bn-popup-title">' + (item.title || '') + '</div>' +
+                    '</div>' +
+                    '<div class="bn-popup-footer">' +
+                    '  <span class="bn-popup-source">SOURCE: ' + (item.sourceName || source) + '</span>' +
+                    '  <span class="bn-popup-footer-time">' + relativeTime + '</span>' +
                     '</div>';
 
                 popupEl.classList.add('active');

@@ -90,12 +90,20 @@ function parseListRSS(xml) {
         const pubDateMatch = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
         let pubDate = pubDateMatch ? pubDateMatch[1] : "";
         
-        // Media/Thumbnail extraction from description
+        // Media/Thumbnail extraction from description (V4.6 - Robust Nitter Media)
         const descMatch = content.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) || 
                          content.match(/<description>([\s\S]*?)<\/description>/);
         const desc = descMatch ? descMatch[1] : "";
+        
+        // Match both absolute and relative Nitter image paths
         const imgMatch = desc.match(/<img[^>]+src="([^"]+)"/i);
         let mediaUrl = imgMatch ? imgMatch[1] : null;
+        
+        if (mediaUrl && mediaUrl.startsWith('/')) {
+            // Convert relative to absolute using the current mirror
+            const mirrorBase = link.match(/^(https?:\/\/[^\/]+)/)?.[1];
+            if (mirrorBase) mediaUrl = mirrorBase + mediaUrl;
+        }
 
         // Fallback for avatar/media
         sourceHealth[handle] = Date.now();
@@ -140,8 +148,10 @@ async function fetchTelegram(handle) {
             const timeMatch = msgHtml.match(/<time[^>]*datetime="([^"]*)"/);
             const time = timeMatch ? timeMatch[1] : null;
             
-            // Extract Media (Background Image)
-            const photoMatch = msgHtml.match(/tgme_widget_message_photo_wrap[^>]*style="background-image:url\('([^']+)'\)"/);
+            // Extract Media (V4.6 - Enhanced Telegram Media)
+            // Look for both message photo and channel preview media
+            const photoMatch = msgHtml.match(/tgme_widget_message_photo_wrap[^>]*style="background-image:url\('([^']+)'\)"/i) ||
+                               msgHtml.match(/<img[^>]+src="([^"]+)"/i);
             const mediaUrl = photoMatch ? photoMatch[1] : null;
 
             if (text && time) {

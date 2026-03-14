@@ -27,6 +27,34 @@ var BreakingNewsWidget = (function () {
         'https://nitter.dafrary.com'
     ];
 
+    function getArabicRelativeTime(date) {
+        if (!date) return 'قبل قليل';
+        var now = new Date();
+        var then = new Date(date);
+        var diff = Math.floor((now - then) / 1000); // seconds
+
+        if (diff < 0) diff = 0;
+        if (diff < 10) return 'الآن';
+        if (diff < 60) return 'قبل ' + diff + ' ثانية';
+        
+        var mins = Math.floor(diff / 60);
+        if (mins === 1) return 'قبل دقيقة';
+        if (mins === 2) return 'قبل دقيقتين';
+        if (mins < 11) return 'قبل ' + mins + ' دقائق';
+        if (mins < 60) return 'قبل ' + mins + ' دقيقة';
+        
+        var hours = Math.floor(mins / 60);
+        if (hours === 1) return 'قبل ساعة';
+        if (hours === 2) return 'قبل ساعتين';
+        if (hours < 11) return 'قبل ' + hours + ' ساعات';
+        if (hours < 24) return 'قبل ' + hours + ' ساعة';
+        
+        var days = Math.floor(hours / 24);
+        if (days === 1) return 'أمس';
+        if (days === 2) return 'قبل يومين';
+        return 'قبل ' + days + ' أيام';
+    }
+
     function getSources() {
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
@@ -408,10 +436,16 @@ var BreakingNewsWidget = (function () {
             var badgeColor = source === 'twitter' ? '#fff' : (source === 'telegram' ? '#0088cc' : '#f1c40f');
 
             var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            var relativeTime = getArabicRelativeTime(item.pubDate);
+            
+            // Pulsing Glow Check (< 10 seconds old)
+            var pubTime = new Date(item.pubDate).getTime();
+            var nowTime = Date.now();
+            var isFresh = (nowTime - pubTime) < 10000;
 
             var itemEl = document.createElement('div');
-            itemEl.className = 'news-item' + (item.isNew ? ' news-item-new' : '');
-            itemEl.style = 'padding:0; margin-bottom:8px; cursor:pointer; display:flex; transition: transform 0.2s;';
+            itemEl.className = 'news-item' + (item.isNew ? ' news-item-new' : '') + (isFresh ? ' v12-pulse-glow' : '');
+            itemEl.style = 'padding:0; margin-bottom:12px; cursor:pointer; display:flex; transition: transform 0.2s;';
             itemEl.onclick = function () { window.open(item.link, '_blank'); };
 
             var media = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);
@@ -421,13 +455,17 @@ var BreakingNewsWidget = (function () {
                 '    <div class="item-v12-left">' +
                 '      <div class="v12-thumb-wrap">' +
                 (media ? '<img src="' + media + '" class="v12-thumb-img">' : 
-                         '<div class="v12-thumb-placeholder"><img src="' + avatar + '" style="opacity:0.8; width:70%; filter: grayscale(0.5) contrast(1.2);"></div>') +
+                         '<div class="v12-thumb-placeholder"><img src="' + avatar + '" style="opacity:0.9; width:75%; filter: drop-shadow(0 0 5px rgba(230,126,34,0.3));"></div>') +
                 '      </div>' +
                 '    </div>' +
                 '    <div class="item-v12-right">' +
                 '      <div class="v12-news-title">' + (item.title || '') + '</div>' +
                 '      <div class="v12-meta-row">' +
-                '        <div class="v12-time">' + (item.isNew ? '<span class="v12-new-badge">جديد</span> ' : '') + timeStr + ' ' + (item.relativeTime || 'قبل قليل') + '</div>' +
+                '        <div class="v12-time">' + 
+                           (item.isNew ? '<span class="v12-new-badge">جديد</span> ' : '') + 
+                           (isFresh ? '<span class="v12-live-badge">مباشر</span> ' : '') +
+                           relativeTime + 
+                         '</div>' +
                 '        <div class="v12-source-info">' +
                 '          <span class="v12-source-name">' + (item.sourceName || handle) + '</span>' +
                 '          <div class="v12-source-logo-wrap">' +

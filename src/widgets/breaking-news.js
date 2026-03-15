@@ -256,7 +256,7 @@ var BreakingNewsWidget = (function () {
             { type: 'telegram', handle: 'Alarabiya_brk', name: 'العربية عاجل', avatar: 'public/logos/alarabiya.png', fixed: true },
             { type: 'telegram', handle: 'SkyNewsArabia_Breaking', name: 'سكاي نيوز عاجل', avatar: 'public/logos/skynews.png', fixed: true },
             { type: 'telegram', handle: 'RT_Arabic', name: 'RT العربية', avatar: 'public/logos/rt.png', fixed: true },
-            { type: 'telegram', handle: 'ajanews', name: 'Al Jazeera / الجزيرة', avatar: 'public/logos/ajanews.webp', fixed: true },
+            { type: 'telegram', handle: 'ajanews', name: 'Al Jazeera / الجزيرة', avatar: 'public/logos/ajanews_new.png', fixed: true },
             { type: 'rss', handle: 'i24news-ar', name: 'اعلام الاحتلال الاسرائيلي', url: 'https://www.i24news.tv/ar/feed', avatar: 'https://www.i24news.tv/favicon.ico', fixed: true },
             { type: 'rss', handle: 'sabq-org', name: 'صحيفة سبق (موقع)', url: 'https://sabq.org/rss.xml', avatar: 'https://sabq.org/favicon.ico', fixed: true }
         ];
@@ -406,7 +406,7 @@ var BreakingNewsWidget = (function () {
             'AjelNews24': 'public/logos/ajelnews.jpg',
             'SkyNewsArabia_Breaking': 'public/logos/skynews.png',
             'RT_Arabic': 'public/logos/rt.png',
-            'ajanews': 'public/logos/ajanews.webp',
+            'ajanews': 'public/logos/ajanews_new.png',
             'i24news-ar': 'public/logos/i24news.png',
             'sabq-org': 'public/logos/sabq.png'
         };

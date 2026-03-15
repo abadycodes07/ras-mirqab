@@ -4,7 +4,7 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'http://localhost:3001';
+    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab-proxy.onrender.com';
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;
@@ -19,7 +19,7 @@ var BreakingNewsWidget = (function () {
     var hiddenSources = new Set(JSON.parse(localStorage.getItem('rasmirqab_hidden_sources') || '[]'));
     var currentMirrorIndex = 0;
     var NITTER_MIRRORS = [
-        'https://ras-mirqab.onrender.com', // Primary
+        'https://ras-mirqab-proxy.onrender.com', // Primary
         'https://nitter.net',
         'https://nitter.cz',
         'https://nitter.it',
@@ -257,6 +257,7 @@ var BreakingNewsWidget = (function () {
             { type: 'telegram', handle: 'SkyNewsArabia_Breaking', name: 'سكاي نيوز عاجل', avatar: 'public/logos/skynews.png', fixed: true },
             { type: 'telegram', handle: 'RT_Arabic', name: 'RT العربية', avatar: 'public/logos/rt.png', fixed: true },
             { type: 'telegram', handle: 'ajanews', name: 'Al Jazeera / الجزيرة', avatar: 'public/logos/ajanews_new.png', fixed: true },
+            { type: 'telegram', handle: 'alhadath_brk', name: 'Al Hadath / الحدث (TG)', avatar: 'public/logos/alhadath3.png', fixed: true },
             { type: 'rss', handle: 'i24news-ar', name: 'اعلام الاحتلال الاسرائيلي', url: 'https://www.i24news.tv/ar/feed', avatar: 'https://www.i24news.tv/favicon.ico', fixed: true },
             { type: 'rss', handle: 'sabq-org', name: 'صحيفة سبق (موقع)', url: 'https://sabq.org/rss.xml', avatar: 'https://sabq.org/favicon.ico', fixed: true }
         ];
@@ -281,7 +282,7 @@ var BreakingNewsWidget = (function () {
             var isSelected = s.fixed;
             var isHidden = hiddenSources.has(s.handle);
             var color = s.type === 'twitter' ? '#1DA1F2' : '#0088cc';
-            var icon = s.type === 'twitter' ? '𝕏' : '📱';
+            var icon = s.type === 'twitter' ? '𝕏' : (s.type === 'telegram' ? '<img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" style="width:12px; height:12px; display:block;">' : '📱');
 
             html +=
                 '<div class="channel-card ' + (isSelected ? 'selected' : '') + ' ' + (isHidden ? 'hidden-source' : '') + '" style="cursor:pointer; transition:all 0.3s ease; border:1px solid ' + (isHidden ? 'transparent' : 'var(--accent-dim)') + '; background:' + (isHidden ? 'rgba(255,255,255,0.02)' : 'rgba(255,106,0,0.05)') + ';" onclick="BreakingNewsWidget.toggleVisibility(\'' + s.handle + '\')">' +
@@ -407,6 +408,7 @@ var BreakingNewsWidget = (function () {
             'SkyNewsArabia_Breaking': 'public/logos/skynews.png',
             'RT_Arabic': 'public/logos/rt.png',
             'ajanews': 'public/logos/ajanews_new.png',
+            'alhadath_brk': 'public/logos/alhadath3.png',
             'i24news-ar': 'public/logos/i24news.png',
             'sabq-org': 'public/logos/sabq.png'
         };
@@ -419,7 +421,7 @@ var BreakingNewsWidget = (function () {
             var avatar = item.customAvatar || AVATARS[handle] || AVATARS[handle.toLowerCase()] || '/public/logos/default.png';
             
             // Platform Badge
-            var badgeIcon = source === 'twitter' ? '𝕏' : (source === 'telegram' ? '📱' : '🌐');
+            var badgeIcon = source === 'twitter' ? '𝕏' : (source === 'telegram' ? '<img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" style="width:12px; height:12px; display:block;">' : '🌐');
             var badgeColor = source === 'twitter' ? '#fff' : (source === 'telegram' ? '#0088cc' : '#f1c40f');
 
             var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });

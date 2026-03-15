@@ -11,11 +11,11 @@ const REFRESH_INTERVAL = 30000; // 30 seconds - Highly efficient for single requ
 const LIST_ID = "2031445708524421549";
 const NITTER_INSTANCES = [
     'https://nitter.perennialte.ch',
-    'https://xcancel.com',
-    'https://nitter.poast.org',
-    'https://nitter.net',
-    'https://nitter.privacyredirect.com',
-    'https://nitter.rawbit.ninja'
+    'https://nitter.tiekoetter.com',
+    'https://nitter.privacydev.net',
+    'https://nitter.no-logs.com',
+    'https://nitter.unixfox.eu',
+    'https://nitter.net' // Fallback
 ];
 
 const AVATAR_MAP = {
@@ -38,7 +38,9 @@ const AVATAR_MAP = {
     'alekhbariyabrk': 'public/logos/alekhbariya.jpg',
     'ajmubasher': 'public/logos/aljazeera.png',
     'i24news-ar': 'public/logos/i24news.png',
-    'sabq-org': 'public/logos/sabq.png'
+    'sabq-org': 'public/logos/sabq.png',
+    'ajanews': 'public/logos/ajanews_new.png',
+    'alhadath_brk': 'public/logos/alhadath3.png'
 };
 
 // Optimization: Track the best mirror
@@ -162,7 +164,7 @@ async function fetchTelegram(handle) {
                     sourceHandle: handle,
                     pubDate: new Date(time).toISOString(),
                     link: `https://t.me/s/${handle}`,
-                    image: mediaUrl,
+                    image: (handle === 'ajanews' || handle === 'alhadath_brk') ? AVATAR_MAP[handle] : mediaUrl,
                     customAvatar: AVATAR_MAP[handle] || AVATAR_MAP[handle.toLowerCase()] || 'public/logos/default.png'
                 });
             }
@@ -176,7 +178,7 @@ async function fetchTelegram(handle) {
 }
 
 async function updateHybridCache() {
-    const tgHandles = ['ajanews'];
+    const tgHandles = ['ajanews', 'alhadath_brk'];
     const fetchTwitter = async (instance) => {
         try {
             const res = await fetch(`${instance}/i/lists/${LIST_ID}/rss`, {

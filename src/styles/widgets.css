@@ -1157,6 +1157,7 @@
     justify-content: space-between;
     align-items: center;
     direction: rtl;
+    width: 100%;
 }
 
 .breaking-controls-left {

@@ -177,6 +177,52 @@ async function fetchTelegram(handle) {
     }
 }
 
+async function fetchGoogleNews(query) {
+    try {
+        const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ar&gl=SA&ceid=SA:ar`;
+        const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        if (!response.ok) return [];
+        const xml = await response.text();
+        const items = [];
+        const itemMatch = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
+        
+        for (const match of itemMatch) {
+            const content = match[1];
+            const titleMatch = content.match(/<title>([\s\S]*?)<\/title>/);
+            const linkMatch = content.match(/<link>([\s\S]*?)<\/link>/);
+            const pubDateMatch = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+            const sourceMatch = content.match(/<source[^>]*>([\s\S]*?)<\/source>/);
+            
+            if (titleMatch && linkMatch) {
+                const fullTitle = titleMatch[1].replace(/&quot;/g, '"');
+                const sourceName = sourceMatch ? sourceMatch[1] : 'News';
+                // Try to find if this matches any of our known handles based on the title or source
+                let handle = 'News';
+                for (const h in AVATAR_MAP) {
+                    if (fullTitle.toLowerCase().includes(h.toLowerCase()) || sourceName.toLowerCase().includes(h.toLowerCase())) {
+                        handle = h;
+                        break;
+                    }
+                }
+
+                items.push({
+                    title: fullTitle.split(' - ')[0].trim(),
+                    link: linkMatch[1],
+                    pubDate: pubDateMatch ? new Date(pubDateMatch[1]).toISOString() : new Date().toISOString(),
+                    source: 'twitter', // Force 'twitter' type for UI consistency
+                    sourceName: sourceName,
+                    sourceHandle: handle,
+                    image: null,
+                    customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
+                });
+            }
+        }
+        return items.slice(0, 10);
+    } catch (e) {
+        return [];
+    }
+}
+
 async function updateHybridCache() {
     const tgHandles = ['ajanews', 'alhadath_brk'];
     const fetchTwitter = async (instance) => {
@@ -201,6 +247,17 @@ async function updateHybridCache() {
         twMirrorResults.forEach(res => {
             if (res.status === 'fulfilled' && res.value) allTwitterItems = [...allTwitterItems, ...res.value];
         });
+
+        // FALLBACK: If Twitter mirrors failed, fetch from Google News
+        if (allTwitterItems.length === 0) {
+            console.log('⚠️ Twitter mirrors failed. Fetching from Google News fallback...');
+            const googleResults = await Promise.all([
+                fetchGoogleNews('الأخبار العاجلة الحدث العربية'),
+                fetchGoogleNews('alrougui'),
+                fetchGoogleNews('وزارة الدفاع السعودية')
+            ]);
+            allTwitterItems = googleResults.flat();
+        }
 
         const combined = [...tgResults.flat(), ...allTwitterItems];
         combined.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));

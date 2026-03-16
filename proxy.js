@@ -29,13 +29,23 @@ const BROWSER_FINGERPRINTS = [
 const AVATAR_MAP = {
     'AsharqNewsBrk': 'public/logos/asharq2.jpg',
     'AlHadath': 'public/logos/alhadath3.png',
-    'alrougui': 'public/logos/alrougui.jpg',
-    'alekhbariyabrk': 'public/logos/alekhbariya.jpg',
+    'AlArabiya_Brk': 'public/logos/alarabiya.png',
     'SkyNewsArabia_B': 'public/logos/skynews.png',
     'RT_Arabic': 'public/logos/rt.png',
-    'ajanews': 'public/logos/ajanews_new.png',
-    'alhadath_brk': 'public/logos/alhadath3.png',
-    'AlArabiya': 'public/logos/alarabiya.png'
+    'RTonline_ar': 'public/logos/rt.png',
+    'alrougui': 'public/logos/alrougui.jpg',
+    'ajmubasher': 'public/logos/ajmubasher.png',
+    'alekhbariyaNews': 'public/logos/alekhbariyanews.jpg',
+    'alekhbariyaBRK': 'public/logos/alekhbariyabrk.jpg',
+    'modgovksa': 'public/logos/modgovksa2.png',
+    'NewsNow4USA': 'public/logos/newsnow.jpg',
+    'AJELNEWS2475': 'public/logos/ajelnews.jpg',
+    'ajanews': 'public/logos/aljazeera.png',
+    'alhadath_brk': 'public/logos/hadath.png',
+    'AlArabiya': 'public/logos/arabiya.png',
+    'asharqnewsbrk': 'public/logos/asharq.png',
+    'alekhbariyanews': 'public/logos/ekhbariya.png',
+    'rt_arabic': 'public/logos/rt.png'
 };
 
 // Global State
@@ -141,8 +151,9 @@ async function updateTwitter() {
     let localItems = [];
 
     // Protocol 1: Hybrid Syndication (Direct + Proxy)
-    const directHandles = ['AlHadath', 'SkyNewsArabia_B', 'AjelNews24'];
-    const proxyHandles = ['RT_Arabic', 'AsharqNewsBrk', 'alrougui', 'SABQ_NEWS'];
+    // Key members from the list
+    const directHandles = ['AlHadath', 'SkyNewsArabia_B', 'AlArabiya_Brk', 'AsharqNewsBrk', 'AJELNEWS2475'];
+    const proxyHandles = ['alekhbariyaNews', 'alekhbariyaBRK', 'RTonline_ar', 'alrougui', 'ajmubasher', 'modgovksa', 'NewsNow4USA'];
     
     // 1a. Fast Direct Fetch (No Proxy) - 100% Reliability for key channels
     for (const h of directHandles) {

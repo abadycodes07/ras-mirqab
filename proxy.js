@@ -220,7 +220,7 @@ async function updateTwitter() {
 
     // Protocol 2: V13 DIY Master Bridge (The "Iron" Layer)
     try {
-        const bridgeUrl = "https://script.google.com/macros/s/AKfycby5t9W-r49O270GqY-fN13Uf_c8Z5U9_m_Y0pL9A_r8A/exec"; // Placeholder: User needs to update this with their deploy URL
+        const bridgeUrl = "https://script.google.com/macros/s/AKfycbwR3buIurRZhlwWM5ieYo8gZZHxoKMxx2tVcegnOIumq0a0aGlkdbnqlsm_saad9550/exec";
         const responseData = stealthFetch(bridgeUrl, false); 
         if (responseData) {
             const data = JSON.parse(responseData);

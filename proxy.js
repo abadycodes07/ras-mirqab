@@ -95,7 +95,14 @@ function stealthFetch(url, useProxy = true) {
     try {
         const proxyCmd = proxy ? `-x http://${proxy}` : '';
         const cmd = `curl -L ${proxyCmd} -H "User-Agent: ${ua}" --connect-timeout 8 --max-time 15 "${url}"`;
-        const res = execSync(cmd).toString();
+        let res = execSync(cmd).toString();
+        
+        // V11: Detect Rate Limit and Retry with Proxy automatically
+        if (res.includes('Rate limit exceeded') && !proxy) {
+            console.log(`⚠️ Rate limit hit on direct fetch. Retrying with proxy...`);
+            return stealthFetch(url, true);
+        }
+
         if (!useProxy) console.log(`📡 [DirectFetch] ${url.substring(0,60)}... | Length: ${res.length}`);
         return res;
     } catch (e) {

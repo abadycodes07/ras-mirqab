@@ -476,10 +476,10 @@ var BreakingNewsWidget = (function () {
             var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
             var relativeTime = getArabicRelativeTime(item.pubDate);
             
-            // Pulsing Glow Check (< 10 seconds old)
+            // Pulsing Glow Check (< 9 seconds old)
             var pubTime = new Date(item.pubDate).getTime();
             var nowTime = Date.now();
-            var isFresh = (nowTime - pubTime) < 10000;
+            var isFresh = (nowTime - pubTime) < 9000;
 
             var itemEl = document.createElement('div');
             itemEl.className = 'news-item' + (item.isNew ? ' news-item-new' : '') + (isFresh ? ' v12-pulse-glow' : '');

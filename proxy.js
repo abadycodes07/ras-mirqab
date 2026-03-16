@@ -126,36 +126,19 @@ async function updateTwitter() {
             }).filter(Boolean);
         } catch (e) { return []; }
     }));
-    localCache = [...localCache, ...syncResults.flat()];
+    const p1Count = syncResults.flat().length;
+    if (p1Count > 0) {
+        localCache = [...localCache, ...syncResults.flat()];
+        console.log(`📡 [V9] P1 (Syndication) found ${p1Count} items`);
+    }
 
     // Protocol 2: Solid Google Bridge (The "Iron" Layer)
     try {
         const bridgeUrl = "https://script.google.com/macros/s/AKfycby5zEAZmyEz_9juaCih69PnbxW35I-EuZx3Z7TCRYlAD38r20Bz4_TiOa53yBjBMeYQaA/exec";
         const xml = stealthFetch(bridgeUrl, false); // Direct fetch from Google Bridge
-        const rssMatch = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
-        for (const m of rssMatch) {
-            const c = m[1];
-            const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
-            const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
-            if (t) {
-                const handle = h ? h[1] : 'News';
-                localCache.push({
-                    title: t[1].replace(/<[^>]+>/g, '').trim(),
-                    link: 'https://x.com/i/lists/' + LIST_ID,
-                    pubDate: new Date().toISOString(),
-                    source: 'twitter', sourceHandle: handle, sourceName: handle,
-                    customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
-                });
-            }
-        }
-    } catch(e) {}
-
-    // Protocol 3: Multi-Bridge List RSS (Fallback)
-    try {
-        if (localCache.length < 10) {
-            const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
-            const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`, true);
-            const rssMatch = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
+        const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+        if (rssMatch.length > 0) {
+            console.log(`📡 [V9] P2 (Google Bridge) found ${rssMatch.length} items`);
             for (const m of rssMatch) {
                 const c = m[1];
                 const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
@@ -169,6 +152,35 @@ async function updateTwitter() {
                         source: 'twitter', sourceHandle: handle, sourceName: handle,
                         customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
                     });
+                }
+            }
+        }
+    } catch(e) {
+        console.log(`❌ [V9] P2 Error: ${e.message}`);
+    }
+
+    // Protocol 3: Multi-Bridge List RSS (Fallback)
+    try {
+        if (localCache.length < 5) { // Only try others if P1/P2 failed
+            const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
+            const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`, true);
+            const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+            if (rssMatch.length > 0) {
+                console.log(`📡 [V9] P3 (RSS Bridge) found ${rssMatch.length} items`);
+                for (const m of rssMatch) {
+                    const c = m[1];
+                    const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                    const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
+                    if (t) {
+                        const handle = h ? h[1] : 'News';
+                        localCache.push({
+                            title: t[1].replace(/<[^>]+>/g, '').trim(),
+                            link: 'https://x.com/i/lists/' + LIST_ID,
+                            pubDate: new Date().toISOString(),
+                            source: 'twitter', sourceHandle: handle, sourceName: handle,
+                            customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
+                        });
+                    }
                 }
             }
         }

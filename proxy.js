@@ -15,9 +15,9 @@ const TWITTER_INTERVAL = 60000; // 1 Minute Goal
 const RSSHUB_BRIDGES = [
     'https://rsshub.rssforever.com',
     'https://rsshub.moeyy.cn',
-    'https://rss.shab.fun',
     'https://rss.owo.nz',
-    'https://rsshub.app'
+    'https://rsshub.app',
+    'https://rss.artpro.io'
 ];
 
 const BROWSER_FINGERPRINTS = [
@@ -170,7 +170,7 @@ async function updateTwitter() {
 
     // Protocol 2: Solid Google Bridge (The "Iron" Layer)
     try {
-        const bridgeUrl = "https://script.google.com/macros/s/AKfycbz19BN54zFLRdO0FQ-C2aDGx-AEYlYC_s04ke2MoYE53WNkjHVAfRLjHMik1VgABKwAEA/exec";
+        const bridgeUrl = "https://script.google.com/macros/s/AKfycbwg8BUVz7I2HsH72isvkJzioTye92nAokPITU0Ejgos7cTTuTG2QzwSBwJjHoxsQYMlMA/exec";
         const xml = stealthFetch(bridgeUrl, false); 
         const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
         if (rssMatch.length > 0) {

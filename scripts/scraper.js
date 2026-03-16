@@ -77,7 +77,7 @@ async function scrape() {
 
     // Protocol 2: Solid Google Bridge (The "Iron" Layer)
     try {
-        const bridgeUrl = "https://script.google.com/macros/s/AKfycbz19BN54zFLRdO0FQ-C2aDGx-AEYlYC_s04ke2MoYE53WNkjHVAfRLjHMik1VgABKwAEA/exec";
+        const bridgeUrl = "https://script.google.com/macros/s/AKfycbwg8BUVz7I2HsH72isvkJzioTye92nAokPITU0Ejgos7cTTuTG2QzwSBwJjHoxsQYMlMA/exec";
         const xml = stealthFetch(bridgeUrl); 
         const matches = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
         for (const m of matches) {

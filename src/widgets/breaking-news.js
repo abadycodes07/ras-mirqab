@@ -377,37 +377,24 @@ var BreakingNewsWidget = (function () {
     async function fetchAllFeeds() {
         var allItems = [];
         
-        // Stream 1: Real-Time Telegram (from Render Proxy)
+        // Unified High-Speed Stream (V14 Zero-Lag Cache)
         try {
-            const tgRes = await fetch(PROXY_BASE + '/api/news/telegram?v=' + Date.now());
-            if (tgRes.ok) {
-                const data = await tgRes.json();
-                allItems = allItems.concat(data.items || []);
-                console.log("[Feed] ⚡ Telegram synced (Live)");
-            }
-        } catch (e) {
-            console.warn("[Feed] Telegram sync failed", e);
-        }
-
-        // Stream 2: Live Twitter (from Render Proxy - Primary)
-        try {
-            const twRes = await fetch(PROXY_BASE + '/api/news/twitter?v=' + Date.now());
-            if (twRes.ok) {
-                const data = await twRes.json();
-                if (data.items && data.items.length > 0) {
-                    allItems = allItems.concat(data.items);
-                    console.log("[Feed] 🐦 Twitter synced (Live)");
-                }
+            const res = await fetch(PROXY_BASE + '/api/news-v4-list?v=' + Date.now());
+            if (res.ok) {
+                const data = await res.json();
+                allItems = data.items || [];
+                console.log("[Feed] ⚡ V14 Unified Sync Complete (" + allItems.length + " items)");
             } else {
-                throw new Error("Proxy Twitter API Fail");
+                throw new Error("Proxy V4 API Fail");
             }
         } catch (e) {
+            console.warn("[Feed] Unified sync failed, trying bridge fallback", e);
             // Fallback: Try static bridge JSON ONLY if proxy fails
             try {
                 const bridgeRes = await fetch('public/news.json?v=' + Date.now());
                 if (bridgeRes.ok) {
                     const data = await bridgeRes.json();
-                    allItems = allItems.concat(data.items || []);
+                    allItems = data.items || [];
                     console.log("[Feed] 🐦 Twitter synced (Bridge Fallback)");
                 }
             } catch (e2) {}

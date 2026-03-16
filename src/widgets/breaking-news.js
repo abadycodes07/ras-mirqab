@@ -322,7 +322,7 @@ var BreakingNewsWidget = (function () {
         var container = document.getElementById('breaking-news-body');
         if (!container) return;
 
-        // NEW: Load from localStorage cache immediately (Fast Loading)
+        // 1. Initial Load from LocalStorage (Instant UI)
         if (isFirstLoad) {
             var cached = localStorage.getItem('rasmirqab_bn_cache');
             if (cached) {
@@ -330,32 +330,37 @@ var BreakingNewsWidget = (function () {
                     var items = JSON.parse(cached);
                     localCache = items;
                     renderItems(container, items);
-                    // Don't set isFirstLoad = false yet, so the notification logic works on the real fetch
                 } catch(e) {}
             }
         }
 
-        var items = await fetchAllFeeds();
-        if (!items || items.length === 0) {
-            if (isFirstLoad && localCache.length === 0) {
-                container.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">جاري تحديث البيانات...</div>';
-            }
+        var newItems = await fetchAllFeeds();
+        
+        // 2. Persistence Guard: Merge new items with local cache instead of replacing
+        // This stops news from "vanishing" if a fetch fails
+        if (newItems && newItems.length > 0) {
+            var combined = [...newItems, ...localCache];
+            var seen = new Set();
+            var merged = combined.filter(function(item) {
+                var key = (item.title || '') + (item.sourceHandle || '');
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            }).sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); }).slice(0, 150);
+
+            localCache = merged;
+            localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));
+        }
+
+        if (localCache.length === 0 && isFirstLoad) {
+            container.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">جاري تحديث البيانات...</div>';
             return;
         }
 
-        // NEW: Save to localStorage for next time
-        localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(items));
-
-        // V11.2: Limit to top 20 for mobile (4 was too few)
-        if (window.innerWidth <= 768) {
-            items = items.slice(0, 20);
-        }
-
-        localCache = items;
-
+        // 3. New News Notification
         var newCount = 0;
-        items.forEach(function (item) {
-            var id = item.link + (item.title ? item.title.substring(0, 20) : item.pubDate);
+        localCache.forEach(function (item) {
+            var id = (item.link || '') + (item.title ? item.title.substring(0, 20) : item.pubDate);
             if (!seenIds.has(id)) {
                 if (!isFirstLoad) { 
                     newCount++; 
@@ -370,46 +375,58 @@ var BreakingNewsWidget = (function () {
         }
 
         isFirstLoad = false;
-        renderItems(container, items);
+        
+        // Limit for mobile display
+        var displayItems = (window.innerWidth <= 768) ? localCache.slice(0, 30) : localCache;
+        renderItems(container, displayItems);
         checkProxyStatus();
     }
 
     async function fetchAllFeeds() {
-        var allItems = [];
+        var fetchResults = [];
         
-        // Unified High-Speed Stream (V14 Zero-Lag Cache)
+        // Stream A: Priority Unified Proxy (V14)
         try {
             const res = await fetch(PROXY_BASE + '/api/news-v4-list?v=' + Date.now());
             if (res.ok) {
                 const data = await res.json();
-                allItems = data.items || [];
-                console.log("[Feed] ⚡ V14 Unified Sync Complete (" + allItems.length + " items)");
-            } else {
-                throw new Error("Proxy V4 API Fail");
-            }
+                fetchResults = data.items || [];
+                console.log("[V15] Proxy Sync Success (" + fetchResults.length + ")");
+            } else { throw new Error("Proxy Sleep"); }
         } catch (e) {
-            console.warn("[Feed] Unified sync failed, trying bridge fallback", e);
-            // Fallback: Try static bridge JSON ONLY if proxy fails
-            try {
-                const bridgeRes = await fetch('public/news.json?v=' + Date.now());
-                if (bridgeRes.ok) {
-                    const data = await bridgeRes.json();
-                    allItems = data.items || [];
-                    console.log("[Feed] 🐦 Twitter synced (Bridge Fallback)");
-                }
-            } catch (e2) {}
+            console.warn("[V15] Proxy Down/Sleep. Engaging Fallback...");
+            
+            // Stream B: Invincible Telegram Fallback (Direct via CORS-Proxy)
+            // This works even if Render is TOTALLY OFF.
+            const tgHandles = ['ajanews', 'alhadath_brk', 'AlArabiya', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic'];
+            await Promise.all(tgHandles.map(async h => {
+                try {
+                    // Using AllOrigins as a reliable free CORS bridge
+                    const corsUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://t.me/s/' + h);
+                    const res = await fetch(corsUrl);
+                    const data = await res.json();
+                    if (data.contents) {
+                        const html = data.contents;
+                        const chunks = html.split('<div class="tgme_widget_message_wrap');
+                        chunks.shift();
+                        chunks.forEach(msgHtml => {
+                            const textM = msgHtml.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+                            const timeM = msgHtml.match(/<time[^>]*datetime="([^"]*)"/);
+                            if (textM && timeM) {
+                                fetchResults.push({
+                                    title: textM[1].replace(/<[^>]+>/g, '').trim(),
+                                    source: 'telegram', sourceHandle: h, sourceName: h,
+                                    pubDate: new Date(timeM[1]).toISOString(),
+                                    link: 'https://t.me/s/' + h
+                                });
+                            }
+                        });
+                    }
+                } catch(err) {}
+            }));
         }
 
-        // Final Sort & Deduplication
-        allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-        const seen = new Set();
-        return allItems.filter(item => {
-            if (!item.title) return false; // Safety check
-            const key = item.title.substring(0, 50) + (item.sourceHandle || '');
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-        }).slice(0, 100);
+        return fetchResults;
     }
 
     function rotateMirror() {

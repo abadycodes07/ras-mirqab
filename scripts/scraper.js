@@ -84,11 +84,12 @@ async function scrape() {
             const c = m[1];
             const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
             const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
+            const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
             if (t) {
                 allResults.push({
                     title: t[1].replace(/<[^>]+>/g, '').trim(),
                     link: 'https://x.com/i/lists/' + LIST_ID,
-                    pubDate: new Date().toISOString(),
+                    pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
                     source: 'twitter', sourceHandle: h ? h[1] : 'News', sourceName: h ? h[1] : 'News'
                 });
             }
@@ -106,11 +107,12 @@ async function scrape() {
                 const c = m[1];
                 const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
                 const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
+                const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
                 if (t) {
                     allResults.push({
                         title: t[1].replace(/<[^>]+>/g, '').trim(),
                         link: 'https://x.com/i/lists/' + LIST_ID,
-                        pubDate: new Date().toISOString(),
+                        pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
                         source: 'twitter', sourceHandle: h ? h[1] : 'News', sourceName: h ? h[1] : 'News'
                     });
                 }
@@ -119,17 +121,17 @@ async function scrape() {
     }
 
     const combined = [...allResults, ...existingItems];
-    combined.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
     const seen = new Set();
-    const final = combined.filter(i => {
-        const k = (i.title || '').substring(0,80) + i.sourceHandle;
-        if (seen.has(k)) return false;
-        seen.add(k); return true;
-    }).slice(0, 200);
+    const final = combined.filter(item => {
+        const key = ((item.title || '') + (item.sourceHandle || '')).toLowerCase().substring(0, 150);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    }).sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)).slice(0, 200);
 
     if (final.length > 0) {
         fs.writeFileSync(outputPath, JSON.stringify({ items: final, lastUpdated: new Date().toISOString() }, null, 2));
-        console.log(`✅ [V9] Success. Saved ${final.length} cumulative items.`);
+        console.log(`✅ [V9.5] Success. Saved ${final.length} cumulative items.`);
     }
 }
 

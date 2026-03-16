@@ -74,20 +74,32 @@ function stealthFetch(url, useProxy = true) {
     }
 }
 
+// Helper for Cumulative Merging
+function mergeCache(existing, fresh, limit = 120) {
+    const combined = [...fresh, ...existing];
+    const seen = new Set();
+    return combined.filter(item => {
+        const key = ((item.title || '') + (item.sourceHandle || '')).toLowerCase().substring(0, 150);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    }).sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)).slice(0, limit);
+}
+
 async function updateTelegram() {
     const handles = ['ajanews', 'alhadath_brk', 'AlArabiya', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic'];
-    let localCache = [];
+    let localItems = [];
     
     for (const h of handles) {
         try {
-            const html = stealthFetch(`https://t.me/s/${h}`, false); // Direct for TG
+            const html = stealthFetch(`https://t.me/s/${h}`, false); 
             const chunks = html.split('<div class="tgme_widget_message_wrap');
             chunks.shift();
             for (const msgHtml of chunks) {
                 const textM = msgHtml.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
                 const timeM = msgHtml.match(/<time[^>]*datetime="([^"]*)"/);
                 if (textM && timeM) {
-                    localCache.push({
+                    localItems.push({
                         title: textM[1].replace(/<[^>]+>/g, '').trim(),
                         source: 'telegram', sourceHandle: h, sourceName: h,
                         pubDate: new Date(timeM[1]).toISOString(),
@@ -98,16 +110,16 @@ async function updateTelegram() {
             }
         } catch (e) {}
     }
-    if (localCache.length > 0) {
-        telegramCache = localCache.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)).slice(0, 60);
+    if (localItems.length > 0) {
+        telegramCache = mergeCache(telegramCache, localItems, 60);
     }
 }
 
 async function updateTwitter() {
-    console.log('📡 [V9] Twitter Stealth Cycle...');
-    let localCache = [];
+    console.log('📡 [V9.5] Twitter Cumulative Cycle...');
+    let localItems = [];
 
-    // Protocol 1: Parallel Syndicated Handles (Very Fast)
+    // Protocol 1: Parallel Syndicated Handles
     const handles = ['AlHadath', 'SkyNewsArabia_B', 'RT_Arabic', 'AsharqNewsBrk', 'alrougui'];
     const syncResults = await Promise.all(handles.map(async h => {
         try {
@@ -129,16 +141,16 @@ async function updateTwitter() {
             }).filter(Boolean);
         } catch (e) { return []; }
     }));
-    const p1Count = syncResults.flat().length;
-    if (p1Count > 0) {
-        localCache = [...localCache, ...syncResults.flat()];
-        console.log(`📡 [V9] P1 (Syndication) found ${p1Count} items`);
+    const p1Items = syncResults.flat();
+    if (p1Items.length > 0) {
+        localItems = [...localItems, ...p1Items];
+        console.log(`📡 [V9] P1 (Syndication) found ${p1Items.length} items`);
     }
 
     // Protocol 2: Solid Google Bridge (The "Iron" Layer)
     try {
         const bridgeUrl = "https://script.google.com/macros/s/AKfycbz19BN54zFLRdO0FQ-C2aDGx-AEYlYC_s04ke2MoYE53WNkjHVAfRLjHMik1VgABKwAEA/exec";
-        const xml = stealthFetch(bridgeUrl, false); // Direct fetch from Google Bridge
+        const xml = stealthFetch(bridgeUrl, false); 
         const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
         if (rssMatch.length > 0) {
             console.log(`📡 [V9] P2 (Google Bridge) found ${rssMatch.length} items`);
@@ -146,12 +158,13 @@ async function updateTwitter() {
                 const c = m[1];
                 const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
                 const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
+                const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
                 if (t) {
                     const handle = h ? h[1] : 'News';
-                    localCache.push({
+                    localItems.push({
                         title: t[1].replace(/<[^>]+>/g, '').trim(),
                         link: 'https://x.com/i/lists/' + LIST_ID,
-                        pubDate: new Date().toISOString(),
+                        pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
                         source: 'twitter', sourceHandle: handle, sourceName: handle,
                         customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
                     });
@@ -164,7 +177,7 @@ async function updateTwitter() {
 
     // Protocol 3: Multi-Bridge List RSS (Fallback)
     try {
-        if (localCache.length < 5) { // Only try others if P1/P2 failed
+        if (localItems.length < 5) { 
             const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
             const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`, true);
             const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
@@ -174,12 +187,13 @@ async function updateTwitter() {
                     const c = m[1];
                     const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
                     const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
+                    const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
                     if (t) {
                         const handle = h ? h[1] : 'News';
-                        localCache.push({
+                        localItems.push({
                             title: t[1].replace(/<[^>]+>/g, '').trim(),
                             link: 'https://x.com/i/lists/' + LIST_ID,
-                            pubDate: new Date().toISOString(),
+                            pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
                             source: 'twitter', sourceHandle: handle, sourceName: handle,
                             customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
                         });
@@ -189,9 +203,9 @@ async function updateTwitter() {
         }
     } catch(e) {}
 
-    if (localCache.length > 0) {
-        twitterCache = localCache.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)).slice(0, 100);
-        console.log(`✅ [V9] Twitter Stable: ${twitterCache.length}`);
+    if (localItems.length > 0) {
+        twitterCache = mergeCache(twitterCache, localItems, 120);
+        console.log(`✅ [V9.5] Twitter Cumulative: ${twitterCache.length}`);
     }
 }
 

@@ -52,7 +52,11 @@ async function scrape() {
     let allResults = [];
     
     // Protocol 1: Aggressive Parallel Fetching
-    const handles = ['AlHadath', 'AsharqNewsBrk', 'alrougui', 'SkyNewsArabia_B', 'RT_Arabic'];
+    const handles = [
+        'AlHadath', 'SkyNewsArabia_B', 'AlArabiya_Brk', 'AsharqNewsBrk', 
+        'AJELNEWS2475', 'alekhbariyaNews', 'alekhbariyaBRK', 
+        'RTonline_ar', 'alrougui', 'ajmubasher', 'modgovksa', 'NewsNow4USA'
+    ];
     for (const h of handles) {
         try {
             const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${h}`);

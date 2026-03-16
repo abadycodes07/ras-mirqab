@@ -218,33 +218,23 @@ async function updateTwitter() {
         }
     } catch (e) {}
 
-    // Protocol 2: Solid Google Bridge (The "Iron" Layer)
+    // Protocol 2: V13 DIY Master Bridge (The "Iron" Layer)
     try {
-        const bridgeUrl = "https://script.google.com/macros/s/AKfycbxzAUaL4x1dVU05FqVX9Gs7JjkJMbqX6pHRLXdzdG2sX79FQVECLsXqyzEvS6E6I75KeQ/exec";
-        const xml = stealthFetch(bridgeUrl, false); 
-        if (xml && xml.length > 100) {
-            const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-            if (rssMatch.length > 0) {
-                console.log(`📡 [V12] P2 (Google Bridge) found ${rssMatch.length} items`);
-                for (const m of rssMatch) {
-                    const c = m[1];
-                    const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
-                    const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
-                    const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                    if (t) {
-                        const handle = h ? h[1] : 'News';
-                        localItems.push({
-                            title: t[1].replace(/<[^>]+>/g, '').trim(),
-                            link: 'https://x.com/i/lists/' + LIST_ID,
-                            pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
-                            source: 'twitter', sourceHandle: handle, sourceName: handle,
-                            customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
-                        });
-                    }
-                }
+        const bridgeUrl = "https://script.google.com/macros/s/AKfycby5t9W-r49O270GqY-fN13Uf_c8Z5U9_m_Y0pL9A_r8A/exec"; // Placeholder: User needs to update this with their deploy URL
+        const responseData = stealthFetch(bridgeUrl, false); 
+        if (responseData) {
+            const data = JSON.parse(responseData);
+            if (data.status === "success" && data.items && data.items.length > 0) {
+                console.log(`📡 [V13] Master Bridge found ${data.items.length} items via ${data.source}`);
+                localItems = [...localItems, ...data.items.map(item => ({
+                    ...item,
+                    customAvatar: AVATAR_MAP[item.sourceHandle] || 'public/logos/default.png'
+                }))];
             }
         }
-    } catch(e) {}
+    } catch(e) {
+        console.log("⚠️ [V13] Master Bridge Fetch Failed:", e.message);
+    }
 
     // Protocol 3: V12 Recursive Mirror Failover (The "Swarm")
     if (localItems.length < 10) {

@@ -1,20 +1,22 @@
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 // Configuration
 const LIST_ID = "2031445708524421549";
 const RSSHUB_BRIDGES = [
     'https://rsshub.rssforever.com',
     'https://rsshub.moeyy.cn',
-    'https://rsshub.app',
-    'https://rss.shab.fun'
+    'https://rss.shab.fun',
+    'https://rss.owo.nz',
+    'https://rsshub.app'
 ];
 
 const NITTER_INSTANCES = [
-    'https://nitter.privacydev.net',
     'https://nitter.net',
     'https://nitter.cz',
     'https://nitter.it',
+    'https://nitter.unixfox.eu',
     'https://nitter.privacydev.net'
 ];
 
@@ -29,11 +31,10 @@ const AVATAR_MAP = {
     'NewsNow4USA': 'public/logos/newsnow.jpg',
     'modgovksa': 'public/logos/modgovksa2.png',
     'alrougui': 'public/logos/alrougui.jpg',
-    'alekhbariyaNews': 'public/logos/alekhbariya.jpg',
+    'alekhbariyabrk': 'public/logos/alekhbariya.jpg',
     'RTonline_ar': 'public/logos/rt.png',
     'AlArabiya_Brk': 'public/logos/alarabiya.png',
     'SkyNewsArabia_B': 'public/logos/skynews.png',
-    'RT_Arabic': 'public/logos/rt.png',
     'ajanews': 'public/logos/ajanews_new.png',
     'alhadath_brk': 'public/logos/alhadath3.png',
     'AlArabiya': 'public/logos/alarabiya.png',
@@ -42,38 +43,63 @@ const AVATAR_MAP = {
     'rt_arabic': 'public/logos/rt.png'
 };
 
-async function stealthFetch(url, customHeaders = {}) {
-    const ua = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+let proxyPool = [];
+
+async function refreshProxyPool() {
+    console.log('🔄 [Proxy] Refreshing pool...');
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
-        const response = await fetch(url, { 
-            headers: { 'User-Agent': ua, ...customHeaders },
-            signal: controller.signal 
-        });
-        clearTimeout(timeoutId);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.text();
-    } catch (e) { throw e; }
+        const res = execSync('curl -s "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=all&ssl=all&anonymity=all"').toString();
+        proxyPool = res.split('\n').map(p => p.trim()).filter(p => p && p.includes(':'));
+        console.log(`✅ [Proxy] Pool loaded: ${proxyPool.length} proxies.`);
+    } catch (e) {
+        console.warn('⚠️ [Proxy] Pool refresh failed.');
+    }
 }
 
-function parseListRSS(xml) {
+function stealthFetch(url, customHeaders = {}) {
+    const ua = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+    const proxy = proxyPool.length > 0 ? proxyPool[Math.floor(Math.random() * proxyPool.length)] : null;
+    
+    try {
+        const proxyCmd = proxy ? `-x http://${proxy}` : '';
+        const headersCmd = Object.entries({ 'User-Agent': ua, ...customHeaders })
+            .map(([k, v]) => `-H "${k}: ${v}"`).join(' ');
+        
+        const cmd = `curl -L ${proxyCmd} ${headersCmd} --connect-timeout 8 --max-time 15 "${url}"`;
+        const result = execSync(cmd).toString();
+        
+        if (result.includes('Rate limit exceeded') || result.includes('403 Forbidden')) {
+            throw new Error('Blocked/RateLimited');
+        }
+        return result;
+    } catch (e) {
+        // Direct fallback
+        const headersCmd = Object.entries({ 'User-Agent': ua, ...customHeaders })
+            .map(([k, v]) => `-H "${k}: ${v}"`).join(' ');
+        try {
+            return execSync(`curl -L ${headersCmd} --connect-timeout 5 --max-time 10 "${url}"`).toString();
+        } catch(e2) {
+            throw e2;
+        }
+    }
+}
+
+function parseRSS(xml) {
     const items = [];
     const itemMatch = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
     for (const match of itemMatch) {
         const content = match[1];
         const titleMatch = content.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || content.match(/<title>([\s\S]*?)<\/title>/);
-        let fullTitle = titleMatch ? titleMatch[1] : "";
         const linkMatch = content.match(/<link>([\s\S]*?)<\/link>/);
         const pubDateMatch = content.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
         const creatorMatch = content.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
         const descMatch = content.match(/<description>([\s\S]*?)<\/description>/);
         const imgMatch = descMatch ? descMatch[1].match(/<img[^>]+src="([^"]+)"/i) : null;
         
-        if (fullTitle && pubDateMatch) {
+        if ((titleMatch && pubDateMatch)) {
             const handle = creatorMatch ? creatorMatch[1] : 'News';
             items.push({
-                title: fullTitle.replace(/<[^>]+>/g, '').trim(),
+                title: titleMatch[1].replace(/<[^>]+>/g, '').trim(),
                 link: (linkMatch ? linkMatch[1] : '').replace(/nitter\.[a-z.]+/g, 'x.com'),
                 pubDate: new Date(pubDateMatch[1]).toISOString(),
                 source: 'twitter',
@@ -88,7 +114,9 @@ function parseListRSS(xml) {
 }
 
 async function scrape() {
-    console.log('🔄 [Twitter Scraper] Running Multi-Source stability fetch...');
+    console.log('🚀 [Twitter Scraper] Initiating V6 Resilient Scrape...');
+    await refreshProxyPool();
+    
     const outputPath = path.join(process.cwd(), 'public', 'news.json');
     let existingItems = [];
     try {
@@ -97,86 +125,71 @@ async function scrape() {
         }
     } catch (e) {}
 
-    const fetchTwitter = async () => {
-        let results = [];
-        // 1. Syndication
-        for (const handle of ['alrougui', 'AlHadath', 'AsharqNewsBrk']) {
-            try {
-                const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${handle}`;
-                const html = await stealthFetch(url, { 'Referer': 'https://platform.twitter.com/' });
-                const dataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
-                if (dataMatch) {
-                    const data = JSON.parse(dataMatch[1]);
-                    const tweets = data.props.pageProps.timeline.entries;
-                    const items = tweets.map(entry => {
-                        const t = entry.content.tweet;
-                        if (!t) return null;
-                        return {
-                            title: t.full_text,
-                            link: `https://x.com/${handle}/status/${t.id_str}`,
-                            pubDate: new Date(t.created_at).toISOString(),
-                            source: 'twitter',
-                            sourceHandle: handle,
-                            sourceName: handle,
-                            image: t.entities?.media?.[0]?.media_url_https || null,
-                            customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
-                        };
-                    }).filter(Boolean);
-                    results = [...results, ...items];
-                }
-            } catch (e) {}
-        }
+    let allResults = [];
 
-        // 2. RSSHub List
-        for (const bridge of RSSHUB_BRIDGES) {
-            try {
-                const xml = await stealthFetch(`${bridge}/twitter/list/${LIST_ID}`);
-                if (xml.includes('<item>')) {
-                    results = [...results, ...parseListRSS(xml)];
-                    if (results.length > 10) break;
-                }
-            } catch (e) {}
-        }
-
-        // 3. Nitter Fallback
-        if (results.length < 5) {
-            for (const instance of NITTER_INSTANCES) {
-                try {
-                    const xml = await stealthFetch(`${instance}/i/lists/${LIST_ID}/rss`);
-                    if (xml.includes('<item>')) {
-                        results = [...results, ...parseListRSS(xml)];
-                        if (results.length > 5) break;
-                    }
-                } catch (e) {}
+    // Strategy 1: Multi-Handle Syndication (Very Reliable with Proxy)
+    const handles = ['AlHadath', 'AsharqNewsBrk', 'alrougui', 'AlArabiya_Brk', 'SkyNewsArabia_B', 'RT_Arabic', 'alekhbariyabrk', 'ajmubasher', 'NewsNow4USA'];
+    for (const handle of handles) {
+        try {
+            console.log(`📡 [Syndication] Trying @${handle}...`);
+            const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${handle}`, { 'Referer': 'https://platform.twitter.com/' });
+            const dataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+            if (dataMatch) {
+                const data = JSON.parse(dataMatch[1]);
+                const tweets = data.props.pageProps.timeline.entries;
+                const items = tweets.map(entry => {
+                    const t = entry.content.tweet;
+                    if (!t) return null;
+                    return {
+                        title: t.full_text,
+                        link: `https://x.com/${handle}/status/${t.id_str}`,
+                        pubDate: new Date(t.created_at).toISOString(),
+                        source: 'twitter',
+                        sourceHandle: handle,
+                        sourceName: handle,
+                        image: t.entities?.media?.[0]?.media_url_https || null,
+                        customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
+                    };
+                }).filter(Boolean);
+                allResults = [...allResults, ...items];
             }
+        } catch (e) {
+            console.log(`  ❌ @${handle} failed`);
         }
-        return results;
-    };
+    }
 
-    try {
-        const newResults = await fetchTwitter();
-        console.log(`📡 Fetch finished. Found ${newResults.length} new potential items.`);
-
-        // Merge and deduplicate
-        const combined = [...newResults, ...existingItems];
-        combined.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
-        
-        const seen = new Set();
-        const finalItems = combined.filter(item => {
-            const key = (item.title || '').substring(0, 50) + item.sourceHandle;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-        }).slice(0, 150);
-
-        if (finalItems.length > 0) {
-            fs.writeFileSync(outputPath, JSON.stringify({ items: finalItems, lastUpdated: new Date().toISOString() }, null, 2));
-            console.log(`✅ [Twitter Scraper] Saved ${finalItems.length} items.`);
-        } else {
-            console.log('⚠️ [Twitter Scraper] No news found. Preserving existing file.');
+    // Strategy 2: List RSS (via mirrors)
+    if (allResults.length < 20) {
+        const potentialBridges = [...RSSHUB_BRIDGES, ...NITTER_INSTANCES.map(i => `${i}/i/lists/${LIST_ID}/rss`)];
+        for (const bridge of potentialBridges) {
+            try {
+                console.log(`📡 [Bridge] Trying ${bridge}...`);
+                const xml = stealthFetch(bridge);
+                if (xml.includes('<item>')) {
+                    allResults = [...allResults, ...parseRSS(xml)];
+                    if (allResults.length > 40) break;
+                }
+            } catch (e) {}
         }
-    } catch (err) {
-        console.error('❌ [Twitter Scraper] Failed:', err.message);
+    }
+
+    // Merge & Save
+    const combined = [...allResults, ...existingItems];
+    combined.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+    
+    const seen = new Set();
+    const finalItems = combined.filter(item => {
+        const key = (item.title || '').substring(0, 60) + item.sourceHandle;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    }).slice(0, 200);
+
+    if (finalItems.length > 0) {
+        fs.writeFileSync(outputPath, JSON.stringify({ items: finalItems, lastUpdated: new Date().toISOString() }, null, 2));
+        console.log(`✅ [Success] Generated ${finalItems.length} items.`);
+    } else {
+        console.log('⚠️ [Failure] No items found.');
     }
 }
 

@@ -1430,3 +1430,16 @@
 .bn-popup-source {
     font-weight: 800;
 }
+/* --- V11 Glow Fix --- */
+@keyframes v12PulseGlow {
+    0% { background: rgba(230, 126, 34, 0.05); box-shadow: inset 0 0 10px rgba(230, 126, 34, 0.1); }
+    50% { background: rgba(230, 126, 34, 0.2); box-shadow: inset 0 0 30px rgba(230, 126, 34, 0.3); }
+    100% { background: rgba(230, 126, 34, 0.05); box-shadow: inset 0 0 10px rgba(230, 126, 34, 0.1); }
+}
+
+.v12-pulse-glow {
+    animation: v12PulseGlow 1.5s ease-in-out infinite !important;
+    border-right: 4px solid #e67e22 !important;
+    background: rgba(230, 126, 34, 0.1) !important;
+    position: relative;
+}

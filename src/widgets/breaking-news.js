@@ -4,7 +4,7 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'http://localhost:3001';
+    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab-proxy.onrender.com';
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;

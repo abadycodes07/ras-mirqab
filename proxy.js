@@ -9,14 +9,38 @@ const PORT = process.env.PORT || 3001;
 // Configuration
 const REFRESH_INTERVAL = 30000; // 30 seconds - Highly efficient for single request
 const LIST_ID = "2031445708524421549";
+const RSSHUB_BRIDGES = [
+    'https://rsshub.app',
+    'https://rsshub.rssforever.com',
+    'https://rsshub.moeyy.cn',
+    'https://rss.shab.fun',
+    'https://rss.lilydjwg.me',
+    'https://rss.owo.nz',
+    'https://rss.injuly.in'
+];
+
 const NITTER_INSTANCES = [
-    'https://nitter.perennialte.ch',
-    'https://nitter.tiekoetter.com',
     'https://nitter.privacydev.net',
+    'https://nitter.net',
     'https://nitter.no-logs.com',
     'https://nitter.unixfox.eu',
-    'https://nitter.net' // Fallback
+    'https://nitter.cz',
+    'https://nitter.it',
+    'https://nitter.1d4.us',
+    'https://nitter.poast.org',
+    'https://nitter.lacistube.im',
+    'https://nitter.rawbit.ninja',
+    'https://nitter.moomoo.me'
 ];
+
+const USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1'
+];
+
+const PROXY_RETRY_LIMIT = 3;
 
 const AVATAR_MAP = {
     'AsharqNewsBrk': 'public/logos/asharq2.jpg',
@@ -127,6 +151,38 @@ function parseListRSS(xml) {
     return items;
 }
 
+/**
+ * Enhanced fetcher with rotation and stealth (Scrape.do style)
+ */
+async function stealthFetch(url, customHeaders = {}) {
+    const ua = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
+    const headers = {
+        'User-Agent': ua,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        ...customHeaders
+    };
+
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const response = await fetch(url, { 
+            headers, 
+            signal: controller.signal 
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return await response.text();
+    } catch (e) {
+        throw e;
+    }
+}
+
 async function fetchTelegram(handle) {
     try {
         const response = await fetch(`https://t.me/s/${handle}`, {
@@ -179,28 +235,52 @@ async function fetchTelegram(handle) {
 
 async function updateHybridCache() {
     const tgHandles = ['ajanews', 'alhadath_brk'];
-    const fetchTwitter = async (instance) => {
-        try {
-            const res = await fetch(`${instance}/i/lists/${LIST_ID}/rss`, {
-                headers: { 'User-Agent': 'Mozilla/5.0' }
-            });
-            if (!res.ok) return null;
-            const text = await res.text();
-            if (!text.includes('<rss')) return null;
-            return parseListRSS(text);
-        } catch (e) { return null; }
+    const fetchTwitter = async () => {
+        // Shuffle to distribute load and bypass IP-based patterns
+        const shuffledBridges = [...RSSHUB_BRIDGES].sort(() => Math.random() - 0.5);
+        const shuffledNitter = [...NITTER_INSTANCES].sort(() => Math.random() - 0.5);
+
+        // Attempt 1: RSSHub Bridges (High stability)
+        for (const bridge of shuffledBridges) {
+            try {
+                const url = `${bridge}/twitter/list/${LIST_ID}`;
+                console.log(`[RSSHub] 📡 Attempting bridge: ${bridge}`);
+                const xml = await stealthFetch(url);
+                if (xml.includes('<item>')) {
+                    console.log(`[RSSHub] ✅ Success from ${bridge}`);
+                    return parseListRSS(xml);
+                }
+            } catch (e) {
+                console.warn(`[RSSHub] ❌ Failed ${bridge}: ${e.message}`);
+                continue;
+            }
+        }
+
+        // Attempt 2: Nitter Instances (Fallback)
+        for (const instance of shuffledNitter) {
+            try {
+                const url = `${instance}/i/lists/${LIST_ID}/rss`;
+                console.log(`[Nitter] 📡 Attempting fallback: ${instance}`);
+                const xml = await stealthFetch(url);
+                if (xml.includes('<item>')) {
+                    console.log(`[Nitter] ✅ Success from ${instance}`);
+                    return parseListRSS(xml);
+                }
+            } catch (e) {
+                console.warn(`[Nitter] ❌ Failed ${instance}: ${e.message}`);
+                continue;
+            }
+        }
+        return null;
     };
 
     try {
-        const [tgResults, twMirrorResults] = await Promise.all([
+        const [tgResults, twitterResults] = await Promise.all([
             Promise.all(tgHandles.map(h => fetchTelegram(h))),
-            Promise.allSettled(NITTER_INSTANCES.map(m => fetchTwitter(m)))
+            fetchTwitter()
         ]);
 
-        let allTwitterItems = [];
-        twMirrorResults.forEach(res => {
-            if (res.status === 'fulfilled' && res.value) allTwitterItems = [...allTwitterItems, ...res.value];
-        });
+        let allTwitterItems = twitterResults || [];
 
         const combined = [...tgResults.flat(), ...allTwitterItems];
         combined.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));

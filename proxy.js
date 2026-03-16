@@ -64,8 +64,29 @@ const AVATAR_MAP = {
     'i24news-ar': 'public/logos/i24news.png',
     'sabq-org': 'public/logos/sabq.png',
     'ajanews': 'public/logos/ajanews_new.png',
-    'alhadath_brk': 'public/logos/alhadath3.png'
+    'alhadath_brk': 'public/logos/alhadath3.png',
+    'AlArabiya': 'public/logos/alarabiya.png',
+    'asharqnewsbrk': 'public/logos/asharq2.jpg',
+    'alekhbariyanews': 'public/logos/alekhbariya.jpg',
+    'rt_arabic': 'public/logos/rt.png'
 };
+
+let publicProxyList = [];
+
+/**
+ * Fetches a fresh list of free proxies
+ */
+async function refreshProxyList() {
+    try {
+        console.log('🔄 Refreshing Proxy Pool...');
+        const response = await fetch('https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=all&ssl=all&anonymity=all');
+        const text = await response.text();
+        publicProxyList = text.split('\n').map(p => p.trim()).filter(p => p && p.includes(':'));
+        console.log(`✅ Loaded ${publicProxyList.length} free proxies.`);
+    } catch (e) {
+        console.error('❌ Failed to fetch proxies:', e.message);
+    }
+}
 
 // Optimization: Track the best mirror
 let bestMirror = NITTER_INSTANCES[0];
@@ -152,35 +173,51 @@ function parseListRSS(xml) {
 }
 
 /**
- * Enhanced fetcher with rotation and stealth (Scrape.do style)
+ * Ultimate Stealth Fetcher with Proxy Support (Scrape.do Style)
  */
 async function stealthFetch(url, customHeaders = {}) {
     const ua = USER_AGENTS[Math.floor(Math.random() * USER_AGENTS.length)];
-    const headers = {
-        'User-Agent': ua,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        ...customHeaders
-    };
-
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        const response = await fetch(url, { 
-            headers, 
-            signal: controller.signal 
-        });
-        clearTimeout(timeoutId);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return await response.text();
-    } catch (e) {
-        throw e;
+    const useProxy = publicProxyList.length > 0 && Math.random() > 0.5; // Use proxy conditionally or as fallback
+    
+    // Attempt multiple times with rotation
+    for (let attempt = 0; attempt < 5; attempt++) {
+        const proxy = publicProxyList[Math.floor(Math.random() * publicProxyList.length)];
+        
+        try {
+            // Use native fetch if no proxy, otherwise use curl for easier proxy support
+            if (!useProxy && attempt === 0) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const response = await fetch(url, { 
+                    headers: { 'User-Agent': ua, ...customHeaders },
+                    signal: controller.signal 
+                });
+                clearTimeout(timeoutId);
+                if (response.status === 429 || response.status === 403) throw new Error(`Blocked ${response.status}`);
+                return await response.text();
+            } else {
+                // Use curl for proxy support on Render
+                const { execSync } = require('child_process');
+                const proxyCmd = proxy ? `-x http://${proxy}` : '';
+                const headersCmd = Object.entries({ 'User-Agent': ua, ...customHeaders })
+                    .map(([k, v]) => `-H "${k}: ${v}"`).join(' ');
+                
+                console.log(`📡 [Attempt ${attempt}] Fetching via ${proxy || 'direct'}...`);
+                // curl -L (follow redirects), -i (include headers), --connect-timeout
+                const cmd = `curl -L ${proxyCmd} ${headersCmd} --connect-timeout 5 --max-time 10 "${url}"`;
+                const result = execSync(cmd).toString();
+                
+                if (result.includes('Rate limit exceeded') || result.includes('403 Forbidden')) {
+                    throw new Error('Blocked/RateLimited');
+                }
+                return result;
+            }
+        } catch (e) {
+            console.warn(`[StealthFetch] ⚠️ Attempt ${attempt} failed: ${e.message}`);
+            // Move to next attempt/proxy
+        }
     }
+    throw new Error('All stealth attempts failed.');
 }
 
 async function fetchTelegram(handle) {
@@ -234,7 +271,8 @@ async function fetchTelegram(handle) {
 }
 
 async function updateHybridCache() {
-    const tgHandles = ['ajanews', 'alhadath_brk'];
+    const tgHandles = ['ajanews', 'alhadath_brk', 'AlArabiya', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic'];
+    if (publicProxyList.length < 5) await refreshProxyList();
     /**
      * Twitter Syndication Fetcher (High Stability)
      */

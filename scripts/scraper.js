@@ -75,12 +75,12 @@ async function scrape() {
         } catch (e) {}
     }
 
-    // Protocol 2: List RSS Fallback
-    const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
+    // Protocol 2: Solid Google Bridge (The "Iron" Layer)
     try {
-        const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`);
-        const entries = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
-        for (const m of entries) {
+        const bridgeUrl = "https://script.google.com/macros/s/AKfycby5zEAZmyEz_9juaCih69PnbxW35I-EuZx3Z7TCRYlAD38r20Bz4_TiOa53yBjBMeYQaA/exec";
+        const xml = stealthFetch(bridgeUrl); 
+        const matches = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
+        for (const m of matches) {
             const c = m[1];
             const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
             const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
@@ -94,6 +94,29 @@ async function scrape() {
             }
         }
     } catch (e) {}
+
+    // Protocol 3: List RSS Fallback
+    if (allResults.length < 10) {
+        const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
+        try {
+            console.log(`📡 [Bridge] Trying ${bridge}...`);
+            const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`);
+            const entries = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
+            for (const m of entries) {
+                const c = m[1];
+                const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
+                if (t) {
+                    allResults.push({
+                        title: t[1].replace(/<[^>]+>/g, '').trim(),
+                        link: 'https://x.com/i/lists/' + LIST_ID,
+                        pubDate: new Date().toISOString(),
+                        source: 'twitter', sourceHandle: h ? h[1] : 'News', sourceName: h ? h[1] : 'News'
+                    });
+                }
+            }
+        } catch (e) {}
+    }
 
     const combined = [...allResults, ...existingItems];
     combined.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));

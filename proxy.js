@@ -129,10 +129,10 @@ async function updateTwitter() {
     }));
     localCache = [...localCache, ...syncResults.flat()];
 
-    // Protocol 2: Multi-Bridge List RSS
+    // Protocol 2: Solid Google Bridge (The "Iron" Layer)
     try {
-        const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
-        const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`, true);
+        const bridgeUrl = "https://script.google.com/macros/s/AKfycby5zEAZmyEz_9juaCih69PnbxW35I-EuZx3Z7TCRYlAD38r20Bz4_TiOa53yBjBMeYQaA/exec";
+        const xml = stealthFetch(bridgeUrl, false); // Direct fetch from Google Bridge
         const rssMatch = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
         for (const m of rssMatch) {
             const c = m[1];
@@ -151,8 +151,29 @@ async function updateTwitter() {
         }
     } catch(e) {}
 
-    // Protocol 3: Google Apps Script Bridge (The "Solid" Layer) - Place holder for User
-    // If the user deploys the bridge, we add it here.
+    // Protocol 3: Multi-Bridge List RSS (Fallback)
+    try {
+        if (localCache.length < 10) {
+            const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
+            const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`, true);
+            const rssMatch = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
+            for (const m of rssMatch) {
+                const c = m[1];
+                const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
+                if (t) {
+                    const handle = h ? h[1] : 'News';
+                    localCache.push({
+                        title: t[1].replace(/<[^>]+>/g, '').trim(),
+                        link: 'https://x.com/i/lists/' + LIST_ID,
+                        pubDate: new Date().toISOString(),
+                        source: 'twitter', sourceHandle: handle, sourceName: handle,
+                        customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
+                    });
+                }
+            }
+        }
+    } catch(e) {}
 
     if (localCache.length > 0) {
         twitterCache = localCache.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)).slice(0, 100);

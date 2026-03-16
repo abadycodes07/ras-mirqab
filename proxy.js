@@ -28,7 +28,7 @@ const BROWSER_FINGERPRINTS = [
 
 const AVATAR_MAP = {
     'AsharqNewsBrk': 'public/logos/asharq2.jpg',
-    'AlHadath': 'public/logos/alhadath3.png',
+    'AlHadath': 'public/logos/hadath.png',
     'AlArabiya_Brk': 'public/logos/alarabiya.png',
     'SkyNewsArabia_B': 'public/logos/skynews.png',
     'RT_Arabic': 'public/logos/rt.png',

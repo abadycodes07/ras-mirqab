@@ -447,7 +447,7 @@ var BreakingNewsWidget = (function () {
             'NewsNow4USA': 'public/logos/newsnow.jpg',
             'modgovksa': 'public/logos/modgovksa2.png',
             'AsharqNewsBrk': 'public/logos/asharq2.jpg',
-            'AlHadath': 'public/logos/alhadath3.png',
+            'AlHadath': 'public/logos/hadath.png',
             'AlArabiya_Brk': 'public/logos/alarabiya.png',
             'SkyNewsArabia_B': 'public/logos/skynews.png',
             'RTonline_ar': 'public/logos/rt.png',
@@ -457,7 +457,7 @@ var BreakingNewsWidget = (function () {
             'SkyNewsArabia_Breaking': 'public/logos/skynews.png',
             'RT_Arabic': 'public/logos/rt.png',
             'ajanews': 'public/logos/ajanews_new.png',
-            'alhadath_brk': 'public/logos/alhadath3.png',
+            'alhadath_brk': 'public/logos/hadath.png',
             'i24news-ar': 'public/logos/i24news.png',
             'sabq-org': 'public/logos/sabq.png'
         };

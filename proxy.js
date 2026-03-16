@@ -124,12 +124,14 @@ function mergeCache(existing, fresh, limit = 120) {
 }
 
 async function updateTelegram() {
+    const start = Date.now();
     const handles = ['ajanews', 'alhadath_brk', 'AlArabiya', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic'];
     let localItems = [];
     
-    for (const h of handles) {
+    // Parallel Fetch for Extreme Velocity
+    await Promise.all(handles.map(async h => {
         try {
-            const html = stealthFetch(`https://t.me/s/${h}`, false); 
+            const html = stealthFetch(`https://t.me/s/${h}`, false); // Direct fetch only
             const chunks = html.split('<div class="tgme_widget_message_wrap');
             chunks.shift();
             for (const msgHtml of chunks) {
@@ -146,10 +148,13 @@ async function updateTelegram() {
                 }
             }
         } catch (e) {}
-    }
+    }));
+
     if (localItems.length > 0) {
-        telegramCache = mergeCache(telegramCache, localItems, 60);
+        telegramCache = mergeCache(telegramCache, localItems, 80);
         saveCache();
+        const duration = Date.now() - start;
+        console.log(`⚡ [V14] Telegram Instant: ${localItems.length} items fetched in ${duration}ms`);
     }
 }
 
@@ -287,18 +292,40 @@ async function updateTwitter() {
     }
 }
 
+// Optimization: Separated Loops for Speed
+async function startScrapers() {
+    await refreshProxyPool();
+    
+    // 1. Telegram: High-Priority Instant Loop (7s)
+    setInterval(async () => {
+        try {
+            await updateTelegram();
+        } catch (e) { console.log("⚠️ TG Loop Error:", e.message); }
+    }, TELEGRAM_INTERVAL);
+
+    // 2. Twitter: Stability-Focused Loop (60s)
+    setInterval(async () => {
+        try {
+            await updateTwitter();
+        } catch (e) { console.log("⚠️ TW Loop Error:", e.message); }
+    }, TWITTER_INTERVAL);
+
+    // Initial triggers
+    updateTelegram();
+    updateTwitter();
+}
+
 app.get('/api/news/telegram', (req, res) => res.json({ items: telegramCache }));
 app.get('/api/news/twitter', (req, res) => res.json({ items: twitterCache }));
-app.get('/api/news-v4-list', (req, res) => res.json({ items: [...telegramCache, ...twitterCache].sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)) }));
+app.get('/api/news-v4-list', (req, res) => {
+    // Zero-Lag: Serve directly from RAM cache
+    const combined = [...telegramCache, ...twitterCache].sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+    res.json({ items: combined });
+});
 app.get('/ping', (req, res) => res.send('pong'));
 
 // Boot
-setInterval(updateTelegram, TELEGRAM_INTERVAL);
-setInterval(updateTwitter, TWITTER_INTERVAL);
+startScrapers().catch(console.error);
 setInterval(refreshProxyPool, 600000);
 
-refreshProxyPool().then(() => {
-    updateTelegram();
-    updateTwitter();
-    app.listen(PORT, () => console.log(`🚀 V9 ENGINE LIVE`));
-});
+app.listen(PORT, () => console.log(`🚀 V14 ENGINE LIVE - Priority Telegram Active`));

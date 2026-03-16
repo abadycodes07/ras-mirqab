@@ -4,7 +4,6 @@
 
 const express = require('express');
 const { execSync } = require('child_process');
-const axios = require('axios');
 const app = express();
 const PORT = process.env.PORT || 3001;
 

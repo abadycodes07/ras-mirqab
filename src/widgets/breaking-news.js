@@ -346,9 +346,9 @@ var BreakingNewsWidget = (function () {
         // NEW: Save to localStorage for next time
         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(items));
 
-        // V11.2: Limit to top 4 for mobile precisely
+        // V11.2: Limit to top 20 for mobile (4 was too few)
         if (window.innerWidth <= 768) {
-            items = items.slice(0, 4);
+            items = items.slice(0, 20);
         }
 
         localCache = items;
@@ -417,7 +417,8 @@ var BreakingNewsWidget = (function () {
         allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
         const seen = new Set();
         return allItems.filter(item => {
-            const key = item.title.substring(0, 50) + item.sourceHandle;
+            if (!item.title) return false; // Safety check
+            const key = item.title.substring(0, 50) + (item.sourceHandle || '');
             if (seen.has(key)) return false;
             seen.add(key);
             return true;

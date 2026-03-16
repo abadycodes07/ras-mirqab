@@ -137,55 +137,68 @@ async function updateTelegram() {
 }
 
 async function updateTwitter() {
-    console.log('📡 [V9.5] Twitter Cumulative Cycle...');
+    console.log('📡 [V10] Twitter Hyper-Resilient Cycle...');
     let localItems = [];
 
-    // Protocol 1: Parallel Syndicated Handles
-    const handles = ['AlHadath', 'SkyNewsArabia_B', 'RT_Arabic', 'AsharqNewsBrk', 'alrougui'];
-    const syncResults = await Promise.all(handles.map(async h => {
+    // Protocol 1: Hybrid Syndication (Direct + Proxy)
+    const directHandles = ['AlHadath', 'SkyNewsArabia_B', 'AjelNews24'];
+    const proxyHandles = ['RT_Arabic', 'AsharqNewsBrk', 'alrougui', 'SABQ_NEWS'];
+    
+    // 1a. Fast Direct Fetch (No Proxy) - 100% Reliability for key channels
+    for (const h of directHandles) {
         try {
-            const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${h}`, true);
+            const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${h}`, false);
             const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
-            if (!match) return [];
-            const data = JSON.parse(match[1]);
-            return data.props.pageProps.timeline.entries.map(e => {
-                const t = e.content.tweet;
-                if (!t) return null;
-                return {
-                    title: t.full_text,
-                    link: `https://x.com/${h}/status/${t.id_str}`,
-                    pubDate: new Date(t.created_at).toISOString(),
-                    source: 'twitter', sourceHandle: h, sourceName: h,
-                    image: t.entities?.media?.[0]?.media_url_https || null,
-                    customAvatar: AVATAR_MAP[h] || 'public/logos/default.png'
-                };
-            }).filter(Boolean);
-        } catch (e) { return []; }
-    }));
-    const p1Items = syncResults.flat();
-    if (p1Items.length > 0) {
-        localItems = [...localItems, ...p1Items];
-        console.log(`📡 [V9] P1 (Syndication) found ${p1Items.length} items`);
-    } else {
-        // Emergency Fallback: Try top 2 handles direct (No Proxy) if all proxies timed out
-        console.log(`📡 [V9] P1 Proxies timed out. Trying Emergency Direct Fetch...`);
-        const emergencyHandles = ['AlHadath', 'SkyNewsArabia_B'];
-        for (const h of emergencyHandles) {
-            try {
-                const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${h}`, false);
-                const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
-                if (match) {
-                    const data = JSON.parse(match[1]);
-                    const tweets = data.props.pageProps.timeline.entries.map(e => {
-                        const t = e.content.tweet;
-                        if (!t) return null;
-                        return { title: t.full_text, link: `https://x.com/${h}/status/${t.id_str}`, pubDate: new Date(t.created_at).toISOString(), source: 'twitter', sourceHandle: h, sourceName: h, customAvatar: AVATAR_MAP[h] || 'public/logos/default.png' };
-                    }).filter(Boolean);
+            if (match) {
+                const data = JSON.parse(match[1]);
+                const tweets = data.props.pageProps.timeline.entries.map(e => {
+                    const t = e.content.tweet;
+                    if (!t) return null;
+                    return {
+                        title: t.full_text,
+                        link: `https://x.com/${h}/status/${t.id_str}`,
+                        pubDate: new Date(t.created_at).toISOString(),
+                        source: 'twitter', sourceHandle: h, sourceName: h,
+                        image: t.entities?.media?.[0]?.media_url_https || null,
+                        customAvatar: AVATAR_MAP[h] || 'public/logos/default.png'
+                    };
+                }).filter(Boolean);
+                if (tweets.length > 0) {
                     localItems = [...localItems, ...tweets];
+                    console.log(`📡 [V10] P1a (Direct) ${h}: ${tweets.length} items`);
                 }
-            } catch (e) {}
-        }
+            }
+        } catch (e) {}
     }
+
+    // 1b. Parallel Proxy Fetch (Supporting handles)
+    try {
+        const syncResults = await Promise.all(proxyHandles.map(async h => {
+            try {
+                const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${h}`, true);
+                const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+                if (!match) return [];
+                const data = JSON.parse(match[1]);
+                return data.props.pageProps.timeline.entries.map(e => {
+                    const t = e.content.tweet;
+                    if (!t) return null;
+                    return {
+                        title: t.full_text,
+                        link: `https://x.com/${h}/status/${t.id_str}`,
+                        pubDate: new Date(t.created_at).toISOString(),
+                        source: 'twitter', sourceHandle: h, sourceName: h,
+                        image: t.entities?.media?.[0]?.media_url_https || null,
+                        customAvatar: AVATAR_MAP[h] || 'public/logos/default.png'
+                    };
+                }).filter(Boolean);
+            } catch (e) { return []; }
+        }));
+        const p1b = syncResults.flat();
+        if (p1b.length > 0) {
+            localItems = [...localItems, ...p1b];
+            console.log(`📡 [V10] P1b (Proxy) found ${p1b.length} items`);
+        }
+    } catch (e) {}
 
     // Protocol 2: Solid Google Bridge (The "Iron" Layer)
     try {
@@ -193,7 +206,7 @@ async function updateTwitter() {
         const xml = stealthFetch(bridgeUrl, false); 
         const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
         if (rssMatch.length > 0) {
-            console.log(`📡 [V9] P2 (Google Bridge) found ${rssMatch.length} items`);
+            console.log(`📡 [V10] P2 (Google Bridge) found ${rssMatch.length} items`);
             for (const m of rssMatch) {
                 const c = m[1];
                 const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
@@ -211,42 +224,42 @@ async function updateTwitter() {
                 }
             }
         }
-    } catch(e) {
-        console.log(`❌ [V9] P2 Error: ${e.message}`);
-    }
-
-    // Protocol 3: Multi-Bridge List RSS (Fallback)
-    try {
-        if (localItems.length < 5) { 
-            const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
-            const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`, true);
-            const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-            if (rssMatch.length > 0) {
-                console.log(`📡 [V9] P3 (RSS Bridge) found ${rssMatch.length} items`);
-                for (const m of rssMatch) {
-                    const c = m[1];
-                    const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
-                    const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
-                    const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                    if (t) {
-                        const handle = h ? h[1] : 'News';
-                        localItems.push({
-                            title: t[1].replace(/<[^>]+>/g, '').trim(),
-                            link: 'https://x.com/i/lists/' + LIST_ID,
-                            pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
-                            source: 'twitter', sourceHandle: handle, sourceName: handle,
-                            customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
-                        });
-                    }
-                }
-            }
-        }
     } catch(e) {}
+
+    // Protocol 3: Nitter RSS Direct Fallback (Emergency Mirroring)
+    if (localItems.length < 5) {
+        const nitterMirrors = ['https://nitter.net', 'https://nitter.privacydev.net', 'https://nitter.dafrary.com'];
+        for (const mirror of nitterMirrors) {
+            try {
+                const xml = stealthFetch(`${mirror}/i/lists/${LIST_ID}/rss`, false);
+                const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+                if (items.length > 0) {
+                    console.log(`📡 [V10] P3 (Nitter Direct) found ${items.length} items via ${mirror}`);
+                    for (const m of items) {
+                        const c = m[1];
+                        const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                        const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+                        const l = c.match(/<link>([\s\S]*?)<\/link>/);
+                        if (t) {
+                            localItems.push({
+                                title: t[1].replace(/<[^>]+>/g, '').trim(),
+                                link: l ? l[1] : `https://x.com/i/lists/${LIST_ID}`,
+                                pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
+                                source: 'twitter', sourceHandle: 'News', sourceName: 'News',
+                                customAvatar: 'public/logos/default.png'
+                            });
+                        }
+                    }
+                    if (localItems.length > 5) break;
+                }
+            } catch (e) {}
+        }
+    }
 
     if (localItems.length > 0) {
         twitterCache = mergeCache(twitterCache, localItems, 120);
         saveCache();
-        console.log(`✅ [V9.5] Twitter Cumulative: ${twitterCache.length}`);
+        console.log(`✅ [V10] Twitter Stable: ${twitterCache.length}`);
     }
 }
 

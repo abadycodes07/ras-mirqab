@@ -135,7 +135,7 @@ var BreakingNewsWidget = (function () {
         refreshTimer = setInterval(function() {
             loadNews();
             fetchDiagnostics();
-        }, 30000); 
+        }, 120000); 
 
         checkProxyStatus();
 

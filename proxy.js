@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Configuration
-const REFRESH_INTERVAL = 30000; // 30 seconds - Highly efficient for single request
+const REFRESH_INTERVAL = 120000; // 2 minutes - Optimized for the new rotating scraper
 const LIST_ID = "2031445708524421549";
 const RSSHUB_BRIDGES = [
     'https://rsshub.app',

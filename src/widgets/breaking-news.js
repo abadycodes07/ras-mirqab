@@ -145,7 +145,7 @@ var BreakingNewsWidget = (function () {
         refreshTimer = setInterval(function() {
             loadNews();
             fetchDiagnostics();
-        }, 15000); // 15 seconds for "Instant" feel
+        }, 7000); // 7 seconds for "Instant" feel
 
         checkProxyStatus();
 

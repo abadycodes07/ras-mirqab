@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3001;
 
 // Configuration
 const LIST_ID = "2031445708524421549";
-const TELEGRAM_INTERVAL = 15000; 
+const TELEGRAM_INTERVAL = 7000; 
 const TWITTER_INTERVAL = 120000; 
 
 const RSSHUB_BRIDGES = [

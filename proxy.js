@@ -40,8 +40,28 @@ const AVATAR_MAP = {
 
 // Global State
 let proxyPool = [];
+const fs = require('fs');
+const path = require('path');
+
+const CACHE_FILE = path.join(__dirname, 'news_cache_v9.json');
 let telegramCache = [];
 let twitterCache = [];
+
+// Load persisted cache on startup
+try {
+    if (fs.existsSync(CACHE_FILE)) {
+        const saved = JSON.parse(fs.readFileSync(CACHE_FILE));
+        telegramCache = saved.telegram || [];
+        twitterCache = saved.twitter || [];
+        console.log(`💾 [V9] Loaded persisted cache: TG(${telegramCache.length}), TW(${twitterCache.length})`);
+    }
+} catch(e) { console.log("❌ Cache load error:", e.message); }
+
+function saveCache() {
+    try {
+        fs.writeFileSync(CACHE_FILE, JSON.stringify({ telegram: telegramCache, twitter: twitterCache }));
+    } catch(e) {}
+}
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -112,6 +132,7 @@ async function updateTelegram() {
     }
     if (localItems.length > 0) {
         telegramCache = mergeCache(telegramCache, localItems, 60);
+        saveCache();
     }
 }
 
@@ -205,6 +226,7 @@ async function updateTwitter() {
 
     if (localItems.length > 0) {
         twitterCache = mergeCache(twitterCache, localItems, 120);
+        saveCache();
         console.log(`✅ [V9.5] Twitter Cumulative: ${twitterCache.length}`);
     }
 }

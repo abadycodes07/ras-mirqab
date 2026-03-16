@@ -1222,7 +1222,7 @@
 /* ─── 3-Column Item Design ─── */
 .item-v12-inner-ref {
     display: grid;
-    grid-template-columns: 100px 1fr 100px;
+    grid-template-columns: 110px 1fr 110px;
     padding: 15px;
     gap: 15px;
     align-items: center;
@@ -1230,10 +1230,19 @@
     transition: all 0.3s ease;
     background: #000;
     cursor: pointer;
+    min-height: 130px; /* Force consistent height so media "sticks" in place */
 }
 
 .item-v12-inner-ref:hover {
     background: rgba(255,255,255,0.03);
+}
+
+.v12-col-left {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 110px;
+    flex-shrink: 0;
 }
 
 .v12-thumbnail {
@@ -1269,8 +1278,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     text-align: center;
+    width: 110px;
+    flex-shrink: 0;
 }
 
 .v12-source-logo-container {

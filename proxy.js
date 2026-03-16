@@ -222,62 +222,78 @@ async function updateTwitter() {
     try {
         const bridgeUrl = "https://script.google.com/macros/s/AKfycbxzAUaL4x1dVU05FqVX9Gs7JjkJMbqX6pHRLXdzdG2sX79FQVECLsXqyzEvS6E6I75KeQ/exec";
         const xml = stealthFetch(bridgeUrl, false); 
-        const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-        if (rssMatch.length > 0) {
-            console.log(`📡 [V10] P2 (Google Bridge) found ${rssMatch.length} items`);
-            for (const m of rssMatch) {
-                const c = m[1];
-                const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
-                const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
-                const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                if (t) {
-                    const handle = h ? h[1] : 'News';
-                    localItems.push({
-                        title: t[1].replace(/<[^>]+>/g, '').trim(),
-                        link: 'https://x.com/i/lists/' + LIST_ID,
-                        pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
-                        source: 'twitter', sourceHandle: handle, sourceName: handle,
-                        customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
-                    });
+        if (xml && xml.length > 100) {
+            const rssMatch = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+            if (rssMatch.length > 0) {
+                console.log(`📡 [V12] P2 (Google Bridge) found ${rssMatch.length} items`);
+                for (const m of rssMatch) {
+                    const c = m[1];
+                    const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                    const h = c.match(/<dc:creator>@?([\w_]+)<\/dc:creator>/);
+                    const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+                    if (t) {
+                        const handle = h ? h[1] : 'News';
+                        localItems.push({
+                            title: t[1].replace(/<[^>]+>/g, '').trim(),
+                            link: 'https://x.com/i/lists/' + LIST_ID,
+                            pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
+                            source: 'twitter', sourceHandle: handle, sourceName: handle,
+                            customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
+                        });
+                    }
                 }
             }
         }
     } catch(e) {}
 
-    // Protocol 3: Nitter RSS Direct Fallback (Emergency Mirroring)
-    if (localItems.length < 5) {
-        const nitterMirrors = ['https://nitter.net', 'https://nitter.privacydev.net', 'https://nitter.dafrary.com'];
-        for (const mirror of nitterMirrors) {
+    // Protocol 3: V12 Recursive Mirror Failover (The "Swarm")
+    if (localItems.length < 10) {
+        console.log("📡 [V12] Low item count. Engaging Swarm Failover...");
+        const swarmMirrors = [
+            `https://rsshub.app/twitter/list/${LIST_ID}`,
+            `https://rsshub.rssforever.com/twitter/list/${LIST_ID}`,
+            `https://rss.owo.nz/twitter/list/${LIST_ID}`,
+            `https://nitter.net/i/lists/${LIST_ID}/rss`,
+            `https://nitter.privacydev.net/i/lists/${LIST_ID}/rss`,
+            `https://nitter.dafrary.com/i/lists/${LIST_ID}/rss`
+        ];
+
+        for (const url of swarmMirrors) {
             try {
-                const xml = stealthFetch(`${mirror}/i/lists/${LIST_ID}/rss`, false);
-                const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-                if (items.length > 0) {
-                    console.log(`📡 [V10] P3 (Nitter Direct) found ${items.length} items via ${mirror}`);
-                    for (const m of items) {
-                        const c = m[1];
-                        const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
-                        const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                        const l = c.match(/<link>([\s\S]*?)<\/link>/);
-                        if (t) {
-                            localItems.push({
-                                title: t[1].replace(/<[^>]+>/g, '').trim(),
-                                link: l ? l[1] : `https://x.com/i/lists/${LIST_ID}`,
-                                pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
-                                source: 'twitter', sourceHandle: 'News', sourceName: 'News',
-                                customAvatar: 'public/logos/default.png'
-                            });
+                const xml = stealthFetch(url, true);
+                if (xml && xml.length > 500 && !xml.includes("Rate limit")) {
+                    const matches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+                    if (matches.length > 0) {
+                        console.log(`✅ [V12] Swarm Success via ${url.substring(0,30)}... (${matches.length} items)`);
+                        for (const m of matches) {
+                            const c = m[1];
+                            const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                            const l = c.match(/<link>([\s\S]*?)<\/link>/);
+                            const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+                            if (t && l) {
+                                localItems.push({
+                                    title: t[1].replace(/<[^>]+>/g, '').trim(),
+                                    link: l[1].replace('nitter.net', 'x.com'),
+                                    pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
+                                    source: 'twitter', sourceHandle: 'List', sourceName: 'Twitter List',
+                                    customAvatar: 'public/logos/default.png'
+                                });
+                            }
                         }
+                        break; // Stop swarm if successful
                     }
-                    if (localItems.length > 5) break;
                 }
             } catch (e) {}
         }
     }
 
     if (localItems.length > 0) {
-        twitterCache = mergeCache(twitterCache, localItems, 120);
+        // V12: Persistent Cumulative Guard (Max 300 items)
+        twitterCache = mergeCache(twitterCache, localItems, 300);
         saveCache();
-        console.log(`✅ [V10] Twitter Stable: ${twitterCache.length}`);
+        console.log(`✅ [V12] Twitter Sync Stable: ${twitterCache.length} items in cache.`);
+    } else {
+        console.log("⚠️ [V12] Full Cycle Failed. Retaining previous cache.");
     }
 }
 

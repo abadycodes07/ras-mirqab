@@ -389,23 +389,28 @@ var BreakingNewsWidget = (function () {
             console.warn("[Feed] Telegram sync failed", e);
         }
 
-        // Stream 2: Stable Twitter (from GitHub Bridge)
+        // Stream 2: Live Twitter (from Render Proxy - Primary)
         try {
-            const bridgeRes = await fetch('public/news.json?v=' + Date.now());
-            if (bridgeRes.ok) {
-                const data = await bridgeRes.json();
-                allItems = allItems.concat(data.items || []);
-                console.log("[Feed] 🐦 Twitter synced (Bridge)");
+            const twRes = await fetch(PROXY_BASE + '/api/news/twitter?v=' + Date.now());
+            if (twRes.ok) {
+                const data = await twRes.json();
+                if (data.items && data.items.length > 0) {
+                    allItems = allItems.concat(data.items);
+                    console.log("[Feed] 🐦 Twitter synced (Live)");
+                }
+            } else {
+                throw new Error("Proxy Twitter API Fail");
             }
         } catch (e) {
-            // Fallback for Twitter if Bridge fails
+            // Fallback: Try static bridge JSON ONLY if proxy fails
             try {
-                const twRes = await fetch(PROXY_BASE + '/api/news/twitter?v=' + Date.now());
-                if (twRes.ok) {
-                    const data = await twRes.json();
+                const bridgeRes = await fetch('public/news.json?v=' + Date.now());
+                if (bridgeRes.ok) {
+                    const data = await bridgeRes.json();
                     allItems = allItems.concat(data.items || []);
+                    console.log("[Feed] 🐦 Twitter synced (Bridge Fallback)");
                 }
-            } catch(e2) {}
+            } catch (e2) {}
         }
 
         // Final Sort & Deduplication

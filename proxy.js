@@ -166,6 +166,25 @@ async function updateTwitter() {
     if (p1Items.length > 0) {
         localItems = [...localItems, ...p1Items];
         console.log(`📡 [V9] P1 (Syndication) found ${p1Items.length} items`);
+    } else {
+        // Emergency Fallback: Try top 2 handles direct (No Proxy) if all proxies timed out
+        console.log(`📡 [V9] P1 Proxies timed out. Trying Emergency Direct Fetch...`);
+        const emergencyHandles = ['AlHadath', 'SkyNewsArabia_B'];
+        for (const h of emergencyHandles) {
+            try {
+                const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${h}`, false);
+                const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+                if (match) {
+                    const data = JSON.parse(match[1]);
+                    const tweets = data.props.pageProps.timeline.entries.map(e => {
+                        const t = e.content.tweet;
+                        if (!t) return null;
+                        return { title: t.full_text, link: `https://x.com/${h}/status/${t.id_str}`, pubDate: new Date(t.created_at).toISOString(), source: 'twitter', sourceHandle: h, sourceName: h, customAvatar: AVATAR_MAP[h] || 'public/logos/default.png' };
+                    }).filter(Boolean);
+                    localItems = [...localItems, ...tweets];
+                }
+            } catch (e) {}
+        }
     }
 
     // Protocol 2: Solid Google Bridge (The "Iron" Layer)

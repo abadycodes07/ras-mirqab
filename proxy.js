@@ -235,8 +235,57 @@ async function fetchTelegram(handle) {
 
 async function updateHybridCache() {
     const tgHandles = ['ajanews', 'alhadath_brk'];
+    /**
+     * Twitter Syndication Fetcher (High Stability)
+     */
+    const fetchTwitterSyndication = async (username) => {
+        try {
+            const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${username}`;
+            const html = await stealthFetch(url, {
+                'Referer': 'https://platform.twitter.com/',
+                'Origin': 'https://platform.twitter.com'
+            });
+            
+            // Extract JSON from the __NEXT_DATA__ block or direct parsing
+            const dataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+            if (!dataMatch) return null;
+            
+            const data = JSON.parse(dataMatch[1]);
+            const tweets = data.props.pageProps.timeline.entries;
+            
+            return tweets.map(entry => {
+                const t = entry.content.tweet;
+                if (!t) return null;
+                return {
+                    title: t.full_text,
+                    link: `https://x.com/${username}/status/${t.id_str}`,
+                    pubDate: new Date(t.created_at).toISOString(),
+                    source: 'twitter',
+                    sourceName: username,
+                    sourceHandle: username,
+                    image: t.entities?.media?.[0]?.media_url_https || null,
+                    customAvatar: AVATAR_MAP[username] || 'public/logos/default.png'
+                };
+            }).filter(Boolean);
+        } catch (e) {
+            console.warn(`[Syndication] ❌ Failed for ${username}: ${e.message}`);
+            return null;
+        }
+    };
+
     const fetchTwitter = async () => {
-        // Shuffle to distribute load and bypass IP-based patterns
+        // High Priority: Syndication API (per handle for critical ones)
+        const criticalHandles = ['alrougui', 'AlHadath', 'AsharqNewsBrk'];
+        let results = [];
+        
+        for (const handle of criticalHandles) {
+            const items = await fetchTwitterSyndication(handle);
+            if (items) results = [...results, ...items];
+        }
+
+        if (results.length > 5) return results;
+
+        // Shuffle to distribute load
         const shuffledBridges = [...RSSHUB_BRIDGES].sort(() => Math.random() - 0.5);
         const shuffledNitter = [...NITTER_INSTANCES].sort(() => Math.random() - 0.5);
 
@@ -281,7 +330,8 @@ async function updateHybridCache() {
         ]);
 
         let allTwitterItems = twitterResults || [];
-
+        
+        // Remove duplicates and sort
         const combined = [...tgResults.flat(), ...allTwitterItems];
         combined.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 

@@ -65,8 +65,11 @@ function stealthFetch(url, useProxy = true) {
     try {
         const proxyCmd = proxy ? `-x http://${proxy}` : '';
         const cmd = `curl -L ${proxyCmd} -H "User-Agent: ${ua}" --connect-timeout 8 --max-time 15 "${url}"`;
-        return execSync(cmd).toString();
+        const res = execSync(cmd).toString();
+        if (!useProxy) console.log(`📡 [DirectFetch] ${url.substring(0,60)}... | Length: ${res.length}`);
+        return res;
     } catch (e) {
+        if (!useProxy) console.log(`❌ [DirectFetch] Error fetching ${url.substring(0,40)}: ${e.message}`);
         return '';
     }
 }

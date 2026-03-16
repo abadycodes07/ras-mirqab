@@ -1,0 +1,30 @@
+name: Scrape News
+
+on:
+  schedule:
+    - cron: '*/10 * * * *' # Every 10 minutes
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Run Scraper
+        run: node scripts/scraper.js
+        
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/news.json
+          git commit -m "Update news.json [skip ci]" || echo "No changes to commit"
+          git push

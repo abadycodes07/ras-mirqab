@@ -366,14 +366,30 @@ var BreakingNewsWidget = (function () {
 
     async function fetchAllFeeds() {
         try {
-            const res = await fetch(PROXY_BASE + '/api/news-v4-list');
-            if (!res.ok) return [];
-            const data = await res.json();
-            return data.items || [];
+            // Priority 1: GitHub-Powered Static Bridge (Always Online)
+            // Use the relative path so it works everywhere the project is deployed
+            const bridgeRes = await fetch('public/news.json?v=' + Date.now());
+            if (bridgeRes.ok) {
+                const data = await bridgeRes.json();
+                console.log("[Bridge] ✅ News loaded from public/news.json");
+                return data.items || [];
+            }
         } catch (e) {
-            console.error("Cache fetch failed:", e);
-            return [];
+            console.warn("[Bridge] ⚠️ Bridge fetch failed, trying proxy fallback...");
         }
+
+        try {
+            // Fallback 2: Local/Render Proxy
+            const res = await fetch(PROXY_BASE + '/api/news-v4-list');
+            if (res.ok) {
+                const data = await res.json();
+                console.log("[Proxy] ✅ News loaded from proxy");
+                return data.items || [];
+            }
+        } catch (e) {
+            console.error("Proxy fetch failed:", e);
+        }
+        return [];
     }
 
     function rotateMirror() {

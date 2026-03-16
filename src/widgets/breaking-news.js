@@ -89,6 +89,16 @@ var BreakingNewsWidget = (function () {
         };
     }
 
+    // V7 Render Keep-Alive: Ping the proxy every 45s to prevent spin-down
+    function startHeartbeat() {
+        setInterval(function() {
+            fetch('https://ras-mirqab-proxy.onrender.com/ping')
+                .then(function() { console.log('💓 Proxy Heartbeat OK'); })
+                .catch(function(e) { console.warn('💔 Proxy Heartbeat Failed', e); });
+        }, 45000);
+    }
+    startHeartbeat();
+
     function init() {
         var gearBtn = document.getElementById('bn-gear-btn-ref');
         if (gearBtn) gearBtn.addEventListener('click', toggleSettings);

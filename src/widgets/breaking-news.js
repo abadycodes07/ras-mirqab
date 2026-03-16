@@ -135,7 +135,7 @@ var BreakingNewsWidget = (function () {
         refreshTimer = setInterval(function() {
             loadNews();
             fetchDiagnostics();
-        }, 120000); 
+        }, 15000); // 15 seconds for "Instant" feel
 
         checkProxyStatus();
 
@@ -365,31 +365,48 @@ var BreakingNewsWidget = (function () {
     }
 
     async function fetchAllFeeds() {
+        var allItems = [];
+        
+        // Stream 1: Real-Time Telegram (from Render Proxy)
         try {
-            // Priority 1: GitHub-Powered Static Bridge (Always Online)
-            // Use the relative path so it works everywhere the project is deployed
+            const tgRes = await fetch(PROXY_BASE + '/api/news/telegram?v=' + Date.now());
+            if (tgRes.ok) {
+                const data = await tgRes.json();
+                allItems = allItems.concat(data.items || []);
+                console.log("[Feed] ⚡ Telegram synced (Live)");
+            }
+        } catch (e) {
+            console.warn("[Feed] Telegram sync failed", e);
+        }
+
+        // Stream 2: Stable Twitter (from GitHub Bridge)
+        try {
             const bridgeRes = await fetch('public/news.json?v=' + Date.now());
             if (bridgeRes.ok) {
                 const data = await bridgeRes.json();
-                console.log("[Bridge] ✅ News loaded from public/news.json");
-                return data.items || [];
+                allItems = allItems.concat(data.items || []);
+                console.log("[Feed] 🐦 Twitter synced (Bridge)");
             }
         } catch (e) {
-            console.warn("[Bridge] ⚠️ Bridge fetch failed, trying proxy fallback...");
+            // Fallback for Twitter if Bridge fails
+            try {
+                const twRes = await fetch(PROXY_BASE + '/api/news/twitter?v=' + Date.now());
+                if (twRes.ok) {
+                    const data = await twRes.json();
+                    allItems = allItems.concat(data.items || []);
+                }
+            } catch(e2) {}
         }
 
-        try {
-            // Fallback 2: Local/Render Proxy
-            const res = await fetch(PROXY_BASE + '/api/news-v4-list');
-            if (res.ok) {
-                const data = await res.json();
-                console.log("[Proxy] ✅ News loaded from proxy");
-                return data.items || [];
-            }
-        } catch (e) {
-            console.error("Proxy fetch failed:", e);
-        }
-        return [];
+        // Final Sort & Deduplication
+        allItems.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+        const seen = new Set();
+        return allItems.filter(item => {
+            const key = item.title.substring(0, 50) + item.sourceHandle;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        }).slice(0, 100);
     }
 
     function rotateMirror() {

@@ -346,57 +346,55 @@ async function updateHybridCache() {
         // Attempt 2: Nitter Instances (Fallback)
         for (const instance of shuffledNitter) {
             try {
-                const url = `${instance}/i/lists/${LIST_ID}/rss`;
-                console.log(`[Nitter] 📡 Attempting fallback: ${instance}`);
-                const xml = await stealthFetch(url);
-                if (xml.includes('<item>')) {
-                    console.log(`[Nitter] ✅ Success from ${instance}`);
-                    return parseListRSS(xml);
-                }
-            } catch (e) {
-                console.warn(`[Nitter] ❌ Failed ${instance}: ${e.message}`);
-                continue;
-            }
+                const xml = await stealthFetch(`${bridge}/twitter/list/${LIST_ID}`);
+                if (xml.includes('<item>')) return parseListRSS(xml);
+            } catch (e) {}
         }
         return null;
     };
 
     try {
-        const [tgResults, twitterResults] = await Promise.all([
-            Promise.all(tgHandles.map(h => fetchTelegram(h))),
-            fetchTwitter()
+        const [criticalItems, listItems] = await Promise.all([
+            Promise.all(['alrougui', 'AlHadath', 'AsharqNewsBrk'].map(h => fetchTwitterSyndication(h))),
+            fetchList()
         ]);
 
-        let allTwitterItems = twitterResults || [];
+        const combined = [...criticalItems.flat().filter(Boolean), ...(listItems || [])];
+        combined.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
         
-        // Remove duplicates and sort
-        const combined = [...tgResults.flat(), ...allTwitterItems];
-        combined.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
         const seen = new Set();
-        listNewsCache = combined.filter(item => {
-            const key = item.title.substring(0, 60) + (item.sourceHandle || 'news');
+        twitterCache = combined.filter(item => {
+            const key = item.title.substring(0, 50) + item.sourceHandle;
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
-        }).slice(0, 150);
-    } catch (err) {}
+        }).slice(0, 100);
+        console.log(`✅ [Twitter] Stable cache updated: ${twitterCache.length} items.`);
+    } catch (e) {
+        console.error('❌ [Twitter] Loop failed:', e.message);
+    }
 }
 
+// Routes
+app.get('/api/news/telegram', (req, res) => res.json({ items: telegramCache }));
+app.get('/api/news/twitter', (req, res) => res.json({ items: twitterCache }));
+
+// Legacy unified endpoint for backward compatibility
 app.get('/api/news-v4-list', (req, res) => {
-    res.json({ items: listNewsCache });
+    const combined = [...telegramCache, ...twitterCache].sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
+    res.json({ items: combined });
 });
 
-app.get('/api/news-diagnostics', (req, res) => {
-    res.json({ sourceHealth: sourceHealth });
-});
+app.get('/api/news-diagnostics', (req, res) => res.json({ sourceHealth: sourceHealth }));
+app.get('/health', (req, res) => res.status(200).json({ status: 'healthy' }));
 
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'healthy' });
-});
+// Start Loops
+setInterval(updateTelegramLoop, TELEGRAM_INTERVAL);
+setInterval(updateTwitterLoop, TWITTER_INTERVAL);
 
-setInterval(updateHybridCache, 30000); 
-updateHybridCache();
+// Initial Runs
+updateTelegramLoop();
+updateTwitterLoop();
 
 app.listen(PORT, () => {
     console.log(`📡 V5 TURBO-HYBRID ENGINE ACTIVE ON PORT ${PORT}`);

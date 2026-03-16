@@ -71,12 +71,13 @@ async function stealthFetch(url, customHeaders = {}) {
         'User-Agent': ua,
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
         ...customHeaders
     };
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
         const response = await fetch(url, { headers, signal: controller.signal });
         clearTimeout(timeoutId);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -108,11 +109,14 @@ function parseListRSS(xml) {
         const desc = descMatch ? descMatch[1] : "";
         const imgMatch = desc.match(/<img[^>]+src="([^"]+)"/i);
         let mediaUrl = imgMatch ? imgMatch[1] : null;
+
         if (mediaUrl && mediaUrl.startsWith('/')) {
             const mirrorBase = link.match(/^(https?:\/\/[^\/]+)/)?.[1];
             if (mirrorBase) mediaUrl = mirrorBase + mediaUrl;
         }
+
         link = link.replace(/nitter\.[a-z.]+/g, 'x.com');
+
         if (fullTitle && pubDate) {
             items.push({
                 title: fullTitle.replace(/<[^>]+>/g, '').trim(),
@@ -129,136 +133,82 @@ function parseListRSS(xml) {
     return items;
 }
 
-async function fetchTelegram(handle) {
-    try {
-        const html = await stealthFetch(`https://t.me/s/${handle}`);
-        const results = [];
-        const messages = html.matchAll(/<div class="tgme_widget_message_wrap[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g);
-        for (const msgMatch of messages) {
-            const msgHtml = msgMatch[1];
-            const textMatch = msgHtml.match(/<div class="tgme_widget_message_text[^>]*>([\s\S]*?)<\/div>/);
-            const text = textMatch ? textMatch[1].replace(/<[^>]+>/g, '').trim() : null;
-            const timeMatch = msgHtml.match(/<time[^>]*datetime="([^"]*)"/);
-            const time = timeMatch ? timeMatch[1] : null;
-            const photoMatch = msgHtml.match(/tgme_widget_message_photo_wrap[^>]*style="background-image:url\('([^']+)'\)"/i) || msgHtml.match(/<img[^>]+src="([^"]+)"/i);
-            const mediaUrl = photoMatch ? photoMatch[1] : null;
-
-            if (text && time) {
-                results.push({
-                    title: text.substring(0, 500),
-                    source: 'telegram',
-                    sourceName: handle,
-                    sourceHandle: handle,
-                    pubDate: new Date(time).toISOString(),
-                    link: `https://t.me/s/${handle}`,
-                    image: (handle === 'ajanews' || handle === 'alhadath_brk') ? AVATAR_MAP[handle] : mediaUrl,
-                    customAvatar: AVATAR_MAP[handle] || AVATAR_MAP[handle.toLowerCase()] || 'public/logos/default.png'
+async function scrape() {
+    console.log('🔄 [Twitter Scraper] Starting fetch...');
+    
+    // We focus on Twitter List stability here
+    const fetchTwitter = async () => {
+        const criticalHandles = ['alrougui', 'AlHadath', 'AsharqNewsBrk'];
+        let results = [];
+        
+        for (const handle of criticalHandles) {
+            try {
+                console.log(`📡 [Syndication] Trying @${handle}...`);
+                const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${handle}`;
+                const html = await stealthFetch(url, {
+                    'Referer': 'https://platform.twitter.com/',
+                    'Origin': 'https://platform.twitter.com'
                 });
+                const dataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+                if (dataMatch) {
+                    const data = JSON.parse(dataMatch[1]);
+                    const tweets = data.props.pageProps.timeline.entries;
+                    const items = tweets.map(entry => {
+                        const t = entry.content.tweet;
+                        if (!t) return null;
+                        return {
+                            title: t.full_text,
+                            link: `https://x.com/${handle}/status/${t.id_str}`,
+                            pubDate: new Date(t.created_at).toISOString(),
+                            source: 'twitter',
+                            sourceName: handle,
+                            sourceHandle: handle,
+                            image: t.entities?.media?.[0]?.media_url_https || null,
+                            customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
+                        };
+                    }).filter(Boolean);
+                    results = [...results, ...items];
+                }
+            } catch (e) {
+                console.warn(`[Syndication] ❌ @${handle} failed`);
             }
         }
-        return results.reverse().slice(0, 15);
-    } catch (e) {
-        console.error(`Telegram fetch failed for ${handle}: ${e.message}`);
-        return [];
+
+        // List Fallbacks
+        const shuffledBridges = [...RSSHUB_BRIDGES].sort(() => Math.random() - 0.5);
+        for (const bridge of shuffledBridges) {
+            try {
+                console.log(`📡 [RSSHub] Trying ${bridge}...`);
+                const xml = await stealthFetch(`${bridge}/twitter/list/${LIST_ID}`);
+                if (xml.includes('<item>')) {
+                    results = [...results, ...parseListRSS(xml)];
+                    break;
+                }
+            } catch (e) {}
+        }
+        return results;
+    };
+
+    try {
+        const twitterResults = await fetchTwitter();
+        twitterResults.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+        const seen = new Set();
+        const finalItems = twitterResults.filter(item => {
+            const key = item.title.substring(0, 60) + (item.sourceHandle || 'news');
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        }).slice(0, 100);
+
+        const outputPath = path.join(process.cwd(), 'public', 'news.json');
+        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+        fs.writeFileSync(outputPath, JSON.stringify({ items: finalItems, lastUpdated: new Date().toISOString() }, null, 2));
+        console.log(`✅ [Twitter Scraper] Saved ${finalItems.length} items to ${outputPath}`);
+    } catch (err) {
+        console.error('❌ [Twitter Scraper] CRITICAL FAILURE:', err);
+        process.exit(1);
     }
 }
 
-async function scrape() {
-    const tgHandles = ['ajanews', 'alhadath_brk', 'AlArabiya', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic'];
-    
-    console.log('🔄 Starting Scrape...');
-    const tgPromises = tgHandles.map(h => fetchTelegram(h));
-    
-    /**
-     * Twitter Syndication Fetcher (High Stability)
-     */
-    const fetchTwitterSyndication = async (username) => {
-        try {
-            const url = `https://syndication.twitter.com/srv/timeline-profile/screen-name/${username}`;
-            const html = await stealthFetch(url, {
-                'Referer': 'https://platform.twitter.com/',
-                'Origin': 'https://platform.twitter.com'
-            });
-            const dataMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
-            if (!dataMatch) return null;
-            const data = JSON.parse(dataMatch[1]);
-            const tweets = data.props.pageProps.timeline.entries;
-            return tweets.map(entry => {
-                const t = entry.content.tweet;
-                if (!t) return null;
-                return {
-                    title: t.full_text,
-                    link: `https://x.com/${username}/status/${t.id_str}`,
-                    pubDate: new Date(t.created_at).toISOString(),
-                    source: 'twitter',
-                    sourceName: username,
-                    sourceHandle: username,
-                    image: t.entities?.media?.[0]?.media_url_https || null,
-                    customAvatar: AVATAR_MAP[username] || 'public/logos/default.png'
-                };
-            }).filter(Boolean);
-        } catch (e) {
-            console.warn(`[Syndication] ❌ Failed for ${username}: ${e.message}`);
-            return null;
-        }
-    };
-
-    const fetchTwitter = async () => {
-        // High Priority: Syndication API (per handle for critical ones)
-        const criticalHandles = ['alrougui', 'AlHadath', 'AsharqNewsBrk'];
-        let results = [];
-        for (const handle of criticalHandles) {
-            const items = await fetchTwitterSyndication(handle);
-            if (items) results = [...results, ...items];
-        }
-        if (results.length > 3) {
-            console.log(`✅ Syndication success: ${results.length} items`);
-            return results;
-        }
-
-        const shuffledBridges = [...RSSHUB_BRIDGES].sort(() => Math.random() - 0.5);
-        const shuffledNitter = [...NITTER_INSTANCES].sort(() => Math.random() - 0.5);
-
-        for (const bridge of shuffledBridges) {
-            try {
-                console.log(`📡 Trying RSSHub: ${bridge}`);
-                const xml = await stealthFetch(`${bridge}/twitter/list/${LIST_ID}`);
-                if (xml.includes('<item>')) return parseListRSS(xml);
-            } catch (e) {}
-        }
-        for (const instance of shuffledNitter) {
-            try {
-                console.log(`📡 Trying Nitter: ${instance}`);
-                const xml = await stealthFetch(`${instance}/i/lists/${LIST_ID}/rss`);
-                if (xml.includes('<item>')) return parseListRSS(xml);
-            } catch (e) {}
-        }
-        return [];
-    };
-
-    const [tgResults, twitterResults] = await Promise.all([
-        Promise.all(tgPromises),
-        fetchTwitter()
-    ]);
-
-    const combined = [...tgResults.flat(), ...twitterResults];
-    combined.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
-    const seen = new Set();
-    const finalItems = combined.filter(item => {
-        const key = item.title.substring(0, 60) + (item.sourceHandle || 'news');
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    }).slice(0, 100);
-
-    const outputPath = path.join(process.cwd(), 'public', 'news.json');
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    fs.writeFileSync(outputPath, JSON.stringify({ items: finalItems, lastUpdated: new Date().toISOString() }, null, 2));
-    console.log(`✅ Successfully saved ${finalItems.length} items to ${outputPath}`);
-}
-
-scrape().catch(err => {
-    console.error('❌ Scrape failed:', err);
-    process.exit(1);
-});
+scrape();

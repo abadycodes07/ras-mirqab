@@ -4,9 +4,8 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    // V17.2 HARD-SYNC: Force default proxy to eliminate old experiment pollution
-    if (localStorage.getItem('rasmirqab_proxy')) localStorage.removeItem('rasmirqab_proxy');
-    var PROXY_BASE = 'https://ras-mirqab-proxy.onrender.com';
+    var STORAGE_KEY = 'rasmirqab_custom_sources';
+    // V18 DIRECT-PULSE: Proxy-free architecture
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;
@@ -14,10 +13,6 @@ var BreakingNewsWidget = (function () {
     var isFirstLoad = true;
     var settingsOpen = false;
     var localCache = [];
-    var consecutiveFailures = 0;
-    var isProxyLive = true;
-    var sourceStatusMap = {};
-    var sourceDiagnostics = {}; // Stores { handle: timestamp }
     var hiddenSources = new Set(JSON.parse(localStorage.getItem('rasmirqab_hidden_sources') || '[]'));
     var currentMirrorIndex = 0;
     var NITTER_MIRRORS = [
@@ -91,15 +86,7 @@ var BreakingNewsWidget = (function () {
         };
     }
 
-    // V7 Render Keep-Alive: Ping the proxy every 45s to prevent spin-down
-    function startHeartbeat() {
-        setInterval(function() {
-            fetch('https://ras-mirqab-proxy.onrender.com/ping')
-                .then(function() { console.log('💓 Proxy Heartbeat OK'); })
-                .catch(function(e) { console.warn('💔 Proxy Heartbeat Failed', e); });
-        }, 45000);
-    }
-    startHeartbeat();
+    // Proxy heartbeat removed in V18
 
     function init() {
         var gearBtn = document.getElementById('bn-gear-btn-ref');
@@ -141,15 +128,10 @@ var BreakingNewsWidget = (function () {
 
         renderSourceList();
         loadNews();
-        fetchDiagnostics();
-
         if (refreshTimer) clearInterval(refreshTimer);
         refreshTimer = setInterval(function() {
             loadNews();
-            fetchDiagnostics();
         }, 7000); // 7 seconds for "Instant" feel
-
-        checkProxyStatus();
 
         // Initialize Hover Popup
         if (!document.querySelector('.bn-hover-popup')) {
@@ -177,35 +159,7 @@ var BreakingNewsWidget = (function () {
         }
     }
 
-    function checkProxyStatus() {
-        fetch(PROXY_BASE + '/health')
-            .then(function () {
-                isProxyLive = true;
-                consecutiveFailures = 0;
-                var dot = document.getElementById('bn-live-dot');
-                if (dot) dot.style.background = '#2ecc71';
-            })
-            .catch(function () {
-                consecutiveFailures++;
-                if (consecutiveFailures > 3) {
-                    isProxyLive = false;
-                    var dot = document.getElementById('bn-live-dot');
-                    if (dot) dot.style.background = '#e74c3c';
-                }
-            });
-    }
-
-    async function fetchDiagnostics() {
-        try {
-            const res = await fetch(PROXY_BASE + '/api/news-diagnostics');
-            if (!res.ok) return;
-            const data = await res.json();
-            sourceDiagnostics = data.sourceHealth || {};
-            renderSourceList();
-        } catch (e) {
-            console.error("Diagnostics fetch failed", e);
-        }
-    }
+    // Diagnostics removed in V18 to ensure maximum speed
 
     function addSource(url) {
         if (!url) return;
@@ -276,19 +230,13 @@ var BreakingNewsWidget = (function () {
         var all = hardcoded.concat(sources);
         var html = '';
         all.forEach(function (s, i) {
-            var lastSeen = sourceDiagnostics[s.handle] || 0;
-            var diffMin = lastSeen ? Math.floor((Date.now() - lastSeen) / 60000) : null;
-            
-            var statusColor = '#888';
-            var statusText = 'انتظار';
+            var statusColor = '#2ecc71';
+            var statusText = 'مباشر';
             
             if (s.type === 'telegram') {
-                statusColor = '#2ecc71';
                 statusText = 'مباشر (Telegram)';
-            } else if (lastSeen) {
-                if (diffMin < 30) { statusColor = '#2ecc71'; statusText = 'نشط (' + diffMin + 'د)'; }
-                else if (diffMin < 120) { statusColor = '#f1c40f'; statusText = 'خامل (' + diffMin + 'د)'; }
-                else { statusColor = '#e74c3c'; statusText = 'منقطع'; }
+            } else if (s.type === 'twitter') {
+                statusText = 'مباشر (𝕏/RSS)';
             }
 
             var isSelected = s.fixed;
@@ -387,46 +335,70 @@ var BreakingNewsWidget = (function () {
     async function fetchAllFeeds() {
         var fetchResults = [];
         
-        // Stream A: Priority Unified Proxy (V14)
-        try {
-            const res = await fetch(PROXY_BASE + '/api/news-v4-list?v=' + Date.now());
-            if (res.ok) {
+        // 🚀 V18 DIRECT-PULSE: Direct Browser Scraping
+        // Pool of high-speed free CORS bridges
+        var CORS_BRIDGES = [
+            'https://api.allorigins.win/get?url=',
+            'https://cors-anywhere.herokuapp.com/', // Needs temporary access
+            'https://thingproxy.freeboard.io/fetch/'
+        ];
+
+        // 📡 Stream A: Direct Telegram (High-Priority)
+        const tgHandles = ['ajanews', 'alhadath_brk', 'AlArabiya', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic', 'SABQ_NEWS', 'AjelNews24'];
+        await Promise.all(tgHandles.map(async h => {
+            try {
+                const res = await fetch(CORS_BRIDGES[0] + encodeURIComponent('https://t.me/s/' + h));
                 const data = await res.json();
-                fetchResults = data.items || [];
-                console.log("[V17.2] SECURE-SYNC CONNECTED! Items: " + fetchResults.length);
-            } else { throw new Error("HTTP " + res.status); }
-        } catch (e) {
-            console.warn("[V15] Proxy Down/Sleep. Engaging Fallback...");
-            
-            // Stream B: Invincible Telegram Fallback (Direct via CORS-Proxy)
-            // This works even if Render is TOTALLY OFF.
-            const tgHandles = ['ajanews', 'alhadath_brk', 'AlArabiya', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic'];
-            await Promise.all(tgHandles.map(async h => {
-                try {
-                    // Using AllOrigins as a reliable free CORS bridge
-                    const corsUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://t.me/s/' + h);
-                    const res = await fetch(corsUrl);
-                    const data = await res.json();
-                    if (data.contents) {
-                        const html = data.contents;
-                        const chunks = html.split('<div class="tgme_widget_message_wrap');
-                        chunks.shift();
-                        chunks.forEach(msgHtml => {
-                            const textM = msgHtml.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
-                            const timeM = msgHtml.match(/<time[^>]*datetime="([^"]*)"/);
-                            if (textM && timeM) {
-                                fetchResults.push({
-                                    title: textM[1].replace(/<[^>]+>/g, '').trim(),
-                                    source: 'telegram', sourceHandle: h, sourceName: h,
-                                    pubDate: new Date(timeM[1]).toISOString(),
-                                    link: 'https://t.me/s/' + h
-                                });
-                            }
-                        });
-                    }
-                } catch(err) {}
-            }));
-        }
+                if (data.contents) {
+                    const html = data.contents;
+                    const chunks = html.split('<div class="tgme_widget_message_wrap');
+                    chunks.shift();
+                    chunks.forEach(msgHtml => {
+                        const textM = msgHtml.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+                        const timeM = msgHtml.match(/<time[^>]*datetime="([^"]*)"/);
+                        if (textM && timeM) {
+                            fetchResults.push({
+                                title: textM[1].replace(/<[^>]+>/g, '').trim(),
+                                source: 'telegram', sourceHandle: h, sourceName: h,
+                                pubDate: new Date(timeM[1]).toISOString(),
+                                link: 'https://t.me/' + h
+                            });
+                        }
+                    });
+                }
+            } catch(err) {}
+        }));
+
+        // 📰 Stream B: Direct RSS (Official Feeds)
+        const rssFeeds = [
+            { h: 'AlHadath', u: 'https://www.alhadath.net/static/struct/rss/alarabiya-breaking.xml' },
+            { h: 'AlArabiya', u: 'https://www.alarabiya.net/.mrss/ar/breaking-news.xml' },
+            { h: 'SkyNewsArabia_B', u: 'https://www.skynewsarabia.com/web/rss/breaking-news.xml' }
+        ];
+
+        await Promise.all(rssFeeds.map(async f => {
+            try {
+                const res = await fetch(CORS_BRIDGES[0] + encodeURIComponent(f.u));
+                const data = await res.json();
+                if (data.contents) {
+                    const xml = data.contents;
+                    const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
+                    items.forEach(itemXml => {
+                        const titleM = itemXml.match(/<title>([\s\S]*?)<\/title>/);
+                        const linkM = itemXml.match(/<link>([\s\S]*?)<\/link>/);
+                        const dateM = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+                        if (titleM && linkM) {
+                            fetchResults.push({
+                                title: titleM[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim(),
+                                link: linkM[1].trim(),
+                                pubDate: dateM ? new Date(dateM[1]).toISOString() : new Date().toISOString(),
+                                source: 'twitter', sourceHandle: f.h, sourceName: f.h
+                            });
+                        }
+                    });
+                }
+            } catch(e) {}
+        }));
 
         return fetchResults;
     }

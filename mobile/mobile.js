@@ -5,25 +5,27 @@
  */
 
 const MobileApp = {
-    version: 'v39',
+    version: 'v41',
     isAudioUnlocked: false,
     
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V39: MOCKUP PARITY ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V41: DESKTOP SYNC ---');
         
         // 1. Initialize Globe
         if (window.RasMirqabGlobe) {
             RasMirqabGlobe.init();
         }
 
-        // 2. Initialize Self-Contained Modules
-        this.initNews();
+        // 2. Initialize Desktop News Engine
+        this.initDesktopNews();
+
+        // 3. Initialize Shared Modules
         this.initTV();
         this.initWidgets();
         this.bindEvents();
         this.initAudioGuard();
         
-        document.body.classList.add('v38-ready');
+        document.body.classList.add('v41-ready');
     },
 
     initAudioGuard: function() {
@@ -49,33 +51,29 @@ const MobileApp = {
         document.addEventListener('touchstart', unlock);
     },
 
-    // ═══ NEWS MODULE (Independent) ═══
-    initNews: async function() {
-        const container = document.getElementById('breaking-news-body');
-        if (!container) return;
+    // ═══ NEWS MODULE (Desktop Engine Sync) ═══
+    initDesktopNews: function() {
+        if (!window.BreakingNewsWidget) {
+            console.error("❌ BreakingNewsWidget not found!");
+            return;
+        }
 
-        try {
-            // Fetch directly from the scraper output
-            const resp = await fetch('../public/news.json?v=' + Date.now());
-            const data = await resp.json();
-            const items = data.items || data; // Handle both array and object formats
+        // Override the Desktop Renderer for Mobile Compact Look
+        window.BreakingNewsWidget.renderItems = (items) => {
+            const container = document.getElementById('breaking-news-body');
+            if (!container) return;
 
-            if (!items || items.length === 0) throw new Error("No news items");
-
-            // Render exactly 3 items to match mockup perfection
-            container.innerHTML = items.slice(0, 3).map((item, idx) => {
-                const time = new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                // Handle various media fields
-                const thumb = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : '../public/logos/default.png');
-                
-                // Clean source handle for logo mapping
+            // Mockup Layout (V39 Compact - Updated for V41)
+            container.innerHTML = items.slice(0, 5).map(item => {
+                const timeStr = new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const handle = (item.sourceHandle || 'default').toLowerCase();
                 const sourceLogo = `../public/logos/${handle}.jpg`;
-                
+                const thumb = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : '../public/logos/default.png');
+
                 return `
                     <div class="news-item" onclick="window.open('${item.link}', '_blank')">
                         <div class="ni-left-stack">
-                            <span class="ni-time">${time}</span>
+                            <span class="ni-time">${timeStr}</span>
                             <img src="${sourceLogo}" class="ni-source-logo" onerror="this.src='../public/logos/default.png'">
                         </div>
                         <div class="ni-content">
@@ -87,11 +85,10 @@ const MobileApp = {
                     </div>
                 `;
             }).join('');
+        };
 
-        } catch (err) {
-            console.warn("News Fetch Error:", err);
-            container.innerHTML = '<div class="error-state">لا يوجد أخبار حالياً</div>';
-        }
+        // Start the Engine (This handles the actual fetching/polling)
+        window.BreakingNewsWidget.init();
     },
 
     // ═══ LIVE TV MODULE (Independent) ═══

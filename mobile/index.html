@@ -7,9 +7,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
   <title>راس مرقاب — رصد الأخبار العالمية</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-  <!-- Our styles -->
+  
   <link rel="stylesheet" href="mobile.css">
   <link rel="stylesheet" href="../src/styles/widgets.css">
   
@@ -23,33 +24,53 @@
   <script src="../src/data/intelligence.js"></script>
   <script src="../src/data/timezones.js"></script>
   <script src="../src/globe.js"></script>
-  <script src="../src/widgets/breaking-news.js?v=216"></script>
-
+  <script src="../src/widgets/breaking-news.js?v=218"></script>
+  
+  <!-- Widget Scripts -->
+  <script defer src="../src/widgets/live-tv.js?v=11"></script>
+  <script defer src="../src/widgets/live-webcams.js?v=11"></script>
+  <script defer src="../src/widgets/world-clock.js?v=11"></script>
+  <script defer src="../src/widgets/gold-silver.js?v=11"></script>
+  <script defer src="../src/widgets/sanctions-trade.js?v=11"></script>
+  <script defer src="../src/widgets/cyber-intel.js?v=11"></script>
+  <script defer src="../src/widgets/health-bio.js?v=11"></script>
+  <script defer src="../src/widgets/military-aircraft.js?v=11"></script>
+  <script defer src="../src/widgets/commodities.js?v=11"></script>
+  <script defer src="../src/widgets/market-overview.js?v=11"></script>
+  <script defer src="../src/widgets/conflict-monitor.js?v=11"></script>
 </head>
-<body>
+<body class="mobile-v19">
 
-  <!-- ═══ HEADER (Top Left Logo & Bell) ═══ -->
+  <!-- ═══ HEADER ═══ -->
   <header class="header">
-    <div class="header-content">
-      <img src="../public/logo.png" class="header-logo" alt="Logo">
-      <div class="bell-btn" id="btn-notifications-mobile" title="إخفاء الكل / HIDE ALL">🔔</div>
+    <div class="header-left">
+      <div id="btn-notifications-mobile" class="bell-btn" title="الإشعارات">
+        <svg viewBox="0 0 24 24" class="svg-icon">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
     </div>
-    <div id="mobile-header-clock" class="header-clock"></div>
+    <div class="header-right">
+       <span class="header-brand">راس مرقاب</span>
+       <img src="../public/logo.png" class="header-logo" alt="Logo">
+    </div>
+    <!-- Internal logic clock -->
+    <div id="mobile-header-clock" style="display:none;"></div>
   </header>
 
-  <!-- ═══ GLOBE HERO (40% height) ═══ -->
+  <!-- ═══ GLOBE HERO ═══ -->
   <section class="globe-section" id="globe-section">
     <div id="globe-container"></div>
+    <div id="map-container" class="hidden"></div>
     
-    <!-- Layers Modal (Floating Modal) -->
+    <!-- Floating Layers Modal -->
     <div id="layers-modal" class="layers-modal hidden">
       <div class="modal-header">
         <span>الطبقات</span>
         <span class="close-modal" id="close-layers">✕</span>
       </div>
-      <div class="layers-scroll" id="layers-list">
-        <!-- Dynamically populated -->
-      </div>
+      <div class="layers-scroll" id="layers-list"></div>
     </div>
 
     <!-- Globe Controls -->
@@ -61,112 +82,144 @@
         </div>
       </div>
       <div class="right-controls">
-        <div class="mode-toggle">
-          <button class="mode-btn" id="btn-2d">2D</button>
-          <button class="mode-btn active" id="btn-3d">3D</button>
+        <div class="mode-toggle-group">
+            <div class="mode-toggle">
+              <button class="mode-btn" id="btn-2d">2D</button>
+              <button class="mode-btn active" id="btn-3d">3D</button>
+            </div>
+            <button class="tiny-hide-btn" id="btn-hide-map">
+                <span>Hide Map</span>
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="currentColor"><path d="M7 14l5-5 5 5z"/></svg>
+            </button>
         </div>
       </div>
     </div>
     <div class="update-label">تحديث تلقائي: قبل دقيقة واحدة</div>
   </section>
 
-  <!-- ═══ CONTENT AREA (60% height) ═══ -->
+  <!-- ═══ CONTENT AREA ═══ -->
   <main class="content-area">
-    <!-- Content Header -->
+    <!-- Drag handle visual -->
+    <div class="drag-handle"></div>
+
     <div class="news-header">
       <div class="hard-sync" id="btn-hard-sync">
         <span class="sync-dot"></span>
         <span>hard sync</span>
       </div>
       <div class="news-title">
-        <span class="search-btn">🔍</span>
-        <span>الأخبار العاجلة ▾</span>
+        <span class="search-btn" id="btn-search">🔍</span>
+        <span class="title-text">الأخبار العاجلة</span>
+        <span class="title-arrow">▾</span>
       </div>
     </div>
 
-    <!-- Visual Headline -->
     <div class="breaking-label">عاجل</div>
 
-    <!-- News List (High Density) -->
     <div id="news-list" class="news-list">
-      <div style="text-align:center; padding:40px; color:#555; font-size:12px;">جاري رصد الترددات...</div>
+      <div class="loading-state">جاري رصد الترددات...</div>
     </div>
 
-    <!-- Live Streams Carousel -->
-    <div class="section-label">البث المباشر</div>
-    <div class="tv-carousel" id="tv-carousel"></div>
-
-    <!-- High-Density Widgets Grid (3x2) -->
-    <section class="widgets-grid">
-      <!-- Row 1 -->
-      <div class="widget">
-        <span class="badge-t7">T7</span>
-        <span class="w-icon">💰</span>
-        <div class="w-label">الذهب والعملات</div>
-        <div class="w-main">5,171.500</div>
-        <div class="w-sub">▲ 1.77%</div>
-        <div class="w-chart" style="background:rgba(46, 204, 113, 0.1)"></div>
-      </div>
-      <div class="widget">
-        <span class="w-icon">🌍</span>
-        <div class="w-label">توقيت العالم</div>
-        <div style="font-size:8px; line-height:1.4; margin-top:5px;">
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
-            <span style="color:#888;">الرياض</span> <span id="clk-riyadh" style="color:#fff; font-weight:700;">--:--</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.05); padding:2px 0;">
-            <span style="color:#888;">نيويورك</span> <span id="clk-nyc" style="color:#fff; font-weight:700;">--:--</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:2px 0;">
-            <span style="color:#888;">لندن</span> <span id="clk-london" style="color:#fff; font-weight:700;">--:--</span>
-          </div>
+    <!-- Live Streams -->
+    <div class="section-row">
+        <span class="section-label">البث المباشر</span>
+        <div class="carousel-nav">
+            <button class="nav-arrow" id="tv-prev">❮</button>
+            <button class="nav-arrow" id="tv-next">❯</button>
         </div>
-      </div>
-      <div class="widget">
-        <span class="w-icon">📡</span>
-        <div class="w-label">تتبع التحركات</div>
-        <div class="w-main" style="font-size:10px; color:#d4a017;">LIVE MAP</div>
-        <div class="w-chart" style="background:rgba(212,160,23,0.1)"></div>
-      </div>
-      
-      <!-- Row 2 -->
-      <div class="widget">
-        <span class="badge-t7">T7</span>
-        <span class="w-icon">🛡️</span>
-        <div class="w-label">الاستخبارات</div>
-        <div class="w-chart" style="background:rgba(231,76,60,0.15)"></div>
-      </div>
-      <div class="widget">
-        <span class="badge-t7">T7</span>
-        <span class="w-icon">📸</span>
-        <div class="w-label">كاميرا مباشرة</div>
-        <div class="w-main" style="font-size:11px;">ACTIVE</div>
-      </div>
-      <div class="widget">
-        <span class="w-icon">📊</span>
-        <div class="w-label">الأصول</div>
-        <div class="w-main">ANALYSIS</div>
-      </div>
+    </div>
+    <div class="tv-carousel-container">
+        <div class="tv-carousel" id="tv-carousel"></div>
+    </div>
+
+    <!-- Widgets -->
+    <div class="section-label">المراصد والبيانات</div>
+    <section class="widgets-grid" id="mobile-widgets-grid">
+      <!-- Injected by mobile.js -->
     </section>
   </main>
 
-  <!-- Bottom Navigation (Tab Bar) -->
+  <!-- ═══ MODALS ═══ -->
+  <div id="mobile-notif-modal" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-content glass-modal">
+          <div class="modal-header">
+              <h3>إعدادات التنبيهات</h3>
+              <button class="modal-close" id="close-notif-modal">✕</button>
+          </div>
+          <div class="modal-body">
+              <div class="nd-row">
+                  <span class="nd-label">تفعيل الإشعارات المرئية</span>
+                  <label class="switch">
+                      <input type="checkbox" id="toggle-visual-notif-mobile" checked>
+                      <span class="slider round"></span>
+                  </label>
+              </div>
+              <div class="nd-row">
+                  <span class="nd-label">تفعيل الإشعارات الصوتية</span>
+                  <label class="switch">
+                      <input type="checkbox" id="toggle-audio-notif-mobile" checked>
+                      <span class="slider round"></span>
+                  </label>
+              </div>
+              <div class="nd-row vol-row">
+                  <span class="nd-label">حجم الصوت / VOLUME</span>
+                  <div class="vol-control">
+                      <input type="range" id="notif-volume-slider-mobile" min="0" max="1" step="0.1" value="0.5">
+                      <span id="notif-volume-value-mobile">50%</span>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- ═══ BOTTOM NAV (5 Items) ═══ -->
   <nav class="bottom-nav">
-    <a href="#" class="nav-item active">
-      <svg class="nav-svg" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <a href="#" class="nav-item active" data-section="home">
+      <svg class="nav-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
       <span>الرئيسية</span>
     </a>
-    <a href="#" class="nav-item">
-      <svg class="nav-svg" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8z"/></svg>
-      <span>الأخبار</span>
+    <a href="#" class="nav-item" data-section="news">
+      <svg class="nav-svg" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M7 8h10M7 12h10M7 16h5" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <span>الأخبار العاجلة</span>
     </a>
-    <a href="#" class="nav-item">
-      <svg class="nav-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <a href="#" class="nav-item" data-section="tv">
+      <svg class="nav-svg" viewBox="0 0 24 24">
+        <rect x="2" y="7" width="20" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 3l-4 4-4-4" stroke="currentColor" stroke-width="2"/>
+        <circle cx="12" cy="13.5" r="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <span>البث المباشر</span>
+    </a>
+    <a href="#" class="nav-item" data-section="markets">
+      <svg class="nav-svg" viewBox="0 0 24 24">
+        <path d="M3 3v18h18" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M7 15l4-4 4 4 5-5" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
+      <span>الأسواق</span>
+    </a>
+    <a href="#" class="nav-item" data-section="settings">
+      <svg class="nav-svg" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" fill="none" stroke="currentColor" stroke-width="2"/>
+      </svg>
       <span>الإعدادات</span>
     </a>
   </nav>
 
-  <!-- Application Logic -->
-  <script src="mobile.js?v=21"></script>
+  <!-- PiP Pop-out Container -->
+  <div id="mobile-pip-container" class="pip-container hidden">
+      <div class="pip-header">
+          <span class="pip-status">LIVE</span>
+          <button class="pip-close" onclick="MobileApp.closePiP()">✕</button>
+      </div>
+      <div id="pip-video-frame"></div>
+  </div>
+
+  <audio id="breaking-news-audio" src="../public/breaking-news-tone.mp3" preload="auto"></audio>
+  <script src="mobile.js?v=23"></script>
 </body>
 </html>

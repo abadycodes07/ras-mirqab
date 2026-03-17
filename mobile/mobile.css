@@ -373,11 +373,27 @@ body.map-hidden .content-area {
 .nd-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .nd-label { font-size: 13px; color: var(--text-s); }
 
-.widgets-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px; 
+.widg.news-list {
+    margin-top: 15px; padding: 0 15px;
+    height: 275px; overflow-y: auto; /* V32: Perfect 3-row parity height */
+    display: flex; flex-direction: column; gap: 12px;
 }
-.widget-card { 
-    background: var(--glass); border: 1px solid var(--glass-border); 
+.news-item {
+    background: rgba(40, 40, 45, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 106, 0, 0.15); /* Subtle V32 glow */
+    border-radius: 18px; padding: 12px;
+    display: flex; align-items: center; gap: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    flex-shrink: 0; min-height: 80px;
+}
+.news-item:active { transform: scale(0.98); background: rgba(50, 50, 60, 0.6); }
+.widgets-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px;
+}
+.widget-card {
+    background: var(--glass); border: 1px solid var(--glass-border);
     border-radius: 12px; padding: 10px; height: 95px;
     display: flex; flex-direction: column; justify-content: space-between;
     backdrop-filter: blur(20px); transition: 0.3s; position: relative;

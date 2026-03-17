@@ -141,6 +141,10 @@ const MobileApp = {
             if (globeContainer) globeContainer.classList.remove('hidden');
             if (mapContainer) mapContainer.classList.add('hidden');
         }
+        
+        // Ensure controls stay visible (escape previous potential auto-hides)
+        const controls = document.querySelector('.globe-controls');
+        if (controls) controls.classList.remove('hidden');
 
         if (window.RasMirqabGlobe.toggleView) {
             RasMirqabGlobe.toggleView(mode);

@@ -263,7 +263,9 @@ body.map-hidden .content-area {
     border-radius: 18px; overflow: hidden; background: #000;
     border: 1.5px solid rgba(255,255,255,0.08);
     box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+    display: block !important; height: auto !important;
 }
+.tv-main-player-v2 iframe { width: 100% !important; height: 100% !important; border: none; }
 .tv-carousel-container { padding: 0 15px; margin-bottom: 25px; }
 .tv-carousel { 
     display: flex; gap: 12px; overflow-x: auto; padding: 10px 0;
@@ -318,9 +320,9 @@ body.map-hidden .content-area {
 
 /* PiP Pop-out Premium */
 .pip-container { 
-    position: fixed; bottom: 90px; right: 15px; width: 180px; height: 110px;
+    position: fixed; bottom: 85px; right: 15px; width: 180px; height: 110px;
     background: #000; border: 1.5px solid var(--accent);
-    border-radius: 15px; z-index: 9999; box-shadow: 0 0 25px rgba(255,106,0,0.5);
+    border-radius: 15px; z-index: 10000; box-shadow: 0 0 25px rgba(255,106,0,0.5);
     overflow: hidden; animation: pipIn 0.4s ease;
 }
 
@@ -388,9 +390,9 @@ input:checked + .slider:before { transform: translateX(14px); }
 .layers-modal { 
     position: fixed; top: 110px; right: 20px;
     width: 220px; max-height: 55vh;
-    background: rgba(10, 15, 20, 0.95); backdrop-filter: blur(30px);
-    border: 1.5px solid var(--accent); border-radius: 18px;
-    z-index: 2500; box-shadow: 0 0 30px rgba(255,106,0,0.4);
+    background: rgba(10, 15, 20, 0.98); backdrop-filter: blur(40px);
+    border: 2px solid var(--accent); border-radius: 18px;
+    z-index: 3000; box-shadow: 0 0 40px rgba(0,0,0,0.9), 0 0 20px rgba(230, 126, 34, 0.4);
     display: flex; flex-direction: column;
 }
 .layers-modal.hidden { display: none !important; }

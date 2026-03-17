@@ -402,8 +402,9 @@ var RasMirqabGlobe = (function () {
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 18,
         }).addTo(map);
-
-        L.control.zoom({ position: 'topleft' }).addTo(map);
+        
+        // Move zoom control to bottom right for mobile to avoid logo overlap
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
 
         updateMapMarkers();
     }

@@ -8,9 +8,8 @@ const MobileApp = {
     audioEnabled: localStorage.getItem('rasmirqab_audio_notif') !== 'false',
 
     init: function() {
-        console.log('--- MOBILE APP V19: GLASSMORPHISM UNLOCKED ---');
-        
-        // 1. Core Systems
+        console.log('--- 🚀 RAS MIRQAB MOBILE V23: CACHE PURGED ---');
+        console.log('--- Data Check:', !!window.RasMirqabData, 'Categories:', !!(window.RasMirqabData && window.RasMirqabData.categories));
         if (window.RasMirqabGlobe) {
             RasMirqabGlobe.init();
             this.initLayersModal();
@@ -68,7 +67,13 @@ const MobileApp = {
         const btnLayers = document.getElementById('btn-layers');
         const layersModal = document.getElementById('layers-modal');
         const closeLayers = document.getElementById('close-layers');
-        if (btnLayers) btnLayers.onclick = () => layersModal.classList.remove('hidden');
+        if (btnLayers && layersModal) {
+            btnLayers.onclick = (e) => {
+                e.stopPropagation();
+                layersModal.classList.toggle('hidden');
+                if (!layersModal.classList.contains('hidden')) this.initLayersModal(); // Refresh content
+            };
+        }
         if (closeLayers) closeLayers.onclick = () => layersModal.classList.add('hidden');
 
         // --- Notification Bell (Header) ---
@@ -193,23 +198,14 @@ const MobileApp = {
     },
 
     initLayersModal: function() {
-        const modal = document.getElementById('layers-modal');
         const list = document.getElementById('layers-list');
-        const btn = document.getElementById('btn-layers');
-        const closeBtn = document.getElementById('close-layers');
+        if (!list) return;
 
-        if (btn && modal) {
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                modal.classList.toggle('hidden');
-            };
-        }
-        if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
-
-        // Check for RasMirqabData (Desktop script might be named differently or shared)
-        const dataHelper = window.RasMirqabData || (window.RasMirqabGlobe && RasMirqabGlobe.getData ? RasMirqabGlobe.getData() : null);
-        if (!list || !dataHelper || !dataHelper.categories) {
-            console.warn('--- Layers Data Missing ---');
+        // More robust data recovery
+        const dataHelper = window.RasMirqabData;
+        if (!dataHelper || !dataHelper.categories) {
+            console.error('--- Layers Data Fatal: Missing RasMirqabData.categories ---');
+            list.innerHTML = '<div style="color:#666; font-size:11px; padding:20px;">جاري تحميل البيانات...</div>';
             return;
         }
 

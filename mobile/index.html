@@ -11,8 +11,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="mobile.css">
-  <link rel="stylesheet" href="../src/styles/widgets.css">
+  <link rel="stylesheet" href="mobile.css?v=23">
+  <link rel="stylesheet" href="../src/styles/widgets.css?v=23">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   
   <!-- Core Dependencies -->
@@ -21,25 +21,25 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <!-- Shared Data & Logic -->
-  <script src="../src/data/feeds.js"></script>
-  <script src="../src/data/conflicts.js"></script>
-  <script src="../src/data/intelligence.js"></script>
-  <script src="../src/data/timezones.js"></script>
-  <script src="../src/globe.js"></script>
-  <script src="../src/widgets/breaking-news.js?v=218"></script>
+  <script src="../src/data/feeds.js?v=23"></script>
+  <script src="../src/data/conflicts.js?v=23"></script>
+  <script src="../src/data/intelligence.js?v=23"></script>
+  <script src="../src/data/timezones.js?v=23"></script>
+  <script src="../src/globe.js?v=23"></script>
+  <script src="../src/widgets/breaking-news.js?v=23"></script>
   
   <!-- Widget Scripts -->
-  <script defer src="../src/widgets/live-tv.js?v=11"></script>
-  <script defer src="../src/widgets/live-webcams.js?v=11"></script>
-  <script defer src="../src/widgets/world-clock.js?v=11"></script>
-  <script defer src="../src/widgets/gold-silver.js?v=11"></script>
-  <script defer src="../src/widgets/sanctions-trade.js?v=11"></script>
-  <script defer src="../src/widgets/cyber-intel.js?v=11"></script>
-  <script defer src="../src/widgets/health-bio.js?v=11"></script>
-  <script defer src="../src/widgets/military-aircraft.js?v=11"></script>
-  <script defer src="../src/widgets/commodities.js?v=11"></script>
-  <script defer src="../src/widgets/market-overview.js?v=11"></script>
-  <script defer src="../src/widgets/conflict-monitor.js?v=11"></script>
+  <script defer src="../src/widgets/live-tv.js?v=23"></script>
+  <script defer src="../src/widgets/live-webcams.js?v=23"></script>
+  <script defer src="../src/widgets/world-clock.js?v=23"></script>
+  <script defer src="../src/widgets/gold-silver.js?v=23"></script>
+  <script defer src="../src/widgets/sanctions-trade.js?v=23"></script>
+  <script defer src="../src/widgets/cyber-intel.js?v=23"></script>
+  <script defer src="../src/widgets/health-bio.js?v=23"></script>
+  <script defer src="../src/widgets/military-aircraft.js?v=23"></script>
+  <script defer src="../src/widgets/commodities.js?v=23"></script>
+  <script defer src="../src/widgets/market-overview.js?v=23"></script>
+  <script defer src="../src/widgets/conflict-monitor.js?v=23"></script>
 </head>
 <body class="mobile-v19">
 
@@ -112,9 +112,9 @@
     <div class="drag-handle"></div>
 
     <div class="news-header">
-      <div class="hard-sync" id="btn-hard-sync">
+      <div class="hard-sync" id="btn-hard-sync" onclick="location.reload(true)">
         <span class="sync-dot"></span>
-        <span>hard sync</span>
+        <span>hard sync v23</span>
       </div>
       <div class="news-title">
         <span class="search-btn" id="btn-search">🔍</span>

@@ -269,7 +269,7 @@ var BreakingNewsWidget = (function () {
     }
 
     async function loadNews(force) {
-        var container = document.getElementById('breaking-news-body');
+        var container = document.getElementById('breaking-news-body') || document.getElementById('news-list');
         if (!container) return;
 
         // 1. Initial Load from LocalStorage (Instant UI)

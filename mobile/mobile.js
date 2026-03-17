@@ -158,12 +158,13 @@ const MobileApp = {
             BreakingNewsWidget.renderItems = this.renderMobileNewsItems.bind(this);
             BreakingNewsWidget.init();
             
-            // V30: Force Immediate Sync & Visibility check
+            // V31: Force Immediate Sync & Visibility check
             setTimeout(() => {
+                console.log('--- V31: STARTING NEWS FORCE-PULSE ---');
                 if (BreakingNewsWidget.fetchServerCache) BreakingNewsWidget.fetchServerCache();
                 const list = document.getElementById('news-list');
                 if (list && list.innerHTML.trim() === '') {
-                    console.log('--- V30: NEWS EMPTY, FORCING SKELETON ---');
+                    console.log('--- V31: NEWS EMPTY, FORCING BRIDGE ---');
                     this.showNewsSkeleton(list);
                 }
             }, 1000);
@@ -572,7 +573,7 @@ const MobileApp = {
              pip.style.transition = 'all 0.3s ease';
         });
     },
-    version: 'v30'
+    version: 'v31'
 };
 
 window.MobileApp = MobileApp; // Expose for BreakingNewsWidget

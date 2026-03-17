@@ -115,10 +115,10 @@ body {
     position: absolute; bottom: 20px; left: 0; right: 0; top: auto;
     padding: 0 15px; display: flex !important; justify-content: space-between; align-items: flex-end;
     z-index: 2000; pointer-events: none;
-    flex-direction: row; /* V30: Mode (left), Layers (right) */
+    flex-direction: row; /* V31: Layers (right), Mode (left) in RTL */
 }
 .mode-toggle-group { 
-    transform: scale(0.9); transform-origin: left bottom; /* V30: Smaller toggles */
+    transform: scale(0.85); transform-origin: left bottom; /* V31: Sleeker fit */
 }
 .globe-controls > div { pointer-events: auto; }
 .content-area {
@@ -416,13 +416,13 @@ input:checked + .slider:before { transform: translateX(14px); }
 
 .layers-modal { 
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 85%; max-width: 320px; max-height: 75vh; /* V30: Constrained for mobile */
-    background: rgba(15, 15, 20, 0.9);
+    width: 85%; max-width: 320px; max-height: 62vh; /* V31: Constrained for shorter screens */
+    background: rgba(15, 15, 20, 0.95);
     backdrop-filter: blur(25px) saturate(180%);
     -webkit-backdrop-filter: blur(25px) saturate(180%);
-    border: 1px solid rgba(255, 106, 0, 0.3);
+    border: 1px solid rgba(255, 106, 0, 0.4);
     border-radius: 24px; z-index: 3000;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 20px rgba(255, 106, 0, 0.15);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 20px rgba(255, 106, 0, 0.2);
     display: flex; flex-direction: column; overflow: hidden;
     animation: modalIn 0.3s ease-out;
 }

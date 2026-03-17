@@ -178,22 +178,61 @@ const MobileApp = {
     },
 
     bindEvents: function() {
-        // Simple Navigation Active State
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-            });
-        });
+        console.log("🔗 Binding V40 Precision Events...");
 
-        // Hide Map Logic
+        // 1. Layers Toggle
+        const btnLayers = document.getElementById('btn-layers');
+        const layersModal = document.getElementById('layers-modal');
+        const closeLayers = document.getElementById('close-layers');
+
+        if (btnLayers && layersModal) {
+            btnLayers.onclick = () => {
+                layersModal.classList.remove('hidden');
+                console.log("📂 Layers Modal Opened");
+            };
+        }
+        if (closeLayers) {
+            closeLayers.onclick = () => layersModal.classList.add('hidden');
+        }
+
+        // 2. Mode Toggle (2D / 3D)
+        const btn2d = document.getElementById('btn-2d');
+        const btn3d = document.getElementById('btn-3d');
+
+        if (btn2d && btn3d) {
+            btn2d.onclick = () => {
+                btn3d.classList.remove('active');
+                btn2d.classList.add('active');
+                if (window.RasMirqabGlobe) window.RasMirqabGlobe.setMode('2D');
+            };
+            btn3d.onclick = () => {
+                btn2d.classList.remove('active');
+                btn3d.classList.add('active');
+                if (window.RasMirqabGlobe) window.RasMirqabGlobe.setMode('3D');
+            };
+        }
+
+        // 3. Hide Map Logic
         const hideBtn = document.getElementById('btn-hide-map');
         if (hideBtn) {
             hideBtn.onclick = () => {
                 const globeWrap = document.getElementById('globe-section');
-                if (globeWrap) globeWrap.classList.toggle('minimized');
+                if (globeWrap) {
+                    const isHidden = globeWrap.classList.toggle('minimized');
+                    hideBtn.querySelector('span').innerText = isHidden ? 'Show Map' : 'Hide Map';
+                    console.log("🗺️ Map Visibility:", isHidden ? "Hidden" : "Visible");
+                }
             };
         }
+
+        // 4. Simple Navigation Active State
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
     }
 };
 

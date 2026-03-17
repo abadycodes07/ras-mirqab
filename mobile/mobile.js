@@ -1,29 +1,28 @@
 /**
- * RAS MIRQAB MOBILE V44 - PREMIUM FULL-STACK OVERHAUL
- * Objective: High-Fidelity UI, PiP Video, and RTL Parity.
+ * RAS MIRQAB MOBILE V45 - DASHBOARD RECONSTRUCTION
+ * Final Mockup Parity & Data Sync.
  */
 
 const MobileApp = {
-    version: 'v44',
+    version: 'v45',
     isAudioUnlocked: false,
     activeVideo: null,
 
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V44: PREMIUM OVERHAUL ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V45: DASHBOARD START ---');
         
         if (window.RasMirqabGlobe) {
             RasMirqabGlobe.init();
         }
 
-        this.initNews();
-        this.initTV();
+        this.initNewsSync();
+        this.initTVSync();
         this.initWidgets();
         this.bindEvents();
         this.initAudioGuard();
         this.initLayersPanel();
-        this.initPiP();
         
-        document.body.classList.add('v44-ready');
+        document.body.classList.add('v45-ready');
     },
 
     initAudioGuard: function() {
@@ -37,209 +36,160 @@ const MobileApp = {
         document.addEventListener('touchstart', unlock);
     },
 
-    // ═══ NEWS MODULE (V44 RTL PARITY) ═══
-    initNews: function() {
+    // ═══ SYNCED NEWS BRAIN ═══
+    initNewsSync: function() {
         if (!window.BreakingNewsWidget) return;
 
-        window.BreakingNewsWidget.renderItems = (items) => {
-            const container = document.getElementById('breaking-news-body');
+        // Override renderItems for V45 Dashboard Style
+        window.BreakingNewsWidget.renderItems = (container, items) => {
             if (!container) return;
-
-            container.innerHTML = items.slice(0, 10).map(item => {
+            // Only show top 15 in the scrollable zone
+            container.innerHTML = items.slice(0, 15).map(item => {
                 const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
                 const timeStr = pubDate.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const handle = (item.sourceHandle || 'Default').toLowerCase();
-                const sourceLogo = `../public/logos/${handle}.jpg`;
                 
-                let thumb = '../public/logos/default.png';
+                // Realistic data paths
+                const sourceLogo = `../public/logos/${handle}.jpg`;
+                let thumb = `../public/logos/${handle}.jpg`; // Fallback
                 if (item.mediaUrl) thumb = item.mediaUrl;
                 else if (item.image) thumb = item.image;
                 else if (item.media && item.media[0]) thumb = item.media[0].url || item.media[0];
 
                 return `
-                    <div class="news-item glass-item-interactive" onclick="window.open('${item.link}', '_blank')">
-                        <img src="${thumb}" class="ni-thumb" onerror="this.src='../public/logos/default.png'">
-                        <div class="ni-text">${item.title}</div>
-                        <div class="ni-right-stack">
+                    <div class="news-item" onclick="window.open('${item.link}', '_blank')">
+                        <div class="ni-meta">
                             <img src="${sourceLogo}" class="ni-source-logo" onerror="this.src='../public/logos/default.png'">
                             <span class="ni-time">${timeStr}</span>
                         </div>
+                        <div class="ni-text">${item.title}</div>
+                        <img src="${thumb}" class="ni-thumb" onerror="this.src='../public/logos/default.png'">
                     </div>
                 `;
             }).join('');
         };
 
+        // Initialize and force a cache sync from the server
         window.BreakingNewsWidget.init();
+        if (window.BreakingNewsWidget.fetchServerCache) {
+            window.BreakingNewsWidget.fetchServerCache();
+        }
     },
 
-    // ═══ TV & PiP LOGIC ═══
-    initTV: function() {
+    // ═══ SYNCED TV BRAIN ═══
+    initTVSync: function() {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
 
-        const channels = [
-            { name: 'الجزيرة', ytId: 'bNyUCPTvalg' },
-            { name: 'العربية', ytId: '-PjD_X_8x6E' },
-            { name: 'الحدث', ytId: 'f0Xunf9Okp8' },
-            { name: 'Sky News', ytId: '9vMsh_Lz51Y' },
-            { name: 'TRT World', ytId: 'yAt3L89U6pA' }
+        // Take links from Desktop Core (live-tv.js) if available
+        let channels = [
+            { name: 'الجزيرة', ytId: 'bNyUyrR0PHo' },
+            { name: 'العربية', ytId: 'n7eQejkXbnM' },
+            { name: 'الحدث', ytId: 'xWXpl7azI8k' },
+            { name: 'Sky News', ytId: 'U--OjmpjF5o' },
+            { name: 'TRT World', ytId: 'p0m0h94C0f8' }
         ];
 
         carousel.innerHTML = channels.map(ch => `
-            <div class="tv-card glass-item-interactive" data-ytid="${ch.ytId}">
-                <div class="tv-live-badge">LIVE</div>
-                <img src="https://img.youtube.com/vi/${ch.ytId}/mqdefault.jpg" class="tv-thumb" style="width:100%; height:100%; object-fit:cover;">
-                <div style="position:absolute; bottom:5px; left:0; right:0; text-align:center; font-size:10px; font-weight:800; background:rgba(0,0,0,0.4);">${ch.name}</div>
+            <div class="tv-card dashboard-glass" data-ytid="${ch.ytId}">
+                <img src="https://img.youtube.com/vi/${ch.ytId}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
+                <div class="tv-label">${ch.name}</div>
+                <div style="position:absolute; top:8px; right:8px; width:6px; height:6px; background:#ff4444; border-radius:50%; box-shadow:0 0 5px #f00;"></div>
             </div>
         `).join('');
 
         carousel.querySelectorAll('.tv-card').forEach(card => {
-            card.onclick = () => this.playInCard(card);
+            card.onclick = () => this.playLive(card);
         });
     },
 
-    playInCard: function(card) {
+    playLive: function(card) {
         const ytid = card.getAttribute('data-ytid');
-        const muteState = this.isAudioUnlocked ? '0' : '1';
+        const mute = this.isAudioUnlocked ? '0' : '1';
         
-        // Clear previous
-        if (this.activeVideo && this.activeVideo.parentNode) {
+        // Reset card if needed
+        if (this.activeVideo) {
             const oldCard = this.activeVideo.closest('.tv-card');
-            if (oldCard) {
-                const originalHtml = oldCard.getAttribute('data-original-html');
-                if (originalHtml) oldCard.innerHTML = originalHtml;
-            }
+            if (oldCard) oldCard.innerHTML = oldCard.dataset.oldHtml;
         }
 
-        if (!card.hasAttribute('data-original-html')) {
-            card.setAttribute('data-original-html', card.innerHTML);
-        }
-        
-        card.innerHTML = `<iframe id="active-live-video" src="https://www.youtube.com/embed/${ytid}?autoplay=1&mute=${muteState}&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%; height:100%;"></iframe>`;
-        
-        this.activeVideo = document.getElementById('active-live-video');
+        card.dataset.oldHtml = card.innerHTML;
+        card.innerHTML = `<iframe src="https://www.youtube.com/embed/${ytid}?autoplay=1&mute=${mute}" frameborder="0" allow="autoplay" style="width:100%; height:100%;"></iframe>`;
+        this.activeVideo = card.querySelector('iframe');
     },
 
-    initPiP: function() {
-        const carousel = document.getElementById('tv-carousel');
-        if (!carousel) return;
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!this.activeVideo) return;
-                
-                if (!entry.isIntersecting) {
-                    this.activeVideo.classList.add('floating-pip-mode');
-                    document.body.appendChild(this.activeVideo);
-                } else {
-                    this.activeVideo.classList.remove('floating-pip-mode');
-                    // Find the original card to return the video to
-                    const ytid = new URL(this.activeVideo.src).pathname.split('/').pop();
-                    const targetCard = document.querySelector(`.tv-card[data-ytid="${ytid}"]`);
-                    if (targetCard) targetCard.appendChild(this.activeVideo);
-                }
-            });
-        }, { threshold: 0.1 });
-
-        observer.observe(carousel);
-    },
-
-    // ═══ WIDGETS ═══
     initWidgets: function() {
-        const clocksEl = document.getElementById('widget-clocks-list');
-        if (clocksEl) {
-            const cities = [
-                { n: 'London', f: '🇬🇧' },
-                { n: 'NYC', f: '🇺🇸' },
-                { n: 'Riyadh', f: '🇸🇦' }
-            ];
+        // Clocks Mini
+        const clocks = document.getElementById('widget-clocks-mini');
+        if (clocks) {
             setInterval(() => {
-                clocksEl.innerHTML = cities.map(c => {
-                    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    return `<div style="display:flex; justify-content:space-between;"><span>${c.f} ${c.n}</span> <span style="color:var(--accent)">${time}</span></div>`;
-                }).join('');
+                const now = new Date();
+                clocks.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>🇸🇦 الرياض</span> <span class="w-accent">${now.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false})}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>🇬🇧 لندن</span> <span class="w-accent">${new Date(now.getTime() - 3*3600000).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false})}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>🇺🇸 نويورك</span> <span class="w-accent">${new Date(now.getTime() - 8*3600000).toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:false})}</span></div>
+                `;
             }, 1000);
         }
     },
 
     initLayersPanel: function() {
         const list = document.getElementById('layers-list');
-        if (!list || !window.RasMirqabData || !RasMirqabData.categories) return;
+        if (!list || !window.RasMirqabData) return;
 
-        list.innerHTML = Object.keys(RasMirqabData.categories).map(key => {
-            const cat = RasMirqabData.categories[key];
-            return `
-                <label class="layer-item">
-                    <input type="checkbox" data-layer="${key}" ${cat.default !== false ? 'checked' : ''}>
-                    <span style="font-size:12px;">${cat.emoji} ${cat.labelAr}</span>
-                </label>
-            `;
+        list.innerHTML = Object.keys(RasMirqabData.categories).map(k => {
+            const c = RasMirqabData.categories[k];
+            return `<label class="layer-item"><input type="checkbox" data-layer="${k}" checked> <span style="font-size:12px;">${c.emoji} ${c.labelAr}</span></label>`;
         }).join('');
 
-        list.querySelectorAll('input').forEach(input => {
-            input.onchange = (e) => {
-                const lid = e.target.getAttribute('data-layer');
-                if (window.RasMirqabGlobe && window.RasMirqabGlobe.activeLayers) {
-                    window.RasMirqabGlobe.activeLayers[lid] = e.target.checked;
-                    if (window.RasMirqabGlobe.updateGlobeMarkers) window.RasMirqabGlobe.updateGlobeMarkers();
-                    if (window.RasMirqabGlobe.updateMapMarkers) window.RasMirqabGlobe.updateMapMarkers();
+        list.querySelectorAll('input').forEach(i => {
+            i.onchange = (e) => {
+                const lid = e.target.dataset.layer;
+                if (window.RasMirqabGlobe) {
+                    RasMirqabGlobe.activeLayers[lid] = e.target.checked;
+                    RasMirqabGlobe.updateGlobeMarkers();
                 }
             };
         });
     },
 
     bindEvents: function() {
-        const globeSection = document.getElementById('globe-section');
+        const globe = document.getElementById('globe-section');
         const hideBtn = document.getElementById('btn-hide-map');
         const bookmark = document.getElementById('show-map-bookmark');
-        
-        const toggleGlobe = (forceShow = false) => {
-            if (!globeSection) return;
-            const willHide = forceShow ? false : !globeSection.classList.contains('minimized');
-            if (willHide) {
-                globeSection.classList.add('minimized');
-                if (bookmark) bookmark.classList.remove('hidden');
+
+        const toggleMap = (show) => {
+            if (show === true) {
+                globe.style.height = '34vh';
+                globe.style.opacity = '1';
+                bookmark.classList.add('hidden');
             } else {
-                globeSection.classList.remove('minimized');
-                if (bookmark) bookmark.classList.add('hidden');
+                globe.style.height = '0';
+                globe.style.opacity = '0';
+                bookmark.classList.remove('hidden');
             }
         };
 
-        if (hideBtn) hideBtn.onclick = () => toggleGlobe();
-        if (bookmark) bookmark.onclick = () => toggleGlobe(true);
+        if (hideBtn) hideBtn.onclick = () => toggleMap(false);
+        if (bookmark) bookmark.onclick = () => toggleMap(true);
 
         const btn2d = document.getElementById('btn-2d');
         const btn3d = document.getElementById('btn-3d');
         if (btn2d && btn3d) {
             btn2d.onclick = () => {
-                btn3d.classList.remove('active');
-                btn2d.classList.add('active');
+                btn3d.classList.remove('active'); btn2d.classList.add('active');
                 if (window.RasMirqabGlobe) window.RasMirqabGlobe.toggleView('2d');
             };
             btn3d.onclick = () => {
-                btn2d.classList.remove('active');
-                btn3d.classList.add('active');
+                btn2d.classList.remove('active'); btn3d.classList.add('active');
                 if (window.RasMirqabGlobe) window.RasMirqabGlobe.toggleView('3d');
             };
         }
 
-        const btnLayers = document.getElementById('btn-layers');
-        const layersModal = document.getElementById('layers-modal');
-        if (btnLayers && layersModal) {
-            btnLayers.onclick = (e) => {
-                e.stopPropagation();
-                layersModal.classList.toggle('hidden');
-            };
-        }
-        const closeLayers = document.getElementById('close-layers');
-        if (closeLayers) closeLayers.onclick = () => layersModal.classList.add('hidden');
-        
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.onclick = () => {
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-            };
-        });
+        const lBtn = document.getElementById('btn-layers');
+        const lModal = document.getElementById('layers-modal');
+        if (lBtn) lBtn.onclick = () => lModal.classList.remove('hidden');
+        document.getElementById('close-layers').onclick = () => lModal.classList.add('hidden');
     }
 };
 

@@ -10,7 +10,8 @@ const PORT = process.env.PORT || 3001;
 // Configuration
 const LIST_ID = "2031445708524421549";
 const TELEGRAM_INTERVAL = 7000; 
-const TWITTER_INTERVAL = 60000; // 1 Minute Goal
+const TWITTER_INTERVAL = 60000;
+const SENTINEL_TOKEN = "RAS_SENTINEL_777";
 
 const RSSHUB_BRIDGES = [
     'https://rsshub.rssforever.com',
@@ -294,25 +295,9 @@ async function updateTwitter() {
 
 // Optimization: Separated Loops for Speed
 async function startScrapers() {
-    await refreshProxyPool();
-    
-    // 1. Telegram: High-Priority Instant Loop (7s)
-    setInterval(async () => {
-        try {
-            await updateTelegram();
-        } catch (e) { console.log("⚠️ TG Loop Error:", e.message); }
-    }, TELEGRAM_INTERVAL);
-
-    // 2. Twitter: Stability-Focused Loop (60s)
-    setInterval(async () => {
-        try {
-            await updateTwitter();
-        } catch (e) { console.log("⚠️ TW Loop Error:", e.message); }
-    }, TWITTER_INTERVAL);
-
-    // Initial triggers
-    updateTelegram();
-    updateTwitter();
+    console.log("🛡️ [V17.2] SECURE-SYNC MODE: Waiting for Local Sentinel...");
+    // Internal scrapers disabled to avoid IP blocks and noise.
+    // Relying 100% on Local Sentinel pushes.
 }
 
 app.get('/api/news/telegram', (req, res) => res.json({ items: telegramCache }));
@@ -328,7 +313,7 @@ app.get('/api/news-v4-list', (req, res) => {
 // ═══════════════════════════════════════════════
 app.use(express.json({ limit: '5mb' }));
 
-const SENTINEL_TOKEN = "RAS_SENTINEL_777"; // Internal sync token
+// SENTINEL_TOKEN already defined at line 14
 
 app.post('/api/v17/sync-push', (req, res) => {
     const { token, telegram, twitter } = req.body;
@@ -352,6 +337,7 @@ app.post('/api/v17/sync-push', (req, res) => {
 });
 
 app.get('/ping', (req, res) => res.send('pong'));
+app.get('/health', (req, res) => res.json({ status: "ok", mode: "sentinel-sync" }));
 
 // Boot
 startScrapers().catch(console.error);

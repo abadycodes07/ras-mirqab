@@ -231,7 +231,7 @@ const MobileApp = {
                 <div class="ni-content">
                     <div class="ni-text">${item.title}</div>
                 </div>
-                <div class="ni-thumbnail">
+                <div class="ni-thumbnail-right">
                     <img src="${thumb}" class="ni-thumb-img" alt="thumb" onerror="this.style.display='none'">
                 </div>
             `;
@@ -326,13 +326,12 @@ const MobileApp = {
         });
         carousel.innerHTML = html;
         
-        // Al Jazeera first selection + Orange Glow
-        const first = tvFeeds.find(c => c.key === 'aljazeera') || tvFeeds[0];
-        if (first) {
-            const el = document.getElementById(`card-${first.key}`);
+        // Al Jazeera first selection + Orange Glow (V33: RTL Right focus)
+        const aljazeera = tvFeeds.find(c => c.key === 'aljazeera');
+        if (aljazeera) {
+            const el = document.getElementById(`card-${aljazeera.key}`);
             if (el) {
-                 // Fast interaction hint: auto-play Al Jazeera on load
-                 setTimeout(() => this.playTV(first.key, el), 2000);
+                 setTimeout(() => this.playTV(aljazeera.key, el), 1000);
             }
         }
     },
@@ -584,7 +583,7 @@ const MobileApp = {
              pip.style.transition = 'all 0.3s ease';
         });
     },
-    version: 'v32'
+    version: 'v33'
 };
 
 window.MobileApp = MobileApp; // Expose for BreakingNewsWidget

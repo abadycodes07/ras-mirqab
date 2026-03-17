@@ -1,15 +1,15 @@
 /**
- * RAS MIRQAB MOBILE V37 - THE FINAL SCRATCH REBUILD
+ * RAS MIRQAB MOBILE V43 - THE FINAL SCRATCH REBUILD
  * Objective: 100% self-contained logic for News, TV, and Widgets.
  * No dependencies on desktop widget files.
  */
 
 const MobileApp = {
-    version: 'v42',
+    version: 'v43',
     isAudioUnlocked: false,
     
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V42: CONTROL RESCUE ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V43: PREMIUM PARITY ---');
         
         // 1. Initialize Globe
         if (window.RasMirqabGlobe) {
@@ -26,7 +26,7 @@ const MobileApp = {
         this.initAudioGuard();
         this.initLayersPanel();
         
-        document.body.classList.add('v42-ready');
+        document.body.classList.add('v43-ready');
     },
 
     initAudioGuard: function() {
@@ -48,42 +48,46 @@ const MobileApp = {
         document.addEventListener('touchstart', unlock);
     },
 
-    // ═══ NEWS MODULE (Desktop Engine Sync + V42 Premium Decor) ═══
+    // ═══ NEWS MODULE (V43 PREMIUM PARITY) ═══
     initDesktopNews: function() {
-        if (!window.BreakingNewsWidget) {
-            return;
-        }
+        if (!window.BreakingNewsWidget) return;
 
         // Override the Desktop Renderer for Mobile Compact Look
         window.BreakingNewsWidget.renderItems = (items) => {
             const container = document.getElementById('breaking-news-body');
             if (!container) return;
 
-            // Mockup Layout (V39 Compact - Updated for V41)
-            container.innerHTML = items.slice(0, 5).map(item => {
-                const timeStr = new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                const handle = (item.sourceHandle || 'default').toLowerCase();
+            container.innerHTML = items.slice(0, 8).map(item => {
+                const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
+                const timeStr = pubDate.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                const handle = (item.sourceHandle || 'Default').toLowerCase();
                 const sourceLogo = `../public/logos/${handle}.jpg`;
-                const thumb = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : '../public/logos/default.png');
                 
-                // Detection logic for Platform Badge
-                let platformIcon = 'rss';
+                // Reliable Thumbnail Logic
+                let thumb = '../public/logos/default.png';
+                if (item.mediaUrl) thumb = item.mediaUrl;
+                else if (item.image) thumb = item.image;
+                else if (item.media && item.media[0]) thumb = item.media[0].url || item.media[0];
+                
+                // Platform Detection
+                let platform = 'rss';
                 const link = (item.link || '').toLowerCase();
-                if (link.includes('t.me')) platformIcon = 'telegram';
-                else if (link.includes('x.com') || link.includes('twitter')) platformIcon = 'twitter';
+                if (link.includes('t.me')) platform = 'telegram';
+                else if (link.includes('twitter.com') || link.includes('x.com')) platform = 'twitter';
                 
-                const platformSrc = `../public/icons/${platformIcon}.png`;
+                const platformSrc = `../public/icons/${platform}.png`;
 
                 return `
                     <div class="news-item" onclick="window.open('${item.link}', '_blank')">
                         <div class="ni-left-stack">
-                            <span class="ni-time">${timeStr}</span>
                             <div class="ni-source-logo-wrap">
                                 <img src="${sourceLogo}" class="ni-source-logo" onerror="this.src='../public/logos/default.png'">
                                 <div class="ni-platform-badge">
-                                    <img src="${platformSrc}" onerror="this.src='../public/icons/rss.png'">
+                                    <img src="${platformSrc}" style="width:100%; height:100%;" onerror="this.src='../public/icons/rss.png'">
                                 </div>
                             </div>
+                            <span class="ni-source-handle">@${handle}</span>
+                            <span class="ni-time">${timeStr}</span>
                         </div>
                         <div class="ni-content">
                             <div class="ni-text">${item.title}</div>

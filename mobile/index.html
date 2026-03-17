@@ -6,12 +6,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
-  <title>راس مرقاب — V42 PREMIUM</title>
+  <title>راس مرقاب — V43 PREMIUM</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="mobile.css?v=42">
+  <link rel="stylesheet" href="mobile.css?v=43">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   
   <!-- Core Dependencies -->
@@ -20,54 +20,56 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <!-- Shared Data for Globe -->
-  <script src="../src/data/feeds.js?v=42"></script>
-  <script src="../src/data/conflicts.js?v=42"></script>
-  <script src="../src/data/intelligence.js?v=42"></script>
-  <script src="../src/data/timezones.js?v=42"></script>
-  <script src="../src/globe.js?v=42"></script>
-  <script src="../src/widgets/breaking-news.js?v=42"></script>
+  <script src="../src/data/feeds.js?v=43"></script>
+  <script src="../src/data/conflicts.js?v=43"></script>
+  <script src="../src/data/intelligence.js?v=43"></script>
+  <script src="../src/data/timezones.js?v=43"></script>
+  <script src="../src/globe.js?v=43"></script>
+  <script src="../src/widgets/breaking-news.js?v=43"></script>
 </head>
 <body class="mobile-v19">
 
   <!-- Interaction Guard for Audio -->
   <div id="audio-guard" class="hidden"></div>
 
-  <!-- ═══ HEADER ═══ -->
-  <header class="header">
+  <!-- ═══ PREMIUM HEADER ═══ -->
+  <header class="mobile-header">
     <div class="header-left">
-      <div id="btn-notifications-mobile" class="bell-btn" title="الإشعارات">
-        <svg viewBox="0 0 24 24" class="svg-icon">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      <div class="notif-btn">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 22a2.01 2.01 0 002-2h-4a2.01 2.01 0 002 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
       </div>
     </div>
     <div class="header-right">
-       <div class="logo-group" id="logo-trigger">
+       <div class="logo-group" id="logo-trigger" style="position:relative;">
            <img src="../public/logo.png" class="header-logo" alt="Logo">
            <div id="show-map-bookmark" class="show-map-bookmark hidden">
                <span>عرض الخريطة</span>
-               <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+               <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="transform:scaleY(-1)"><path d="M7 10l5 5 5-5z"/></svg>
            </div>
        </div>
     </div>
   </header>
 
-  <!-- ═══ GLOBE HERO ═══ -->
+  <!-- ═══ GLOBE HERO (MINIMIZABLE) ═══ -->
   <section class="globe-section" id="globe-section">
     <div id="globe-container"></div>
     <div id="map-container" class="hidden"></div>
     
     <div class="globe-controls">
-      <div class="left-controls">
-        <div class="control-btn" id="btn-layers">
-          <span>الطبقات</span>
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div class="mode-toggle-group">
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="btn-3d" data-dim="3d">3D</button>
+            <button class="mode-btn" id="btn-2d" data-dim="2d">2D</button>
         </div>
+        <button class="control-btn" id="btn-hide-map">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/></svg>
+            <span>Hide Map</span>
+        </button>
       </div>
-      <div class="right-controls">
-        <div class="mode-toggle-group">
-            <div class="mode-toggle">
+
+      <button class="control-btn" id="btn-layers">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 16L1 9l11-7 11 7-11 7zm0 2.3l9-5.7v2.3l-9 5.8-9-5.8v-2.3l9 5.7z"/></svg>
+          <span>الطبقات</span>
               <button class="mode-btn" id="btn-2d">2D</button>
               <button class="mode-btn active" id="btn-3d">3D</button>
             </div>
@@ -157,6 +159,6 @@
     <div class="layers-scroll" id="layers-list"></div>
   </div>
 
-  <script src="mobile.js?v=42"></script>
+  <script src="mobile.js?v=43"></script>
 </body>
 </html>

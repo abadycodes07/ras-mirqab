@@ -1,46 +1,35 @@
 /**
- * RAS MIRQAB MOBILE V43 - THE FINAL SCRATCH REBUILD
- * Objective: 100% self-contained logic for News, TV, and Widgets.
- * No dependencies on desktop widget files.
+ * RAS MIRQAB MOBILE V44 - PREMIUM FULL-STACK OVERHAUL
+ * Objective: High-Fidelity UI, PiP Video, and RTL Parity.
  */
 
 const MobileApp = {
-    version: 'v43',
+    version: 'v44',
     isAudioUnlocked: false,
-    
+    activeVideo: null,
+
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V43: PREMIUM PARITY ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V44: PREMIUM OVERHAUL ---');
         
-        // 1. Initialize Globe
         if (window.RasMirqabGlobe) {
             RasMirqabGlobe.init();
         }
 
-        // 2. Initialize Desktop News Engine
-        this.initDesktopNews();
-
-        // 3. Initialize Shared Modules
+        this.initNews();
         this.initTV();
         this.initWidgets();
         this.bindEvents();
         this.initAudioGuard();
         this.initLayersPanel();
+        this.initPiP();
         
-        document.body.classList.add('v43-ready');
+        document.body.classList.add('v44-ready');
     },
 
     initAudioGuard: function() {
-        // Essential to bypass "No Autoplay with Audio" browser rules
         const unlock = () => {
             if (this.isAudioUnlocked) return;
             this.isAudioUnlocked = true;
-            
-            // Try to unmute existing player if any
-            const iframe = document.querySelector('#tv-player-wrapper iframe');
-            if (iframe && iframe.src.includes('mute=1')) {
-                iframe.src = iframe.src.replace('mute=1', 'mute=0');
-            }
-            
             document.removeEventListener('click', unlock);
             document.removeEventListener('touchstart', unlock);
         };
@@ -48,140 +37,131 @@ const MobileApp = {
         document.addEventListener('touchstart', unlock);
     },
 
-    // ═══ NEWS MODULE (V43 PREMIUM PARITY) ═══
-    initDesktopNews: function() {
+    // ═══ NEWS MODULE (V44 RTL PARITY) ═══
+    initNews: function() {
         if (!window.BreakingNewsWidget) return;
 
-        // Override the Desktop Renderer for Mobile Compact Look
         window.BreakingNewsWidget.renderItems = (items) => {
             const container = document.getElementById('breaking-news-body');
             if (!container) return;
 
-            container.innerHTML = items.slice(0, 8).map(item => {
+            container.innerHTML = items.slice(0, 10).map(item => {
                 const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
                 const timeStr = pubDate.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const handle = (item.sourceHandle || 'Default').toLowerCase();
                 const sourceLogo = `../public/logos/${handle}.jpg`;
                 
-                // Reliable Thumbnail Logic
                 let thumb = '../public/logos/default.png';
                 if (item.mediaUrl) thumb = item.mediaUrl;
                 else if (item.image) thumb = item.image;
                 else if (item.media && item.media[0]) thumb = item.media[0].url || item.media[0];
-                
-                // Platform Detection
-                let platform = 'rss';
-                const link = (item.link || '').toLowerCase();
-                if (link.includes('t.me')) platform = 'telegram';
-                else if (link.includes('twitter.com') || link.includes('x.com')) platform = 'twitter';
-                
-                const platformSrc = `../public/icons/${platform}.png`;
 
                 return `
-                    <div class="news-item" onclick="window.open('${item.link}', '_blank')">
-                        <div class="ni-left-stack">
-                            <div class="ni-source-logo-wrap">
-                                <img src="${sourceLogo}" class="ni-source-logo" onerror="this.src='../public/logos/default.png'">
-                                <div class="ni-platform-badge">
-                                    <img src="${platformSrc}" style="width:100%; height:100%;" onerror="this.src='../public/icons/rss.png'">
-                                </div>
-                            </div>
-                            <span class="ni-source-handle">@${handle}</span>
+                    <div class="news-item glass-item-interactive" onclick="window.open('${item.link}', '_blank')">
+                        <img src="${thumb}" class="ni-thumb" onerror="this.src='../public/logos/default.png'">
+                        <div class="ni-text">${item.title}</div>
+                        <div class="ni-right-stack">
+                            <img src="${sourceLogo}" class="ni-source-logo" onerror="this.src='../public/logos/default.png'">
                             <span class="ni-time">${timeStr}</span>
-                        </div>
-                        <div class="ni-content">
-                            <div class="ni-text">${item.title}</div>
-                        </div>
-                        <div class="ni-thumbnail-right">
-                            <img src="${thumb}" class="ni-thumb-img" onerror="this.src='../public/logos/default.png'">
                         </div>
                     </div>
                 `;
             }).join('');
         };
 
-        // Start the Engine (This handles the actual fetching/polling)
         window.BreakingNewsWidget.init();
     },
 
-    // ═══ LIVE TV MODULE (Independent) ═══
+    // ═══ TV & PiP LOGIC ═══
     initTV: function() {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
 
         const channels = [
-            { name: 'Al Jazeera', slug: 'ALJAZEERA', logo: '../public/logos/aljazeera.jpg', ytId: 'bNyUCPTvalg' },
-            { name: 'Al Arabiya', slug: 'AL ARABIYA', logo: '../public/logos/alarabiya.jpg', ytId: '-PjD_X_8x6E' },
-            { name: 'Al Hadath', slug: 'AL HADATH', logo: '../public/logos/hadath.jpg', ytId: 'f0Xunf9Okp8' },
-            { name: 'Sky News', slug: 'SKY NEWS', logo: '../public/logos/sky.jpg', ytId: '9vMsh_Lz51Y' }
+            { name: 'الجزيرة', ytId: 'bNyUCPTvalg' },
+            { name: 'العربية', ytId: '-PjD_X_8x6E' },
+            { name: 'الحدث', ytId: 'f0Xunf9Okp8' },
+            { name: 'Sky News', ytId: '9vMsh_Lz51Y' },
+            { name: 'TRT World', ytId: 'yAt3L89U6pA' }
         ];
 
-        // Render Carousel
-        carousel.innerHTML = channels.map((ch, idx) => `
-            <div class="tv-card ${idx === 0 ? 'active' : ''}" onclick="MobileApp.playTV('${ch.ytId}', this)">
+        carousel.innerHTML = channels.map(ch => `
+            <div class="tv-card glass-item-interactive" data-ytid="${ch.ytId}">
                 <div class="tv-live-badge">LIVE</div>
-                <img src="https://img.youtube.com/vi/${ch.ytId}/mqdefault.jpg" class="tv-thumb">
-                <span class="tv-card-name">${ch.name}</span>
+                <img src="https://img.youtube.com/vi/${ch.ytId}/mqdefault.jpg" class="tv-thumb" style="width:100%; height:100%; object-fit:cover;">
+                <div style="position:absolute; bottom:5px; left:0; right:0; text-align:center; font-size:10px; font-weight:800; background:rgba(0,0,0,0.4);">${ch.name}</div>
             </div>
         `).join('');
 
-        // Autoplay Al Jazeera
-        this.playTV(channels[0].ytId, carousel.children[0]);
+        carousel.querySelectorAll('.tv-card').forEach(card => {
+            card.onclick = () => this.playInCard(card);
+        });
     },
 
-    playTV: function(ytId, el) {
-        const player = document.getElementById('tv-player-wrapper');
-        if (!player) return;
-
-        // Visual feedback
-        document.querySelectorAll('.tv-card').forEach(c => c.classList.remove('active'));
-        if (el) el.classList.add('active');
-
-        // By default we mute=1 for autoplay compliance, but if user has interacted, we mute=0
+    playInCard: function(card) {
+        const ytid = card.getAttribute('data-ytid');
         const muteState = this.isAudioUnlocked ? '0' : '1';
-
-        player.innerHTML = `
-            <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${muteState}&rel=0&showinfo=0" 
-                    frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        `;
-    },
-
-    // ═══ WIDGETS MODULE (Independent) ═══
-    initWidgets: function() {
-        const grid = document.getElementById('mobile-widgets-grid');
-        if (!grid) return;
-
-        const widgets = [
-            { label: 'توقيت الرياض', id: 'clock', val: '--:--', icon: '🌍' },
-            { label: 'الذهب (USD)', id: 'gold', val: '$2,175', icon: '💰' },
-            { label: 'سيبراني', id: 'cyber', val: 'SECURE', icon: '🛡️' },
-            { label: 'السوق', id: 'market', val: '+1.2%', icon: '📊' }
-        ];
-
-        grid.innerHTML = widgets.map(w => `
-            <div class="widget-card">
-                <div class="w-header"><span>${w.label}</span></div>
-                <div class="w-main" id="val-${w.id}">${w.val}</div>
-            </div>
-        `).join('');
-
-        // Live Clock
-        setInterval(() => {
-            const el = document.getElementById('val-clock');
-            if (el) el.innerText = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-        }, 1000);
-
-        // Simulated updates for others
-        setInterval(() => {
-            const cyber = document.getElementById('val-cyber');
-            if (cyber) {
-                const states = ['SCANNING', 'ACTIVE', 'PROTECTED', 'THREAT: LOW'];
-                cyber.innerText = states[Math.floor(Math.random() * states.length)];
+        
+        // Clear previous
+        if (this.activeVideo && this.activeVideo.parentNode) {
+            const oldCard = this.activeVideo.closest('.tv-card');
+            if (oldCard) {
+                const originalHtml = oldCard.getAttribute('data-original-html');
+                if (originalHtml) oldCard.innerHTML = originalHtml;
             }
-        }, 5000);
+        }
+
+        if (!card.hasAttribute('data-original-html')) {
+            card.setAttribute('data-original-html', card.innerHTML);
+        }
+        
+        card.innerHTML = `<iframe id="active-live-video" src="https://www.youtube.com/embed/${ytid}?autoplay=1&mute=${muteState}&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="width:100%; height:100%;"></iframe>`;
+        
+        this.activeVideo = document.getElementById('active-live-video');
     },
 
-    // ═══ LAYERS PANEL (Side Panel Logic) ═══
+    initPiP: function() {
+        const carousel = document.getElementById('tv-carousel');
+        if (!carousel) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!this.activeVideo) return;
+                
+                if (!entry.isIntersecting) {
+                    this.activeVideo.classList.add('floating-pip-mode');
+                    document.body.appendChild(this.activeVideo);
+                } else {
+                    this.activeVideo.classList.remove('floating-pip-mode');
+                    // Find the original card to return the video to
+                    const ytid = new URL(this.activeVideo.src).pathname.split('/').pop();
+                    const targetCard = document.querySelector(`.tv-card[data-ytid="${ytid}"]`);
+                    if (targetCard) targetCard.appendChild(this.activeVideo);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        observer.observe(carousel);
+    },
+
+    // ═══ WIDGETS ═══
+    initWidgets: function() {
+        const clocksEl = document.getElementById('widget-clocks-list');
+        if (clocksEl) {
+            const cities = [
+                { n: 'London', f: '🇬🇧' },
+                { n: 'NYC', f: '🇺🇸' },
+                { n: 'Riyadh', f: '🇸🇦' }
+            ];
+            setInterval(() => {
+                clocksEl.innerHTML = cities.map(c => {
+                    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                    return `<div style="display:flex; justify-content:space-between;"><span>${c.f} ${c.n}</span> <span style="color:var(--accent)">${time}</span></div>`;
+                }).join('');
+            }, 1000);
+        }
+    },
+
     initLayersPanel: function() {
         const list = document.getElementById('layers-list');
         if (!list || !window.RasMirqabData || !RasMirqabData.categories) return;
@@ -191,7 +171,7 @@ const MobileApp = {
             return `
                 <label class="layer-item">
                     <input type="checkbox" data-layer="${key}" ${cat.default !== false ? 'checked' : ''}>
-                    <span>${cat.emoji} ${cat.labelAr}</span>
+                    <span style="font-size:12px;">${cat.emoji} ${cat.labelAr}</span>
                 </label>
             `;
         }).join('');
@@ -199,12 +179,8 @@ const MobileApp = {
         list.querySelectorAll('input').forEach(input => {
             input.onchange = (e) => {
                 const lid = e.target.getAttribute('data-layer');
-                if (window.RasMirqabGlobe) {
-                    // Update activeLayers in the globe engine
-                    if (window.RasMirqabGlobe.activeLayers) {
-                        window.RasMirqabGlobe.activeLayers[lid] = e.target.checked;
-                    }
-                    // Trigger refresh
+                if (window.RasMirqabGlobe && window.RasMirqabGlobe.activeLayers) {
+                    window.RasMirqabGlobe.activeLayers[lid] = e.target.checked;
                     if (window.RasMirqabGlobe.updateGlobeMarkers) window.RasMirqabGlobe.updateGlobeMarkers();
                     if (window.RasMirqabGlobe.updateMapMarkers) window.RasMirqabGlobe.updateMapMarkers();
                 }
@@ -213,27 +189,27 @@ const MobileApp = {
     },
 
     bindEvents: function() {
-        // 1. Layers Toggle
-        const btnLayers = document.getElementById('btn-layers');
-        const layersModal = document.getElementById('layers-modal');
-        const closeLayers = document.getElementById('close-layers');
+        const globeSection = document.getElementById('globe-section');
+        const hideBtn = document.getElementById('btn-hide-map');
+        const bookmark = document.getElementById('show-map-bookmark');
+        
+        const toggleGlobe = (forceShow = false) => {
+            if (!globeSection) return;
+            const willHide = forceShow ? false : !globeSection.classList.contains('minimized');
+            if (willHide) {
+                globeSection.classList.add('minimized');
+                if (bookmark) bookmark.classList.remove('hidden');
+            } else {
+                globeSection.classList.remove('minimized');
+                if (bookmark) bookmark.classList.add('hidden');
+            }
+        };
 
-        if (btnLayers && layersModal) {
-            btnLayers.onclick = (e) => {
-                e.stopPropagation();
-                layersModal.classList.toggle('hidden');
-            };
-        }
-        if (closeLayers) {
-            closeLayers.onclick = () => layersModal.classList.add('hidden');
-        }
+        if (hideBtn) hideBtn.onclick = () => toggleGlobe();
+        if (bookmark) bookmark.onclick = () => toggleGlobe(true);
 
-        // 2. Mode Toggle (2D / 3D)
         const btn2d = document.getElementById('btn-2d');
         const btn3d = document.getElementById('btn-3d');
-        const globeContainer = document.getElementById('globe-container');
-        const mapContainer = document.getElementById('map-container');
-
         if (btn2d && btn3d) {
             btn2d.onclick = () => {
                 btn3d.classList.remove('active');
@@ -247,38 +223,19 @@ const MobileApp = {
             };
         }
 
-        // 3. Hide / Show Map (Bookmark Logic)
-        const hideBtn = document.getElementById('btn-hide-map');
-        const bookmark = document.getElementById('show-map-bookmark');
-        const globeSection = document.getElementById('globe-section');
-
-        const toggleGlobe = (forceShow = false) => {
-            if (!globeSection) return;
-            const willHide = forceShow ? false : !globeSection.classList.contains('minimized');
-            
-            if (willHide) {
-                globeSection.classList.add('minimized');
-                if (bookmark) bookmark.classList.remove('hidden');
-            } else {
-                globeSection.classList.remove('minimized');
-                if (bookmark) bookmark.classList.add('hidden');
-            }
-        };
-
-        if (hideBtn) hideBtn.onclick = () => toggleGlobe();
-        if (bookmark) bookmark.onclick = () => toggleGlobe(true);
-
-        // Close side panel on map click
-        if (globeSection) {
-            globeSection.onclick = () => {
-                if (layersModal) layersModal.classList.add('hidden');
+        const btnLayers = document.getElementById('btn-layers');
+        const layersModal = document.getElementById('layers-modal');
+        if (btnLayers && layersModal) {
+            btnLayers.onclick = (e) => {
+                e.stopPropagation();
+                layersModal.classList.toggle('hidden');
             };
         }
-
-        // 4. Simple Navigation Active State
+        const closeLayers = document.getElementById('close-layers');
+        if (closeLayers) closeLayers.onclick = () => layersModal.classList.add('hidden');
+        
         document.querySelectorAll('.nav-item').forEach(item => {
-            item.onclick = (e) => {
-                // Not preventing default to allow hash links/anchors if any
+            item.onclick = () => {
                 document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
             };

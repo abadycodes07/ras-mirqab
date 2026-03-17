@@ -19,18 +19,12 @@ const MobileApp = {
         this.initWidgetsGrid();
         this.initDraggablePiP();
         this.bindEvents();
-    },
-        
-        // 2. UI Bindings
-        this.bindEvents();
         this.initNotificationModal();
         this.initAudioUnlock();
         this.updateBellGlow();
         
-        // 3. Initial POV Sync
         if (typeof window.startPOVSync === 'function') window.startPOVSync();
-
-        console.log('--- MOBILE APP V19: READY ---');
+        console.log('--- MOBILE APP V34: READY ---');
     },
 
     bindEvents: function() {

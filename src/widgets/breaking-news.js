@@ -412,8 +412,11 @@ var BreakingNewsWidget = (function () {
         const origin = window.location.origin || '';
         const paths = [
             'news.json', 
+            '../public/news.json', // V36: Fixed for mobile/ branch
+            'public/news.json',
             origin + '/news.json',
-            origin + '/ras-mirqab/news.json', // GitHub Pages possible path
+            origin + '/public/news.json',
+            origin + '/ras-mirqab/news.json', 
             '../news.json', 
             '/news.json', 
             'https://ras-mirqab-proxy.onrender.com/public/news.json'

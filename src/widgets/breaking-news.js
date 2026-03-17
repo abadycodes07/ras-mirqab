@@ -407,24 +407,34 @@ var BreakingNewsWidget = (function () {
     }
 
     async function fetchServerCache() {
-        // Try both paths to be safe (mobile vs desktop)
-        const paths = ['/public/news.json', 'public/news.json', '../public/news.json', 'news.json', 'https://ras-mirqab-proxy.onrender.com/public/news.json'];
+        console.log('--- NEWS-ENGINE: ATTEMPTING CACHE SYNC ---');
+        // Prioritize root news.json which is usually the freshest
+        const paths = ['news.json', '../news.json', './news.json', '/news.json', '/public/news.json', 'https://ras-mirqab-proxy.onrender.com/public/news.json'];
         for (let path of paths) {
             try {
-                const res = await fetch(path + '?v=' + Date.now());
+                const res = await fetch(path + '?nocache=' + Date.now());
                 if (res.ok) {
                     const data = await res.json();
                     if (data && data.length > 0) {
-                        console.log('--- MOBILE NEWS SYNC: CACHE LOADED ---');
+                        console.log('--- NEWS-ENGINE: SYNC SUCCESS FROM:', path, 'ITEMS:', data.length);
                         localCache = data;
                         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));
-                        var container = document.getElementById('breaking-news-body');
-                        if (container) renderItems(container, localCache);
+                        var container = document.getElementById('news-list') || document.getElementById('breaking-news-body');
+                        if (container) {
+                             if (window.MobileApp && MobileApp.renderMobileNewsItems) {
+                                 MobileApp.renderMobileNewsItems(container, localCache);
+                             } else {
+                                 renderItems(container, localCache);
+                             }
+                        }
                         return;
                     }
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.warn('--- NEWS-ENGINE: PATH FAILED:', path);
+            }
         }
+        console.error('--- NEWS-ENGINE: ALL CACHE PATHS FAILED ---');
     }
 
     function rotateMirror() {

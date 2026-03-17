@@ -166,6 +166,11 @@ const MobileApp = {
         if (!container) return;
         container.innerHTML = '';
         
+        if (!items || items.length === 0) {
+            this.showNewsSkeleton(container);
+            return;
+        }
+        
         // Match 4-row fixed layout from parity image
         container.style.maxHeight = '380px';
         container.style.overflowY = 'auto';
@@ -202,6 +207,28 @@ const MobileApp = {
             `;
             container.innerHTML += html;
         });
+    },
+
+    showNewsSkeleton: function(container) {
+        let html = '';
+        for (let i = 0; i < 4; i++) {
+            html += `
+                <div class="news-item skeleton">
+                    <div class="ni-left-stack">
+                        <div class="sk-circle"></div>
+                        <div class="sk-box-tiny"></div>
+                    </div>
+                    <div class="ni-content">
+                        <div class="sk-line"></div>
+                        <div class="sk-line shorter"></div>
+                    </div>
+                    <div class="ni-thumbnail">
+                        <div class="sk-rect"></div>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
     },
 
     initLayersModal: function() {
@@ -275,7 +302,7 @@ const MobileApp = {
             const el = document.getElementById(`card-${first.key}`);
             if (el) {
                  // Fast interaction hint: auto-play Al Jazeera on load
-                 setTimeout(() => this.playTV(first.key, el), 1000);
+                 setTimeout(() => this.playTV(first.key, el), 2000);
             }
         }
     },

@@ -373,7 +373,7 @@ body.map-hidden .content-area {
 .nd-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .nd-label { font-size: 13px; color: var(--text-s); }
 
-.widg.news-list {
+.news-list {
     margin-top: 15px; padding: 0 15px;
     height: 275px; overflow-y: auto; /* V32: Perfect 3-row parity height */
     display: flex; flex-direction: column; gap: 12px;

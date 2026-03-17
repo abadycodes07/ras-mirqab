@@ -179,10 +179,20 @@ const MobileApp = {
 
         const AVATARS = {
             'aljazeera': '../public/logos/ajanews_new.png',
-            'alarabiya': '../public/logos/alarabiya.png',
-            'sky': '../public/logos/sky.png',
-            'bbc': '../public/logos/bbc.png',
-            'reuters': '../public/logos/reuters.png'
+            'ajanews': '../public/logos/ajanews_new.png',
+            'alarabiya_brk': '../public/logos/alarabiya.png',
+            'alarabiya_Brk': '../public/logos/alarabiya.png',
+            'AlArabiya_Brk': '../public/logos/alarabiya.png',
+            'sky': '../public/logos/skynews.png',
+            'SkyNewsArabia_B': '../public/logos/skynews.png',
+            'AlHadath': '../public/logos/hadath.png',
+            'alhadath_brk': '../public/logos/hadath.png',
+            'RT_Arabic': '../public/logos/rt.png',
+            'RTonline_ar': '../public/logos/rt.png',
+            'SABQ_NEWS': '../public/logos/sabq.png',
+            'sabq-org': '../public/logos/sabq.png',
+            'alekhbariyaNews': '../public/logos/alekhbariyanews.jpg',
+            'alekhbariyabrk': '../public/logos/alekhbariyabrk.jpg'
         };
 
         displayItems.forEach(item => {
@@ -554,7 +564,7 @@ const MobileApp = {
              pip.style.transition = 'all 0.3s ease';
         });
     },
-    version: 'v28'
+    version: 'v29'
 };
 
 window.MobileApp = MobileApp; // Expose for BreakingNewsWidget

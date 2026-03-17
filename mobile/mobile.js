@@ -406,21 +406,10 @@ const MobileApp = {
         setInterval(() => {
             const gs = document.getElementById('mwc-gold-silver');
             if (gs && window.GoldSilverWidget) {
-                // Fetch the actual current desktop price
                 const val = document.querySelector('.gold-silver-widget .price-large');
                 if (val) gs.innerText = val.innerText;
             }
         }, 5000);
-
-        // Cyber Intel (Animation)
-        const cyber = document.getElementById('mwc-cyber-intel');
-        if (cyber) {
-            setInterval(() => {
-                const status = ['MONITORING', 'ACTIVE SCAN', 'THREAT LEVEL: LOW', 'STABLE'];
-                cyber.innerText = status[Math.floor(Math.random() * status.length)];
-            }, 3000);
-        }
-    },
 
         // Cyber Intel (Animation)
         const cyber = document.getElementById('mwc-cyber-intel');

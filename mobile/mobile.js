@@ -157,8 +157,16 @@ const MobileApp = {
             // Override renderer for mobile design system
             BreakingNewsWidget.renderItems = this.renderMobileNewsItems.bind(this);
             BreakingNewsWidget.init();
-            // FORCE CACHE SYNC
-            if (BreakingNewsWidget.fetchServerCache) BreakingNewsWidget.fetchServerCache();
+            
+            // V30: Force Immediate Sync & Visibility check
+            setTimeout(() => {
+                if (BreakingNewsWidget.fetchServerCache) BreakingNewsWidget.fetchServerCache();
+                const list = document.getElementById('news-list');
+                if (list && list.innerHTML.trim() === '') {
+                    console.log('--- V30: NEWS EMPTY, FORCING SKELETON ---');
+                    this.showNewsSkeleton(list);
+                }
+            }, 1000);
         }
     },
 
@@ -171,11 +179,11 @@ const MobileApp = {
             return;
         }
         
-        // Match 4-row fixed layout from parity image
-        container.style.maxHeight = '380px';
+        // V30: 3-row fixed layout from reference (sandwiched)
+        container.style.maxHeight = '280px'; 
         container.style.overflowY = 'auto';
         
-        const displayItems = items.slice(0, 20);
+        const displayItems = items.slice(0, 15);
 
         const AVATARS = {
             'aljazeera': '../public/logos/ajanews_new.png',
@@ -564,7 +572,7 @@ const MobileApp = {
              pip.style.transition = 'all 0.3s ease';
         });
     },
-    version: 'v29'
+    version: 'v30'
 };
 
 window.MobileApp = MobileApp; // Expose for BreakingNewsWidget

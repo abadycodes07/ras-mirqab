@@ -4,7 +4,9 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    var PROXY_BASE = localStorage.getItem('rasmirqab_proxy') || 'https://ras-mirqab-proxy.onrender.com';
+    // V17.2 HARD-SYNC: Force default proxy to eliminate old experiment pollution
+    if (localStorage.getItem('rasmirqab_proxy')) localStorage.removeItem('rasmirqab_proxy');
+    var PROXY_BASE = 'https://ras-mirqab-proxy.onrender.com';
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;
@@ -391,8 +393,8 @@ var BreakingNewsWidget = (function () {
             if (res.ok) {
                 const data = await res.json();
                 fetchResults = data.items || [];
-                console.log("[V15] Proxy Sync Success (" + fetchResults.length + ")");
-            } else { throw new Error("Proxy Sleep"); }
+                console.log("[V17.2] SECURE-SYNC CONNECTED! Items: " + fetchResults.length);
+            } else { throw new Error("HTTP " + res.status); }
         } catch (e) {
             console.warn("[V15] Proxy Down/Sleep. Engaging Fallback...");
             

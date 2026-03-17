@@ -322,6 +322,35 @@ app.get('/api/news-v4-list', (req, res) => {
     const combined = [...telegramCache, ...twitterCache].sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
     res.json({ items: combined });
 });
+
+// ═══════════════════════════════════════════════
+// V17 SENTINEL SYNC (LOCAL-TO-CLOUD)
+// ═══════════════════════════════════════════════
+app.use(express.json({ limit: '5mb' }));
+
+const SENTINEL_TOKEN = "RAS_SENTINEL_777"; // Internal sync token
+
+app.post('/api/v17/sync-push', (req, res) => {
+    const { token, telegram, twitter } = req.body;
+
+    if (token !== SENTINEL_TOKEN) {
+        return res.status(403).json({ error: "Unauthorized" });
+    }
+
+    if (telegram) {
+        telegramCache = mergeCache(telegramCache, telegram, 150);
+        console.log(`📡 [Sentinel] Injected ${telegram.length} Telegram items.`);
+    }
+
+    if (twitter) {
+        twitterCache = mergeCache(twitterCache, twitter, 300);
+        console.log(`📡 [Sentinel] Injected ${twitter.length} Twitter items.`);
+    }
+
+    saveCache();
+    res.json({ status: "success", syncedAt: new Date().toISOString() });
+});
+
 app.get('/ping', (req, res) => res.send('pong'));
 
 // Boot

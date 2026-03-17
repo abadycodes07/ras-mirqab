@@ -17,6 +17,7 @@ const MobileApp = {
         this.initBreakingNews();
         this.initTVCarousel();
         this.initWidgetsGrid();
+        this.initDraggablePiP();
         
         // 2. UI Bindings
         this.bindEvents();
@@ -165,6 +166,10 @@ const MobileApp = {
         if (!container) return;
         container.innerHTML = '';
         
+        // Match 4-row fixed layout from parity image
+        container.style.maxHeight = '380px';
+        container.style.overflowY = 'auto';
+        
         const displayItems = items.slice(0, 20);
 
         const AVATARS = {
@@ -178,26 +183,24 @@ const MobileApp = {
         displayItems.forEach(item => {
             const handle = (item.source || '').toLowerCase();
             const avatar = AVATARS[handle] || '../public/logos/default.png';
-            const media = item.image || item.mediaUrl || null;
+            const thumb = item.image || item.mediaUrl || avatar;
             const time = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
 
-            const itemEl = document.createElement('div');
-            itemEl.className = 'news-item';
-            itemEl.onclick = () => window.open(item.link || '#', '_blank');
-
-            itemEl.innerHTML = `
-                <div class="news-item-right">
-                    <img src="${media || avatar}" class="ni-thumb" onerror="this.src='${avatar}'">
-                </div>
-                <div class="news-item-center">
-                    <div class="ni-text">${item.title}</div>
-                </div>
-                <div class="news-item-left">
-                    <div class="ni-time">${time}</div>
-                    <img src="${avatar}" class="ni-avatar">
+            const html = `
+                <div class="news-item" onclick="window.open('${item.link}', '_blank')">
+                    <div class="ni-left-stack">
+                        <span class="ni-time">${time}</span>
+                        <img src="${avatar}" class="ni-source-logo" alt="source">
+                    </div>
+                    <div class="ni-content">
+                        <div class="ni-text">${item.title}</div>
+                    </div>
+                    <div class="ni-thumbnail">
+                        <img src="${thumb}" class="ni-thumb-img" alt="thumb" onerror="this.style.display='none'">
+                    </div>
                 </div>
             `;
-            container.appendChild(itemEl);
+            container.innerHTML += html;
         });
     },
 
@@ -478,9 +481,52 @@ const MobileApp = {
         };
         document.addEventListener('touchstart', unlock);
         document.addEventListener('click', unlock);
+    },
+    initDraggablePiP: function() {
+        const pip = document.getElementById('mobile-pip-container');
+        if (!pip) return;
+
+        let isDragging = false;
+        let startX, startY;
+        let initialX, initialY;
+
+        pip.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            
+            const rect = pip.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+            
+            pip.style.transition = 'none';
+        });
+
+        pip.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+
+            let nx = initialX + dx;
+            let ny = initialY + dy;
+
+            // Simple Screen Bounds
+            nx = Math.max(0, Math.min(nx, window.innerWidth - 180));
+            ny = Math.max(0, Math.min(ny, window.innerHeight - 110));
+
+            pip.style.left = nx + 'px';
+            pip.style.top = ny + 'px';
+            pip.style.right = 'auto';
+            pip.style.bottom = 'auto';
+        });
+
+        pip.addEventListener('touchend', () => {
+             isDragging = false;
+             pip.style.transition = 'all 0.3s ease';
+        });
     }
 };
-
-document.addEventListener('DOMContentLoaded', () => MobileApp.init());
 
 document.addEventListener('DOMContentLoaded', () => MobileApp.init());

@@ -408,7 +408,7 @@ var BreakingNewsWidget = (function () {
 
     async function fetchServerCache() {
         // Try both paths to be safe (mobile vs desktop)
-        const paths = ['public/news.json', '../public/news.json', 'news.json'];
+        const paths = ['/public/news.json', 'public/news.json', '../public/news.json', 'news.json', 'https://ras-mirqab-proxy.onrender.com/public/news.json'];
         for (let path of paths) {
             try {
                 const res = await fetch(path + '?v=' + Date.now());

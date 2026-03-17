@@ -161,7 +161,7 @@ const MobileApp = {
         if (!container) return;
         container.innerHTML = '';
         
-        const displayItems = items.slice(0, 4);
+        const displayItems = items.slice(0, 20);
 
         const AVATARS = {
             'aljazeera': '../public/logos/ajanews_new.png',
@@ -218,7 +218,7 @@ const MobileApp = {
                 <div class="layer-item">
                     <span class="layer-label">${cat.emoji} ${cat.labelAr || cat.label}</span>
                     <label class="switch tiny">
-                        <input type="checkbox" id="mlayer-${key}" ${isChecked ? 'checked' : ''} onchange="MobileApp.toggleLayer('${key}', this.checked)">
+                        <input type="checkbox" id="layer-${key}" ${isChecked ? 'checked' : ''} onchange="MobileApp.toggleLayer('${key}', this.checked)">
                         <span class="slider round"></span>
                     </label>
                 </div>
@@ -229,9 +229,9 @@ const MobileApp = {
 
     toggleLayer: function(key, active) {
         localStorage.setItem('layer-' + key, active);
-        if (window.RasMirqabGlobe && RasMirqabGlobe.updateMarkers) {
-             // If shared globe has a refresh method, call it
-             // For now, assume it reactive via shared logic
+        if (window.RasMirqabGlobe) {
+            if (RasMirqabGlobe.updateGlobeMarkers) RasMirqabGlobe.updateGlobeMarkers();
+            if (RasMirqabGlobe.updateMapMarkers) RasMirqabGlobe.updateMapMarkers();
         }
         // Force refresh if the shared script uses global listeners
         const event = new CustomEvent('layerChange', { detail: { key, active } });
@@ -267,7 +267,8 @@ const MobileApp = {
         if (first) {
             const el = document.getElementById(`card-${first.key}`);
             if (el) {
-                 setTimeout(() => this.playTV(first.key, el), 1500);
+                 // Fast interaction hint: auto-play Al Jazeera on load
+                 setTimeout(() => this.playTV(first.key, el), 1000);
             }
         }
     },

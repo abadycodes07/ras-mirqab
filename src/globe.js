@@ -40,13 +40,14 @@ var RasMirqabGlobe = (function () {
         }
 
         try {
+            var assetPath = window.location.pathname.includes('/mobile') ? '../src/assets/' : 'src/assets/';
             // Create the 3D globe
             globe = Globe()(container)
                 .backgroundColor('rgba(0,0,0,0)')
                 .showGlobe(true)
-                .globeImageUrl('src/assets/earth-dark.jpg')
-                .bumpImageUrl('src/assets/earth-topology.png')
-                .backgroundImageUrl('src/assets/night-sky.png')
+                .globeImageUrl(assetPath + 'earth-dark.jpg')
+                .bumpImageUrl(assetPath + 'earth-topology.png')
+                .backgroundImageUrl(assetPath + 'night-sky.png')
                 .showAtmosphere(true)
                 .atmosphereColor('#ff6a00')
                 .atmosphereAltitude(0.15)

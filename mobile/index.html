@@ -53,7 +53,6 @@
     </div>
     <div class="header-right">
        <span class="header-brand">راس مرقاب</span>
-       <img src="../public/logo.png" class="header-logo" alt="Logo">
     </div>
     <!-- Internal logic clock -->
     <div id="mobile-header-clock" style="display:none;"></div>
@@ -148,25 +147,27 @@
               <button class="modal-close" id="close-notif-modal">✕</button>
           </div>
           <div class="modal-body">
-              <div class="nd-row">
-                  <span class="nd-label">تفعيل الإشعارات المرئية</span>
-                  <label class="switch">
-                      <input type="checkbox" id="toggle-visual-notif-mobile" checked>
-                      <span class="slider round"></span>
-                  </label>
-              </div>
-              <div class="nd-row">
-                  <span class="nd-label">تفعيل الإشعارات الصوتية</span>
-                  <label class="switch">
-                      <input type="checkbox" id="toggle-audio-notif-mobile" checked>
-                      <span class="slider round"></span>
-                  </label>
-              </div>
-              <div class="nd-row vol-row">
-                  <span class="nd-label">حجم الصوت / VOLUME</span>
-                  <div class="vol-control">
-                      <input type="range" id="notif-volume-slider-mobile" min="0" max="1" step="0.1" value="0.5">
-                      <span id="notif-volume-value-mobile">50%</span>
+              <div class="notif-popup-content">
+                  <div class="nd-row">
+                      <span class="nd-label">تفعيل الإشعارات المرئية</span>
+                      <label class="switch">
+                          <input type="checkbox" id="toggle-visual-notif-mobile" checked>
+                          <span class="slider round"></span>
+                      </label>
+                  </div>
+                  <div class="nd-row">
+                      <span class="nd-label">تفعيل الإشعارات الصوتية</span>
+                      <label class="switch">
+                          <input type="checkbox" id="toggle-audio-notif-mobile" checked>
+                          <span class="slider round"></span>
+                      </label>
+                  </div>
+                  <div class="nd-row vol-row">
+                      <div class="vol-header">
+                          <span class="nd-label">حجم الصوت / VOLUME</span>
+                          <span id="notif-volume-value-mobile">50%</span>
+                      </div>
+                      <input type="range" id="notif-volume-slider-mobile" min="0" max="1" step="0.1" value="0.5" class="modern-slider">
                   </div>
               </div>
           </div>

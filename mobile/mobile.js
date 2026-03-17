@@ -11,7 +11,10 @@ const MobileApp = {
         console.log('--- MOBILE APP V19: GLASSMORPHISM UNLOCKED ---');
         
         // 1. Core Systems
-        if (window.RasMirqabGlobe) RasMirqabGlobe.init();
+        if (window.RasMirqabGlobe) {
+            RasMirqabGlobe.init();
+            this.initLayersModal();
+        }
         this.initBreakingNews();
         this.initTVCarousel();
         this.initWidgetsGrid();
@@ -70,27 +73,6 @@ const MobileApp = {
         if (bell) {
             bell.onclick = (e) => {
                 e.preventDefault();
-                // Toggle Audio Enabled State
-                this.audioEnabled = !this.audioEnabled;
-                localStorage.setItem('rasmirqab_audio_notif', this.audioEnabled);
-                
-                // Mirror to global controller if exists
-                if (window.RasMirqabNotification) {
-                    window.RasMirqabNotification.audioEnabled = this.audioEnabled;
-                }
-                
-                this.updateBellGlow();
-                
-                // Show notification to confirm
-                if (window.RasMirqabNotification && window.RasMirqabNotification.show) {
-                    const status = this.audioEnabled ? 'تفعيل الصوت' : 'كتم الصوت';
-                    window.RasMirqabNotification.show('نظام التنبيهات', `تم ${status} بنجاح.`);
-                }
-            };
-            
-            // Long press or double click to open modal
-            bell.oncontextmenu = (e) => {
-                e.preventDefault();
                 const modal = document.getElementById('mobile-notif-modal');
                 if (modal) modal.classList.remove('hidden');
                 this.syncNotifUI();
@@ -146,13 +128,91 @@ const MobileApp = {
 
     initBreakingNews: function() {
         if (window.BreakingNewsWidget) {
+            // Override renderer for mobile design system
+            BreakingNewsWidget.renderItems = this.renderMobileNewsItems.bind(this);
+            
             const container = document.getElementById('news-list');
             if (container) {
-                const ui = BreakingNewsWidget.render();
-                container.innerHTML = ui.body;
                 BreakingNewsWidget.init();
             }
         }
+    },
+
+    renderMobileNewsItems: function(container, items) {
+        if (!container) return;
+        
+        // Focus 2026: Mobile specific cleaner renderer
+        container.innerHTML = '';
+        
+        // Limit to 4 items for "static" feel as requested
+        const displayItems = items.slice(0, 4);
+
+        const AVATARS = {
+            'alrougui': '../public/logos/alrougui.jpg',
+            'alekhbariyaNews': '../public/logos/alekhbariyanews.jpg',
+            'alekhbariyabrk': '../public/logos/alekhbariyabrk.jpg',
+            'ajanews': '../public/logos/ajanews_new.png',
+            'alhadath_brk': '../public/logos/hadath.png',
+            'AlArabiya': '../public/logos/alarabiya.png'
+        };
+
+        displayItems.forEach(item => {
+            const handle = item.sourceHandle || '';
+            const avatar = AVATARS[handle] || '../public/logos/default.png';
+            const media = item.image || item.mediaUrl || null;
+            const time = new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+
+            const itemEl = document.createElement('div');
+            itemEl.className = 'news-item';
+            itemEl.onclick = () => window.open(item.link, '_blank');
+
+            itemEl.innerHTML = `
+                <div class="news-item-right">
+                    <img src="${media || avatar}" class="ni-thumb" onerror="this.src='${avatar}'">
+                </div>
+                <div class="news-item-center">
+                    <div class="ni-text">${item.title}</div>
+                </div>
+                <div class="news-item-left">
+                    <div class="ni-time">${time}</div>
+                    <img src="${avatar}" class="ni-avatar">
+                </div>
+            `;
+            container.appendChild(itemEl);
+        });
+    },
+
+    initLayersModal: function() {
+        const list = document.getElementById('layers-list');
+        if (!list || !window.RasMirqabData || !RasMirqabData.categories) return;
+
+        let html = '';
+        Object.keys(RasMirqabData.categories).forEach(key => {
+            const cat = RasMirqabData.categories[key];
+            const isChecked = localStorage.getItem('layer-' + key) !== 'false';
+            
+            html += `
+                <div class="layer-item">
+                    <span class="layer-label">${cat.emoji} ${cat.labelAr}</span>
+                    <label class="switch tiny">
+                        <input type="checkbox" id="mlayer-${key}" ${isChecked ? 'checked' : ''} onchange="MobileApp.toggleLayer('${key}', this.checked)">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            `;
+        });
+        list.innerHTML = html;
+    },
+
+    toggleLayer: function(key, active) {
+        localStorage.setItem('layer-' + key, active);
+        if (window.RasMirqabGlobe && RasMirqabGlobe.updateMarkers) {
+             // If shared globe has a refresh method, call it
+             // For now, assume it reactive via shared logic
+        }
+        // Force refresh if the shared script uses global listeners
+        const event = new CustomEvent('layerChange', { detail: { key, active } });
+        window.dispatchEvent(event);
     },
 
     initTVCarousel: function() {

@@ -337,7 +337,7 @@
 
         if (!btn || !dropdown) return;
 
-        // Init states from localStorage
+        // Init states from localStorage (Default Volume 50% / 0.5)
         var visState = localStorage.getItem('rasmirqab_visual_notif') !== 'false';
         var audState = localStorage.getItem('rasmirqab_audio_notif') !== 'false';
         var volState = localStorage.getItem('rasmirqab_notif_volume') || "0.5";
@@ -349,6 +349,9 @@
             if (volValue) volValue.innerText = Math.round(volState * 100) + '%';
         }
 
+        // Apply initial audio state
+        window.RasMirqabNotification.audioEnabled = audState;
+
         // 🔊 Volume Slider Logic
         if (volSlider) {
             volSlider.addEventListener('input', function() {
@@ -356,68 +359,69 @@
                 if (volValue) volValue.innerText = Math.round(val * 100) + '%';
                 localStorage.setItem('rasmirqab_notif_volume', val);
                 
-                // Optional: Play short test sound when sliding
                 var audio = document.getElementById('breaking-news-audio');
                 if (audio) {
                     audio.volume = val;
+                    // Mute if volume is 0
+                    if (val === 0) {
+                        window.RasMirqabNotification.audioEnabled = false;
+                        if (toggleAud) toggleAud.checked = false;
+                    } else {
+                        window.RasMirqabNotification.audioEnabled = true;
+                        if (toggleAud) toggleAud.checked = true;
+                    }
+                    localStorage.setItem('rasmirqab_audio_notif', window.RasMirqabNotification.audioEnabled);
+                    updateBellGlow();
                 }
             });
         }
 
-        // 🔔 Audio Toggle Logic
-        if (toggleAud) {
-            toggleAud.addEventListener('change', function() {
-                window.RasMirqabNotification.audioEnabled = this.checked;
-                localStorage.setItem('rasmirqab_audio_notif', this.checked);
-                updateBellGlow();
-            });
-        }
-        
-        // 👁️ Visual Toggle Logic
-        if (toggleVis) {
-            toggleVis.addEventListener('change', function() {
-                window.RasMirqabNotification.visualEnabled = this.checked;
-                localStorage.setItem('rasmirqab_visual_notif', this.checked);
-            });
-        }
+        // 🔔 Audio Toggle Logic (Mute on Click)
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle audio state
+            var newState = !window.RasMirqabNotification.audioEnabled;
+            window.RasMirqabNotification.audioEnabled = newState;
+            localStorage.setItem('rasmirqab_audio_notif', newState);
+            
+            if (toggleAud) toggleAud.checked = newState;
+            
+            // Visual feedback
+            updateBellGlow();
+            
+            console.log("Audio Toggled:", newState ? "ON" : "OFF");
+        });
+
+        // 🖱️ Volume Hover Logic
+        btn.parentElement.addEventListener('mouseenter', function() {
+            dropdown.classList.remove('hidden');
+        });
+        btn.parentElement.addEventListener('mouseleave', function() {
+            dropdown.classList.add('hidden');
+        });
 
         function updateBellGlow() {
             if (window.RasMirqabNotification.audioEnabled) {
                 btn.classList.add('audio-active');
+                btn.style.color = 'var(--accent)';
             } else {
                 btn.classList.remove('audio-active');
+                btn.style.color = 'var(--text-muted)';
             }
         }
         updateBellGlow();
 
-        // 🖱️ Toggle Dropdown on Bell Click
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            dropdown.classList.toggle('hidden');
-        });
-
-        // 🚪 Close on Outside Click
-        document.addEventListener('click', function(e) {
-            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-
-        // Stop propagation inside dropdown to prevent immediate closing
+        // Dropdown internal clicks shouldn't close it
         dropdown.addEventListener('click', function(e) {
             e.stopPropagation();
         });
 
-        // Listeners for switches inside the dropdown
         if (toggleVis) {
             toggleVis.addEventListener('change', function (e) {
                 window.RasMirqabNotification.visualEnabled = e.target.checked;
                 localStorage.setItem('rasmirqab_visual_notif', e.target.checked);
-                if (badge) {
-                    if (e.target.checked) badge.classList.add('active');
-                    else badge.classList.remove('active');
-                }
             });
         }
 

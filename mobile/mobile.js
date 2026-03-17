@@ -553,7 +553,9 @@ const MobileApp = {
              isDragging = false;
              pip.style.transition = 'all 0.3s ease';
         });
-    }
+    },
+    version: 'v28'
 };
 
+window.MobileApp = MobileApp; // Expose for BreakingNewsWidget
 document.addEventListener('DOMContentLoaded', () => MobileApp.init());

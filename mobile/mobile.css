@@ -112,7 +112,7 @@ body {
 
 /* ═══ GLOBE CONTROLS ═══ */
 .globe-controls { 
-    position: absolute; top: 10px; left: 0; right: 0; 
+    position: absolute; top: 75px; left: 0; right: 0; 
     padding: 0 15px; display: flex !important; justify-content: space-between; align-items: flex-start;
     z-index: 2000; pointer-events: none;
 }
@@ -248,13 +248,18 @@ body.map-hidden .content-area {
 .ni-thumbnail { width: 65px; height: 65px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
 .ni-thumb-img { width: 100%; height: 100%; object-fit: cover; }
 
-/* Skeleton States */
-.news-item.skeleton { background: rgba(255,255,255,0.02); pointer-events: none; border: 1px dashed rgba(255,255,255,0.05); }
-.sk-line { height: 10px; background: rgba(255,255,255,0.05); border-radius: 4px; margin-bottom: 8px; width: 100%; animation: skPulse 1.5s infinite ease-in-out; }
-.sk-line.shorter { width: 60%; }
-.sk-circle { width: 20px; height: 20px; background: rgba(255,255,255,0.05); border-radius: 50%; margin-bottom: 5px; animation: skPulse 1.5s infinite ease-in-out; }
-.sk-rect { width: 100%; height: 100%; background: rgba(255,255,255,0.03); animation: skPulse 1.5s infinite ease-in-out; }
-.sk-box-tiny { width: 30px; height: 8px; background: rgba(255,255,255,0.03); border-radius: 2px; }
+/* Skeleton States (V28: Wide Rectangular) */
+.news-item.skeleton { 
+    background: rgba(255,106,0,0.03); 
+    border: 1px solid rgba(255,255,255,0.05); 
+    height: 85px; 
+    margin-bottom: 12px;
+}
+.sk-line { height: 12px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-bottom: 10px; width: 100%; animation: skPulse 1.5s infinite ease-in-out; }
+.sk-line.shorter { width: 70%; }
+.sk-circle { width: 24px; height: 24px; background: rgba(255,255,255,0.08); border-radius: 50%; margin-bottom: 8px; animation: skPulse 1.5s infinite ease-in-out; }
+.sk-rect { width: 100%; height: 100%; background: rgba(255,255,255,0.05); animation: skPulse 1.5s infinite ease-in-out; }
+.sk-box-tiny { width: 40px; height: 10px; background: rgba(255,255,255,0.05); border-radius: 2px; }
 
 @keyframes skPulse { 0% { opacity: 0.3; } 50% { opacity: 0.7; } 100% { opacity: 0.3; } }
 

@@ -408,8 +408,16 @@ var BreakingNewsWidget = (function () {
 
     async function fetchServerCache() {
         console.log('--- NEWS-ENGINE: ATTEMPTING CACHE SYNC ---');
-        // Prioritize root news.json which is usually the freshest
-        const paths = ['news.json', '../news.json', './news.json', '/news.json', '/public/news.json', 'https://ras-mirqab-proxy.onrender.com/public/news.json'];
+        // V28: Use Absolute Origin to ensure desktop cache is found
+        const origin = window.location.origin || '';
+        const paths = [
+            'news.json', 
+            origin + '/news.json',
+            origin + '/ras-mirqab/news.json', // GitHub Pages possible path
+            '../news.json', 
+            '/news.json', 
+            'https://ras-mirqab-proxy.onrender.com/public/news.json'
+        ];
         for (let path of paths) {
             try {
                 const res = await fetch(path + '?nocache=' + Date.now());
@@ -576,6 +584,7 @@ var BreakingNewsWidget = (function () {
     return { 
         render: render, 
         init: init, 
+        renderItems: renderItems, // V28: Exposed for mobile override
         removeSource: removeSource, 
         toggleSettings: toggleSettings, 
         toggleVisibility: toggleVisibility,

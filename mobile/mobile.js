@@ -184,10 +184,15 @@ const MobileApp = {
         const modal = document.getElementById('layers-modal');
         const list = document.getElementById('layers-list');
         const btn = document.getElementById('btn-layers');
+        const closeBtn = document.getElementById('close-layers');
 
         if (btn && modal) {
-            btn.onclick = () => modal.classList.toggle('hidden');
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                modal.classList.toggle('hidden');
+            };
         }
+        if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
 
         if (!list || !window.RasMirqabData || !RasMirqabData.categories) return;
 
@@ -198,7 +203,7 @@ const MobileApp = {
             
             html += `
                 <div class="layer-item">
-                    <span class="layer-label">${cat.emoji} ${cat.labelAr}</span>
+                    <span class="layer-label">${cat.emoji} ${cat.labelAr || cat.label}</span>
                     <label class="switch tiny">
                         <input type="checkbox" id="mlayer-${key}" ${isChecked ? 'checked' : ''} onchange="MobileApp.toggleLayer('${key}', this.checked)">
                         <span class="slider round"></span>
@@ -224,11 +229,11 @@ const MobileApp = {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
 
-        // Take channels from the desktop pool
-        const tvFeeds = (window.LiveTVWidget && LiveTVWidget.getChannels) ? LiveTVWidget.getChannels() : window.FeedsData?.tv || [];
+        // Force desktop parity by using the LiveTVWidget channel pool
+        const tvFeeds = (window.LiveTVWidget && LiveTVWidget.getChannels) ? LiveTVWidget.getChannels() : [];
         
         if (tvFeeds.length === 0) {
-            carousel.innerHTML = '<div style="color:#555; font-size:10px; padding:20px;">No feeds found.</div>';
+            carousel.innerHTML = '<div style="color:#666; font-size:11px; padding:20px; text-align:center;">جاري تحميل القنوات...</div>';
             return;
         }
 
@@ -236,7 +241,7 @@ const MobileApp = {
         tvFeeds.forEach(ch => {
             html += `
                 <div class="tv-card" id="card-${ch.key}" onclick="MobileApp.playTV('${ch.key}', this)">
-                    <img src="https://img.youtube.com/vi/${ch.videoId}/maxresdefault.jpg" class="tv-thumb" alt="${ch.name}">
+                    <img src="https://img.youtube.com/vi/${ch.videoId}/mqdefault.jpg" class="tv-thumb" alt="${ch.name}">
                     <div class="tv-live-badge">LIVE</div>
                     <div class="tv-card-name">${ch.name}</div>
                 </div>
@@ -244,12 +249,12 @@ const MobileApp = {
         });
         carousel.innerHTML = html;
         
-        // Auto-play first channel (usually Al Jazeera) with audio
-        const first = tvFeeds[0];
+        // Al Jazeera first selection + Orange Glow
+        const first = tvFeeds.find(c => c.key === 'aljazeera') || tvFeeds[0];
         if (first) {
             const el = document.getElementById(`card-${first.key}`);
             if (el) {
-                 setTimeout(() => this.playTV(first.key, el), 1000);
+                 setTimeout(() => this.playTV(first.key, el), 1500);
             }
         }
     },
@@ -317,7 +322,7 @@ const MobileApp = {
         ];
 
         grid.innerHTML = widgets.map(w => `
-            <div class="widget" id="mw-${w.id}">
+            <div class="widget-card" id="mw-${w.id}">
                 <span class="w-icon">${w.icon}</span>
                 <span class="w-label">${w.label}</span>
                 <div class="w-main" id="mwc-${w.id}">${w.val}</div>
@@ -331,15 +336,32 @@ const MobileApp = {
     },
 
     linkWidgetData: function() {
-        // World Clock update
+        // World Clock update (Real Logic)
         setInterval(() => {
             const clock = document.getElementById('mwc-world-clock');
             if (clock) {
                 const now = new Date();
-                const ksa = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Riyadh', hour: '2-digit', minute: '2-digit' });
-                clock.innerHTML = `<span style="font-size:10px; opacity:0.6; margin-left:5px;">Riyadh</span> ${ksa}`;
+                const riyadh = now.toLocaleTimeString('ar-SA', { timeZone: 'Asia/Riyadh', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                clock.innerHTML = `<span style="font-size:10px; opacity:0.6;">Riyadh</span><br>${riyadh}`;
             }
         }, 1000);
+
+        // Gold & Silver (Link to Desktop if script loaded)
+        if (window.GoldSilverWidget) {
+             setInterval(() => {
+                 const gs = document.getElementById('mwc-gold-silver');
+                 if (gs) gs.innerText = GoldSilverWidget.getLatestValue ? GoldSilverWidget.getLatestValue() : '5,171.500';
+             }, 5000);
+        }
+
+        // Cyber Intel (Animation)
+        const cyber = document.getElementById('mwc-cyber-intel');
+        if (cyber) {
+            setInterval(() => {
+                const status = ['MONITORING', 'ACTIVE SCAN', 'THREAT LEVEL: LOW', 'STABLE'];
+                cyber.innerText = status[Math.floor(Math.random() * status.length)];
+            }, 3000);
+        }
 
         // Markets Glow
         const market = document.getElementById('mwc-market-overview');

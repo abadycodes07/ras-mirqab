@@ -208,6 +208,7 @@ var LiveTVWidget = (function () {
     return {
         render: render,
         init: init,
+        getChannels: function() { return channels; },
         reloadWithAudio: renderEmbed
     };
 })();

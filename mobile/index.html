@@ -52,7 +52,13 @@
       </div>
     </div>
     <div class="header-right">
-       <img src="../public/logo.png" class="header-logo" alt="Logo">
+       <div class="logo-group">
+           <img src="../public/logo.png" class="header-logo" alt="Logo">
+           <!-- Bookmark-style Show Map Button -->
+           <button id="float-show-map" class="bookmark-btn hidden">
+               <span>Show Map</span>
+           </button>
+       </div>
     </div>
     <!-- Internal logic clock -->
     <div id="mobile-header-clock" style="display:none;"></div>
@@ -94,11 +100,7 @@
       </div>
     </div>
     
-    <!-- Show Map Floating Button (Visible when map hidden) -->
-    <button id="float-show-map" class="float-show-map-btn hidden">
-        <span>Show Map</span>
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
-    </button>
+    <!-- Show Map removed from here, moved to header -->
     <div class="update-label">تحديث تلقائي: قبل دقيقة واحدة</div>
   </section>
 

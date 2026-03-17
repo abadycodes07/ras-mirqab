@@ -5,11 +5,11 @@
  */
 
 const MobileApp = {
-    version: 'v41',
+    version: 'v42',
     isAudioUnlocked: false,
     
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V41: DESKTOP SYNC ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V42: CONTROL RESCUE ---');
         
         // 1. Initialize Globe
         if (window.RasMirqabGlobe) {
@@ -24,8 +24,9 @@ const MobileApp = {
         this.initWidgets();
         this.bindEvents();
         this.initAudioGuard();
+        this.initLayersPanel();
         
-        document.body.classList.add('v41-ready');
+        document.body.classList.add('v42-ready');
     },
 
     initAudioGuard: function() {
@@ -33,15 +34,11 @@ const MobileApp = {
         const unlock = () => {
             if (this.isAudioUnlocked) return;
             this.isAudioUnlocked = true;
-            console.log("🔊 Audio Unlocked by User interaction");
             
             // Try to unmute existing player if any
             const iframe = document.querySelector('#tv-player-wrapper iframe');
-            if (iframe) {
-                const src = iframe.src;
-                if (src.includes('mute=1')) {
-                    iframe.src = src.replace('mute=1', 'mute=0');
-                }
+            if (iframe && iframe.src.includes('mute=1')) {
+                iframe.src = iframe.src.replace('mute=1', 'mute=0');
             }
             
             document.removeEventListener('click', unlock);
@@ -51,10 +48,9 @@ const MobileApp = {
         document.addEventListener('touchstart', unlock);
     },
 
-    // ═══ NEWS MODULE (Desktop Engine Sync) ═══
+    // ═══ NEWS MODULE (Desktop Engine Sync + V42 Premium Decor) ═══
     initDesktopNews: function() {
         if (!window.BreakingNewsWidget) {
-            console.error("❌ BreakingNewsWidget not found!");
             return;
         }
 
@@ -69,12 +65,25 @@ const MobileApp = {
                 const handle = (item.sourceHandle || 'default').toLowerCase();
                 const sourceLogo = `../public/logos/${handle}.jpg`;
                 const thumb = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : '../public/logos/default.png');
+                
+                // Detection logic for Platform Badge
+                let platformIcon = 'rss';
+                const link = (item.link || '').toLowerCase();
+                if (link.includes('t.me')) platformIcon = 'telegram';
+                else if (link.includes('x.com') || link.includes('twitter')) platformIcon = 'twitter';
+                
+                const platformSrc = `../public/icons/${platformIcon}.png`;
 
                 return `
                     <div class="news-item" onclick="window.open('${item.link}', '_blank')">
                         <div class="ni-left-stack">
                             <span class="ni-time">${timeStr}</span>
-                            <img src="${sourceLogo}" class="ni-source-logo" onerror="this.src='../public/logos/default.png'">
+                            <div class="ni-source-logo-wrap">
+                                <img src="${sourceLogo}" class="ni-source-logo" onerror="this.src='../public/logos/default.png'">
+                                <div class="ni-platform-badge">
+                                    <img src="${platformSrc}" onerror="this.src='../public/icons/rss.png'">
+                                </div>
+                            </div>
                         </div>
                         <div class="ni-content">
                             <div class="ni-text">${item.title}</div>
@@ -94,14 +103,13 @@ const MobileApp = {
     // ═══ LIVE TV MODULE (Independent) ═══
     initTV: function() {
         const carousel = document.getElementById('tv-carousel');
-        const player = document.getElementById('tv-player-wrapper');
-        if (!carousel || !player) return;
+        if (!carousel) return;
 
         const channels = [
-            { id: 'aljazeera', name: 'Al Jazeera', slug: 'ALJAZEERA', logo: 'https://v3.aljazeera.net/wp-content/themes/aljazeera/assets/images/logo-ar.png', ytId: 'bNyUCPTvalg' },
-            { id: 'alarabiya', name: 'Al Arabiya', slug: 'AL ARABIYA', logo: 'https://www.alarabiya.net/favicon.ico', ytId: '-PjD_X_8x6E' },
-            { id: 'hadath', name: 'Al Hadath', slug: 'AL HADATH', logo: 'https://www.alhadath.net/favicon.ico', ytId: 'f0Xunf9Okp8' },
-            { id: 'sky', name: 'Sky News Arabia', slug: 'SKY NEWS', logo: 'https://www.skynewsarabia.com/favicon.ico', ytId: '9vMsh_Lz51Y' }
+            { name: 'Al Jazeera', slug: 'ALJAZEERA', logo: '../public/logos/aljazeera.jpg', ytId: 'bNyUCPTvalg' },
+            { name: 'Al Arabiya', slug: 'AL ARABIYA', logo: '../public/logos/alarabiya.jpg', ytId: '-PjD_X_8x6E' },
+            { name: 'Al Hadath', slug: 'AL HADATH', logo: '../public/logos/hadath.jpg', ytId: 'f0Xunf9Okp8' },
+            { name: 'Sky News', slug: 'SKY NEWS', logo: '../public/logos/sky.jpg', ytId: '9vMsh_Lz51Y' }
         ];
 
         // Render Carousel
@@ -141,27 +149,22 @@ const MobileApp = {
 
         const widgets = [
             { label: 'توقيت الرياض', id: 'clock', val: '--:--', icon: '🌍' },
-            { label: 'الذهب (USD)', id: 'gold', val: '$2,175.40', icon: '💰' },
-            { label: 'تحركات سيبرانية', id: 'cyber', val: 'MONITORING', icon: '🛡️' },
-            { label: 'مؤشر السوق', id: 'market', val: '+1.44% ▲', icon: '📊' }
+            { label: 'الذهب (USD)', id: 'gold', val: '$2,175', icon: '💰' },
+            { label: 'سيبراني', id: 'cyber', val: 'SECURE', icon: '🛡️' },
+            { label: 'السوق', id: 'market', val: '+1.2%', icon: '📊' }
         ];
 
         grid.innerHTML = widgets.map(w => `
-            <div class="widget-card" id="w-${w.id}">
-                <div class="w-header">
-                    <span class="w-label">${w.label}</span>
-                    <span class="w-icon">${w.icon}</span>
-                </div>
+            <div class="widget-card">
+                <div class="w-header"><span>${w.label}</span></div>
                 <div class="w-main" id="val-${w.id}">${w.val}</div>
-                <div class="w-chart-deco"></div>
-                <span class="badge-t7">V37</span>
             </div>
         `).join('');
 
         // Live Clock
         setInterval(() => {
             const el = document.getElementById('val-clock');
-            if (el) el.innerText = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            if (el) el.innerText = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
         }, 1000);
 
         // Simulated updates for others
@@ -174,18 +177,47 @@ const MobileApp = {
         }, 5000);
     },
 
-    bindEvents: function() {
-        console.log("🔗 Binding V40 Precision Events...");
+    // ═══ LAYERS PANEL (Side Panel Logic) ═══
+    initLayersPanel: function() {
+        const list = document.getElementById('layers-list');
+        if (!list || !window.RasMirqabData || !RasMirqabData.categories) return;
 
+        list.innerHTML = Object.keys(RasMirqabData.categories).map(key => {
+            const cat = RasMirqabData.categories[key];
+            return `
+                <label class="layer-item">
+                    <input type="checkbox" data-layer="${key}" ${cat.default !== false ? 'checked' : ''}>
+                    <span>${cat.emoji} ${cat.labelAr}</span>
+                </label>
+            `;
+        }).join('');
+
+        list.querySelectorAll('input').forEach(input => {
+            input.onchange = (e) => {
+                const lid = e.target.getAttribute('data-layer');
+                if (window.RasMirqabGlobe) {
+                    // Update activeLayers in the globe engine
+                    if (window.RasMirqabGlobe.activeLayers) {
+                        window.RasMirqabGlobe.activeLayers[lid] = e.target.checked;
+                    }
+                    // Trigger refresh
+                    if (window.RasMirqabGlobe.updateGlobeMarkers) window.RasMirqabGlobe.updateGlobeMarkers();
+                    if (window.RasMirqabGlobe.updateMapMarkers) window.RasMirqabGlobe.updateMapMarkers();
+                }
+            };
+        });
+    },
+
+    bindEvents: function() {
         // 1. Layers Toggle
         const btnLayers = document.getElementById('btn-layers');
         const layersModal = document.getElementById('layers-modal');
         const closeLayers = document.getElementById('close-layers');
 
         if (btnLayers && layersModal) {
-            btnLayers.onclick = () => {
-                layersModal.classList.remove('hidden');
-                console.log("📂 Layers Modal Opened");
+            btnLayers.onclick = (e) => {
+                e.stopPropagation();
+                layersModal.classList.toggle('hidden');
             };
         }
         if (closeLayers) {
@@ -195,40 +227,57 @@ const MobileApp = {
         // 2. Mode Toggle (2D / 3D)
         const btn2d = document.getElementById('btn-2d');
         const btn3d = document.getElementById('btn-3d');
+        const globeContainer = document.getElementById('globe-container');
+        const mapContainer = document.getElementById('map-container');
 
         if (btn2d && btn3d) {
             btn2d.onclick = () => {
                 btn3d.classList.remove('active');
                 btn2d.classList.add('active');
-                if (window.RasMirqabGlobe) window.RasMirqabGlobe.setMode('2D');
+                if (window.RasMirqabGlobe) window.RasMirqabGlobe.toggleView('2d');
             };
             btn3d.onclick = () => {
                 btn2d.classList.remove('active');
                 btn3d.classList.add('active');
-                if (window.RasMirqabGlobe) window.RasMirqabGlobe.setMode('3D');
+                if (window.RasMirqabGlobe) window.RasMirqabGlobe.toggleView('3d');
             };
         }
 
-        // 3. Hide Map Logic
+        // 3. Hide / Show Map (Bookmark Logic)
         const hideBtn = document.getElementById('btn-hide-map');
-        if (hideBtn) {
-            hideBtn.onclick = () => {
-                const globeWrap = document.getElementById('globe-section');
-                if (globeWrap) {
-                    const isHidden = globeWrap.classList.toggle('minimized');
-                    hideBtn.querySelector('span').innerText = isHidden ? 'Show Map' : 'Hide Map';
-                    console.log("🗺️ Map Visibility:", isHidden ? "Hidden" : "Visible");
-                }
+        const bookmark = document.getElementById('show-map-bookmark');
+        const globeSection = document.getElementById('globe-section');
+
+        const toggleGlobe = (forceShow = false) => {
+            if (!globeSection) return;
+            const willHide = forceShow ? false : !globeSection.classList.contains('minimized');
+            
+            if (willHide) {
+                globeSection.classList.add('minimized');
+                if (bookmark) bookmark.classList.remove('hidden');
+            } else {
+                globeSection.classList.remove('minimized');
+                if (bookmark) bookmark.classList.add('hidden');
+            }
+        };
+
+        if (hideBtn) hideBtn.onclick = () => toggleGlobe();
+        if (bookmark) bookmark.onclick = () => toggleGlobe(true);
+
+        // Close side panel on map click
+        if (globeSection) {
+            globeSection.onclick = () => {
+                if (layersModal) layersModal.classList.add('hidden');
             };
         }
 
         // 4. Simple Navigation Active State
         document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
+            item.onclick = (e) => {
+                // Not preventing default to allow hash links/anchors if any
                 document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
                 item.classList.add('active');
-            });
+            };
         });
     }
 };

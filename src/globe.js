@@ -795,6 +795,7 @@ var RasMirqabGlobe = (function () {
         triggerPulse: triggerPulse,
         setPOV: setPOV,
         updateGlobeMarkers: updateGlobeMarkers,
-        updateMapMarkers: updateMapMarkers
+        updateMapMarkers: updateMapMarkers,
+        activeLayers: activeLayers
     };
 })();

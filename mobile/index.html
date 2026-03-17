@@ -6,12 +6,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
-  <title>راس مرقاب — رصد الأخبار العالمية V41</title>
+  <title>راس مرقاب — V42 PREMIUM</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="mobile.css?v=41">
+  <link rel="stylesheet" href="mobile.css?v=42">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   
   <!-- Core Dependencies -->
@@ -20,12 +20,12 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <!-- Shared Data for Globe -->
-  <script src="../src/data/feeds.js?v=41"></script>
-  <script src="../src/data/conflicts.js?v=41"></script>
-  <script src="../src/data/intelligence.js?v=41"></script>
-  <script src="../src/data/timezones.js?v=41"></script>
-  <script src="../src/globe.js?v=41"></script>
-  <script src="../src/widgets/breaking-news.js?v=41"></script>
+  <script src="../src/data/feeds.js?v=42"></script>
+  <script src="../src/data/conflicts.js?v=42"></script>
+  <script src="../src/data/intelligence.js?v=42"></script>
+  <script src="../src/data/timezones.js?v=42"></script>
+  <script src="../src/globe.js?v=42"></script>
+  <script src="../src/widgets/breaking-news.js?v=42"></script>
 </head>
 <body class="mobile-v19">
 
@@ -43,8 +43,12 @@
       </div>
     </div>
     <div class="header-right">
-       <div class="logo-group">
+       <div class="logo-group" id="logo-trigger">
            <img src="../public/logo.png" class="header-logo" alt="Logo">
+           <div id="show-map-bookmark" class="show-map-bookmark hidden">
+               <span>عرض الخريطة</span>
+               <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+           </div>
        </div>
     </div>
   </header>
@@ -74,7 +78,7 @@
         </div>
       </div>
     </div>
-    <div class="update-label">تحديث تلقائي V41</div>
+    <div class="update-label">تحديث تلقائي V42</div>
   </section>
 
   <!-- ═══ CONTENT AREA ═══ -->
@@ -84,7 +88,7 @@
     <div class="news-header">
       <div class="hard-sync" onclick="location.reload(true)">
         <span class="sync-dot"></span>
-        <span>hard sync v41</span>
+        <span>hard sync v42</span>
       </div>
       <div class="news-title">
         <span class="title-text">الأخبار العاجلة</span>
@@ -153,6 +157,6 @@
     <div class="layers-scroll" id="layers-list"></div>
   </div>
 
-  <script src="mobile.js?v=41"></script>
+  <script src="mobile.js?v=42"></script>
 </body>
 </html>

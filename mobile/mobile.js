@@ -51,13 +51,14 @@ const MobileApp = {
         if (btn2d) btn2d.onclick = () => this.setMapMode('2d');
         if (btnHideMap) {
             btnHideMap.onclick = () => {
-                const isHidden = document.body.classList.toggle('map-hidden');
-                btnHideMap.querySelector('span').innerText = isHidden ? 'Show Map' : 'Hide Map';
-                btnHideMap.querySelector('svg').style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-                
-                if (!isHidden && window.RasMirqabGlobe && RasMirqabGlobe.onWindowResize) {
-                    setTimeout(() => RasMirqabGlobe.onWindowResize(), 150);
-                }
+                document.body.classList.add('map-hidden');
+            };
+        }
+
+        const btnShowMap = document.getElementById('float-show-map');
+        if (btnShowMap) {
+            btnShowMap.onclick = () => {
+                document.body.classList.remove('map-hidden');
             };
         }
 
@@ -122,49 +123,46 @@ const MobileApp = {
         document.getElementById('btn-3d').classList.toggle('active', mode === '3d');
         document.getElementById('btn-2d').classList.toggle('active', mode === '2d');
         
-        if (mode === '3d' && window.RasMirqabGlobe.show3D) RasMirqabGlobe.show3D();
-        if (mode === '2d' && window.RasMirqabGlobe.show2D) RasMirqabGlobe.show2D();
+        if (window.RasMirqabGlobe.toggleView) {
+            RasMirqabGlobe.toggleView(mode);
+        } else {
+            // Fallback
+            if (mode === '3d' && window.RasMirqabGlobe.show3D) RasMirqabGlobe.show3D();
+            if (mode === '2d' && window.RasMirqabGlobe.show2D) RasMirqabGlobe.show2D();
+        }
     },
 
     initBreakingNews: function() {
         if (window.BreakingNewsWidget) {
             // Override renderer for mobile design system
             BreakingNewsWidget.renderItems = this.renderMobileNewsItems.bind(this);
-            
-            const container = document.getElementById('news-list');
-            if (container) {
-                BreakingNewsWidget.init();
-            }
+            BreakingNewsWidget.init();
         }
     },
 
     renderMobileNewsItems: function(container, items) {
         if (!container) return;
-        
-        // Focus 2026: Mobile specific cleaner renderer
         container.innerHTML = '';
         
-        // Limit to 4 items for "static" feel as requested
         const displayItems = items.slice(0, 4);
 
         const AVATARS = {
-            'alrougui': '../public/logos/alrougui.jpg',
-            'alekhbariyaNews': '../public/logos/alekhbariyanews.jpg',
-            'alekhbariyabrk': '../public/logos/alekhbariyabrk.jpg',
-            'ajanews': '../public/logos/ajanews_new.png',
-            'alhadath_brk': '../public/logos/hadath.png',
-            'AlArabiya': '../public/logos/alarabiya.png'
+            'aljazeera': '../public/logos/ajanews_new.png',
+            'alarabiya': '../public/logos/alarabiya.png',
+            'sky': '../public/logos/sky.png',
+            'bbc': '../public/logos/bbc.png',
+            'reuters': '../public/logos/reuters.png'
         };
 
         displayItems.forEach(item => {
-            const handle = item.sourceHandle || '';
+            const handle = (item.source || '').toLowerCase();
             const avatar = AVATARS[handle] || '../public/logos/default.png';
             const media = item.image || item.mediaUrl || null;
-            const time = new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            const time = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
 
             const itemEl = document.createElement('div');
             itemEl.className = 'news-item';
-            itemEl.onclick = () => window.open(item.link, '_blank');
+            itemEl.onclick = () => window.open(item.link || '#', '_blank');
 
             itemEl.innerHTML = `
                 <div class="news-item-right">
@@ -183,7 +181,14 @@ const MobileApp = {
     },
 
     initLayersModal: function() {
+        const modal = document.getElementById('layers-modal');
         const list = document.getElementById('layers-list');
+        const btn = document.getElementById('btn-layers');
+
+        if (btn && modal) {
+            btn.onclick = () => modal.classList.toggle('hidden');
+        }
+
         if (!list || !window.RasMirqabData || !RasMirqabData.categories) return;
 
         let html = '';
@@ -219,7 +224,9 @@ const MobileApp = {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
 
-        const tvFeeds = (window.FeedsData && window.FeedsData.tv) ? window.FeedsData.tv : [];
+        // Take channels from the desktop pool
+        const tvFeeds = (window.LiveTVWidget && LiveTVWidget.getChannels) ? LiveTVWidget.getChannels() : window.FeedsData?.tv || [];
+        
         if (tvFeeds.length === 0) {
             carousel.innerHTML = '<div style="color:#555; font-size:10px; padding:20px;">No feeds found.</div>';
             return;
@@ -228,35 +235,36 @@ const MobileApp = {
         let html = '';
         tvFeeds.forEach(ch => {
             html += `
-                <div class="tv-card" id="card-${ch.id}" onclick="MobileApp.playTV('${ch.id}', this)">
-                    <img src="${ch.thumb || '../public/placeholder.jpg'}" class="tv-thumb" alt="${ch.name}">
+                <div class="tv-card" id="card-${ch.key}" onclick="MobileApp.playTV('${ch.key}', this)">
+                    <img src="https://img.youtube.com/vi/${ch.videoId}/maxresdefault.jpg" class="tv-thumb" alt="${ch.name}">
                     <div class="tv-live-badge">LIVE</div>
-                    <div style="position:absolute; bottom:12px; left:12px; font-size:10px; font-weight:900; color:#fff; text-shadow:0 0 10px #000; z-index:5;">${ch.name}</div>
+                    <div class="tv-card-name">${ch.name}</div>
                 </div>
             `;
         });
         carousel.innerHTML = html;
         
-        // Highlight first channel but don't play yet
+        // Auto-play first channel (usually Al Jazeera) with audio
         const first = tvFeeds[0];
         if (first) {
-            const el = document.getElementById(`card-${first.id}`);
-            if (el) el.classList.add('active');
+            const el = document.getElementById(`card-${first.key}`);
+            if (el) {
+                 setTimeout(() => this.playTV(first.key, el), 1000);
+            }
         }
     },
 
-    playTV: function(id, el) {
-        // Grow/Glow Effect
+    playTV: function(key, el) {
         document.querySelectorAll('.tv-card').forEach(c => c.classList.remove('active'));
         el.classList.add('active');
         
-        const channel = window.FeedsData.tv.find(c => c.id === id);
+        const tvFeeds = (window.LiveTVWidget && LiveTVWidget.getChannels) ? LiveTVWidget.getChannels() : window.FeedsData?.tv || [];
+        const channel = tvFeeds.find(c => c.key === key);
         if (!channel) return;
 
         this.activeTV = channel;
         el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
-        // Update PiP Frame (Mainly used when PiP is active, but pre-loads here)
         const frame = document.getElementById('pip-video-frame');
         if (frame) {
             frame.innerHTML = `
@@ -266,14 +274,9 @@ const MobileApp = {
             `;
         }
         
-        console.log(`[MobileTV] Stream Selected: ${channel.name} (Audio ON)`);
-        
-        // If we're already scrolled down, show PiP immediately
-        const contentArea = document.querySelector('.content-area');
-        const tvSection = document.querySelector('.tv-carousel-container');
-        if (contentArea && tvSection && contentArea.scrollTop > tvSection.offsetTop + 150) {
-            this.showPiP();
-        }
+        // Also update the main section if we want a "Genuine" look (not just iframe)
+        // For now, PiP is the main player. If the user wants a main player section:
+        this.showPiP();
     },
 
     showPiP: function() {

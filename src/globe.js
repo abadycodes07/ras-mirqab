@@ -789,6 +789,7 @@ var RasMirqabGlobe = (function () {
     return {
         init: init,
         toggle: toggle,
+        toggleView: toggleView,
         updateTime: updateTime,
         triggerPulse: triggerPulse,
         setPOV: setPOV

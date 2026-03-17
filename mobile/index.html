@@ -6,13 +6,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
-  <title>راس مرقاب — رصد الأخبار العالمية</title>
+  <title>راس مرقاب — V37 SCRATCH</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="mobile.css?v=36">
-  <link rel="stylesheet" href="../src/styles/widgets.css?v=36">
+  <link rel="stylesheet" href="mobile.css?v=37">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   
   <!-- Core Dependencies -->
@@ -20,26 +19,12 @@
   <script src="../src/assets/globe.gl.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
-  <!-- Shared Data & Logic -->
-  <script src="../src/data/feeds.js?v=36"></script>
-  <script src="../src/data/conflicts.js?v=36"></script>
-  <script src="../src/data/intelligence.js?v=36"></script>
-  <script src="../src/data/timezones.js?v=36"></script>
-  <script src="../src/globe.js?v=36"></script>
-  <script src="../src/widgets/breaking-news.js?v=36"></script>
-  
-  <!-- Widget Scripts -->
-  <script defer src="../src/widgets/live-tv.js?v=36"></script>
-  <script defer src="../src/widgets/live-webcams.js?v=36"></script>
-  <script defer src="../src/widgets/world-clock.js?v=36"></script>
-  <script defer src="../src/widgets/gold-silver.js?v=36"></script>
-  <script defer src="../src/widgets/sanctions-trade.js?v=36"></script>
-  <script defer src="../src/widgets/cyber-intel.js?v=36"></script>
-  <script defer src="../src/widgets/health-bio.js?v=36"></script>
-  <script defer src="../src/widgets/military-aircraft.js?v=36"></script>
-  <script defer src="../src/widgets/commodities.js?v=36"></script>
-  <script defer src="../src/widgets/market-overview.js?v=36"></script>
-  <script defer src="../src/widgets/conflict-monitor.js?v=36"></script>
+  <!-- Shared Data for Globe -->
+  <script src="../src/data/feeds.js?v=37"></script>
+  <script src="../src/data/conflicts.js?v=37"></script>
+  <script src="../src/data/intelligence.js?v=37"></script>
+  <script src="../src/data/timezones.js?v=37"></script>
+  <script src="../src/globe.js?v=37"></script>
 </head>
 <body class="mobile-v19">
 
@@ -56,14 +41,8 @@
     <div class="header-right">
        <div class="logo-group">
            <img src="../public/logo.png" class="header-logo" alt="Logo">
-           <!-- Bookmark-style Show Map Button -->
-           <button id="float-show-map" class="bookmark-btn hidden">
-               <span>Show Map</span>
-           </button>
        </div>
     </div>
-    <!-- Internal logic clock -->
-    <div id="mobile-header-clock" style="display:none;"></div>
   </header>
 
   <!-- ═══ GLOBE HERO ═══ -->
@@ -71,8 +50,6 @@
     <div id="globe-container"></div>
     <div id="map-container" class="hidden"></div>
     
-
-    <!-- Globe Controls -->
     <div class="globe-controls">
       <div class="left-controls">
         <div class="control-btn" id="btn-layers">
@@ -93,30 +70,26 @@
         </div>
       </div>
     </div>
-    
-    <!-- Show Map removed from here, moved to header -->
-    <div class="update-label">تحديث تلقائي: قبل دقيقة واحدة</div>
+    <div class="update-label">تحديث تلقائي V37</div>
   </section>
 
-  <!-- ═══ CONTENT AREA ═══ -->
+  <!-- ═══ CONTENT AREA (V37: SCRATCH REBUILD) ═══ -->
   <main class="content-area">
-    <!-- Drag handle visual -->
     <div class="drag-handle"></div>
 
     <div class="news-header">
-      <div class="hard-sync" id="btn-hard-sync" onclick="location.reload(true)">
+      <div class="hard-sync" onclick="location.reload(true)">
         <span class="sync-dot"></span>
-        <span>hard sync v36</span>
+        <span>hard sync v37</span>
       </div>
       <div class="news-title">
-        <span class="search-btn" id="btn-search">🔍</span>
         <span class="title-text">الأخبار العاجلة</span>
-        <span class="title-arrow">▾</span>
       </div>
     </div>
 
     <div class="breaking-label">عاجل</div>
 
+    <!-- The actual news list - self-contained -->
     <div id="breaking-news-body" class="news-list">
       <div class="loading-state">جاري رصد الترددات...</div>
     </div>
@@ -125,95 +98,49 @@
     <div class="section-row">
         <span class="section-label">البث المباشر</span>
     </div>
-    <!-- Main Player Section (Initial state) -->
     <div class="tv-main-player-v2" id="tv-player-wrapper"></div>
-    
     <div class="tv-carousel-container">
         <div class="tv-carousel" id="tv-carousel"></div>
     </div>
 
     <!-- Widgets -->
-    <div class="section-label">المراصد والبيانات</div>
-    <section class="widgets-grid" id="mobile-widgets-grid">
+    <div class="section-label" style="margin-top:25px;">المراصد والبيانات</div>
+    <section class="mobile-widgets-grid" id="mobile-widgets-grid">
       <!-- Injected by mobile.js -->
     </section>
   </main>
 
-  <!-- ═══ MODALS ═══ -->
-  <div id="mobile-notif-modal" class="modal hidden">
-      <div class="modal-overlay"></div>
-      <div class="modal-content glass-modal">
-          <div class="modal-header">
-              <h3>إعدادات التنبيهات</h3>
-              <button class="modal-close" id="close-notif-modal">✕</button>
-          </div>
-          <div class="modal-body">
-              <div class="notif-popup-content">
-                  <div class="nd-row">
-                      <span class="nd-label">تفعيل الإشعارات المرئية</span>
-                      <label class="switch">
-                          <input type="checkbox" id="toggle-visual-notif-mobile" checked>
-                          <span class="slider round"></span>
-                      </label>
-                  </div>
-                  <div class="nd-row">
-                      <span class="nd-label">تفعيل الإشعارات الصوتية</span>
-                      <label class="switch">
-                          <input type="checkbox" id="toggle-audio-notif-mobile" checked>
-                          <span class="slider round"></span>
-                      </label>
-                  </div>
-                  <div class="nd-row vol-row">
-                      <div class="vol-header">
-                          <span class="nd-label">حجم الصوت / VOLUME</span>
-                          <span id="notif-volume-value-mobile">50%</span>
-                      </div>
-                      <input type="range" id="notif-volume-slider-mobile" min="0" max="1" step="0.1" value="0.5" class="modern-slider">
-                  </div>
-              </div>
-          </div>
-      </div>
-  </div>
-
-  <!-- ═══ BOTTOM NAV (6 Items) ═══ -->
+  <!-- ═══ BOTTOM NAV ═══ -->
   <nav class="bottom-nav">
-    <a href="#" class="nav-item active" data-section="home">
+    <a href="#" class="nav-item active">
       <span class="nav-icon">🏠</span>
       <span>الرئيسية</span>
     </a>
-    <a href="#" class="nav-item" data-section="news">
+    <a href="#" class="nav-item">
       <span class="nav-icon">📰</span>
       <span>الأخبار</span>
     </a>
-    <a href="#" class="nav-item" data-section="assets">
+    <a href="#" class="nav-item">
       <span class="nav-icon">📊</span>
       <span>الأصول</span>
     </a>
-    <a href="#" class="nav-item" data-section="maps">
+    <a href="#" class="nav-item">
       <span class="nav-icon">🗺️</span>
       <span>المخططات</span>
     </a>
-    <a href="#" class="nav-item" data-section="reports">
+    <a href="#" class="nav-item">
       <span class="nav-icon">📄</span>
       <span>التقارير</span>
     </a>
-    <a href="#" class="nav-item" data-section="settings">
+    <a href="#" class="nav-item">
       <span class="nav-icon">⚙️</span>
       <span>الإعدادات</span>
     </a>
   </nav>
 
-  <!-- PiP Pop-out Container -->
-  <div id="mobile-pip-container" class="pip-container hidden">
-      <div class="pip-header">
-          <span class="pip-status">LIVE</span>
-          <button class="pip-close" onclick="MobileApp.closePiP()">✕</button>
-      </div>
-      <div id="pip-video-frame"></div>
-  </div>
-
   <audio id="breaking-news-audio" src="../public/breaking-news-tone.mp3" preload="auto"></audio>
-  <!-- Fixed Portals -->
+
+  <!-- Modals -->
   <div id="layers-modal" class="layers-modal hidden">
     <div class="modal-header">
       <span>الطبقات</span>
@@ -222,6 +149,6 @@
     <div class="layers-scroll" id="layers-list"></div>
   </div>
 
-  <script src="mobile.js?v=36"></script>
+  <script src="mobile.js?v=37"></script>
 </body>
 </html>

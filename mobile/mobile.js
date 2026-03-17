@@ -5,12 +5,13 @@
  */
 
 const MobileApp = {
-    version: 'v37',
+    version: 'v39',
+    isAudioUnlocked: false,
     
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V37: SCRATCH REBUILD ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V39: MOCKUP PARITY ---');
         
-        // 1. Initialize Globe (Shared Logic remains)
+        // 1. Initialize Globe
         if (window.RasMirqabGlobe) {
             RasMirqabGlobe.init();
         }
@@ -20,9 +21,32 @@ const MobileApp = {
         this.initTV();
         this.initWidgets();
         this.bindEvents();
+        this.initAudioGuard();
         
-        // Final UI Polish
-        document.body.classList.add('v37-ready');
+        document.body.classList.add('v38-ready');
+    },
+
+    initAudioGuard: function() {
+        // Essential to bypass "No Autoplay with Audio" browser rules
+        const unlock = () => {
+            if (this.isAudioUnlocked) return;
+            this.isAudioUnlocked = true;
+            console.log("🔊 Audio Unlocked by User interaction");
+            
+            // Try to unmute existing player if any
+            const iframe = document.querySelector('#tv-player-wrapper iframe');
+            if (iframe) {
+                const src = iframe.src;
+                if (src.includes('mute=1')) {
+                    iframe.src = src.replace('mute=1', 'mute=0');
+                }
+            }
+            
+            document.removeEventListener('click', unlock);
+            document.removeEventListener('touchstart', unlock);
+        };
+        document.addEventListener('click', unlock);
+        document.addEventListener('touchstart', unlock);
     },
 
     // ═══ NEWS MODULE (Independent) ═══
@@ -38,11 +62,15 @@ const MobileApp = {
 
             if (!items || items.length === 0) throw new Error("No news items");
 
-            // Render exactly 3 items to match reference image perfection
+            // Render exactly 3 items to match mockup perfection
             container.innerHTML = items.slice(0, 3).map((item, idx) => {
                 const time = new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                const thumb = item.mediaUrl || item.image || '../public/logos/default.png';
-                const sourceLogo = `../public/logos/${item.sourceHandle ? item.sourceHandle.toLowerCase() : 'default'}.jpg`;
+                // Handle various media fields
+                const thumb = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : '../public/logos/default.png');
+                
+                // Clean source handle for logo mapping
+                const handle = (item.sourceHandle || 'default').toLowerCase();
+                const sourceLogo = `../public/logos/${handle}.jpg`;
                 
                 return `
                     <div class="news-item" onclick="window.open('${item.link}', '_blank')">
@@ -100,8 +128,11 @@ const MobileApp = {
         document.querySelectorAll('.tv-card').forEach(c => c.classList.remove('active'));
         if (el) el.classList.add('active');
 
+        // By default we mute=1 for autoplay compliance, but if user has interacted, we mute=0
+        const muteState = this.isAudioUnlocked ? '0' : '1';
+
         player.innerHTML = `
-            <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&rel=0&showinfo=0" 
+            <iframe src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${muteState}&rel=0&showinfo=0" 
                     frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         `;
     },

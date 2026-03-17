@@ -258,24 +258,27 @@ body.map-hidden .content-area {
 }
 .nav-arrow:active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-.tv-carousel-container { 
-    margin: 0 -22px; padding: 20px 22px; 
-    background: linear-gradient(to bottom, transparent, rgba(230, 126, 34, 0.03), transparent);
+.tv-main-player-v2 {
+    width: calc(100% - 30px); margin: 0 15px 15px; aspect-ratio: 16/9;
+    border-radius: 18px; overflow: hidden; background: #000;
+    border: 1.5px solid rgba(255,255,255,0.08);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
 }
-.tv-carousel {
-  display: flex; gap: 20px; overflow-x: auto; padding: 25px 0;
-  scrollbar-width: none; scroll-snap-type: x mandatory;
+.tv-carousel-container { padding: 0 15px; margin-bottom: 25px; }
+.tv-carousel { 
+    display: flex; gap: 12px; overflow-x: auto; padding: 10px 0;
+    scrollbar-width: none; scroll-snap-type: x mandatory;
 }
 .tv-carousel::-webkit-scrollbar { display: none; }
 
 .tv-card { 
-    flex: 0 0 135px; height: 85px; position: relative; border-radius: 12px; 
+    flex: 0 0 120px; height: 75px; position: relative; border-radius: 12px; 
     overflow: hidden; border: 1.5px solid rgba(255,255,255,0.08); 
     transition: 0.3s; filter: grayscale(0.5);
 }
 .tv-card.active { 
-    border-color: var(--accent); scale: 1.08; 
-    box-shadow: 0 0 25px var(--accent-glow); 
+    border-color: var(--accent); scale: 1.05; 
+    box-shadow: 0 0 20px var(--accent-glow); 
     filter: grayscale(0); z-index: 10;
     outline: 2px solid var(--accent);
 }
@@ -317,6 +320,15 @@ body.map-hidden .content-area {
 .nav-item span { font-size: 10px; font-weight: 800; font-family: 'Tajawal', sans-serif; }
 .nav-item.active span { color: var(--accent); text-shadow: 0 0 12px var(--accent-glow); }
 
+/* PiP Pop-out Premium */
+.pip-container { 
+    position: fixed; bottom: 85px; left: 15px;
+    width: 160px; aspect-ratio: 16/9; background: #000;
+    border: 1px solid var(--accent); border-radius: 12px;
+    z-index: 9999; box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    overflow: hidden; animation: pipIn 0.4s ease;
+}
+
 /* Layers Modal Vertical Overhaul (Parity with Screenshot) */
 .layers-modal { 
     position: fixed; top: 120px; left: 20px;
@@ -356,21 +368,21 @@ body.map-hidden .content-area {
 .nd-label { font-size: 13px; color: var(--text-s); }
 
 .widgets-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; 
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 12px; 
 }
 .widget-card { 
     background: var(--glass); border: 1px solid var(--glass-border); 
-    border-radius: 20px; padding: 12px; height: 115px;
+    border-radius: 12px; padding: 10px; height: 95px;
     display: flex; flex-direction: column; justify-content: space-between;
     backdrop-filter: blur(20px); transition: 0.3s; position: relative;
 }
-.w-icon { font-size: 20px; opacity: 0.3; position: absolute; top: 10px; left: 10px; }
-.w-label { font-size: 11px; font-weight: 700; color: var(--text-s); text-align: right; }
-.w-main { font-size: 14px; font-weight: 800; color: #fff; text-align: center; margin-top: 5px; font-family: 'Orbitron', sans-serif; }
-.w-chart { height: 30px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-top: auto; }
+.w-icon { font-size: 16px; opacity: 0.3; position: absolute; top: 8px; left: 8px; }
+.w-label { font-size: 10px; font-weight: 700; color: var(--text-s); text-align: right; }
+.w-main { font-size: 13px; font-weight: 800; color: #fff; text-align: center; margin-top: 2px; font-family: 'Orbitron', sans-serif; }
+.w-chart { height: 24px; background: rgba(255,255,255,0.03); border-radius: 6px; margin-top: auto; }
 .badge-t7 { 
-    position: absolute; bottom: 8px; right: 8px; font-size: 8px; font-weight: 900; 
-    background: var(--accent); color: #000; padding: 1px 4px; border-radius: 4px; 
+    position: absolute; bottom: 6px; right: 6px; font-size: 7px; font-weight: 900; 
+    background: var(--accent); color: #000; padding: 0px 3px; border-radius: 3px; 
 }
 
 .vol-row { flex-direction: column; align-items: stretch; gap: 12px; }

@@ -346,24 +346,25 @@ var BreakingNewsWidget = (function () {
         ];
 
         // 📡 Stream A: Direct Telegram (High-Priority)
-        const tgHandles = ['ajanews', 'alhadath_brk', 'AlArabiya', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic', 'SABQ_NEWS', 'AjelNews24'];
+        const tgHandles = ['ajanews', 'alhadath_brk', 'AlArabiya_brk', 'asharqnewsbrk', 'alekhbariyanews', 'rt_arabic', 'SABQ_NEWS', 'AjelNews24'];
         await Promise.all(tgHandles.map(async h => {
             try {
+                // Try with /s/ (Direct preview)
                 const res = await fetch(CORS_BRIDGES[0] + encodeURIComponent('https://t.me/s/' + h));
                 const data = await res.json();
                 if (data.contents) {
                     const html = data.contents;
-                    const chunks = html.split('<div class="tgme_widget_message_wrap');
+                    const chunks = html.split('tgme_widget_message_wrap');
                     chunks.shift();
                     chunks.forEach(msgHtml => {
-                        const textM = msgHtml.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+                        const textM = msgHtml.match(/tgme_widget_message_text[^>]*>([\s\S]*?)<\/div>/);
                         const timeM = msgHtml.match(/<time[^>]*datetime="([^"]*)"/);
                         if (textM && timeM) {
                             fetchResults.push({
                                 title: textM[1].replace(/<[^>]+>/g, '').trim(),
                                 source: 'telegram', sourceHandle: h, sourceName: h,
                                 pubDate: new Date(timeM[1]).toISOString(),
-                                link: 'https://t.me/' + h
+                                link: 'https://t.me/' + (h.startsWith('s/') ? h.substring(2) : h)
                             });
                         }
                     });
@@ -562,5 +563,12 @@ var BreakingNewsWidget = (function () {
         });
     }
 
-    return { render: render, init: init, removeSource: removeSource, toggleSettings: toggleSettings, toggleVisibility: toggleVisibility };
+    return { 
+        render: render, 
+        init: init, 
+        removeSource: removeSource, 
+        toggleSettings: toggleSettings, 
+        toggleVisibility: toggleVisibility,
+        fetchServerCache: fetchServerCache 
+    };
 })();

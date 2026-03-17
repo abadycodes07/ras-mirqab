@@ -13,10 +13,12 @@
   
   <link rel="stylesheet" href="mobile.css">
   <link rel="stylesheet" href="../src/styles/widgets.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   
   <!-- Core Dependencies -->
   <script src="../src/assets/three.min.js"></script>
   <script src="../src/assets/globe.gl.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <!-- Shared Data & Logic -->
   <script src="../src/data/feeds.js"></script>
@@ -130,11 +132,10 @@
     <!-- Live Streams -->
     <div class="section-row">
         <span class="section-label">البث المباشر</span>
-        <div class="carousel-nav">
-            <button class="nav-arrow" id="tv-prev">❮</button>
-            <button class="nav-arrow" id="tv-next">❯</button>
-        </div>
     </div>
+    <!-- Main Player Section (Initial state) -->
+    <div class="tv-main-player-v2" id="tv-player-wrapper"></div>
+    
     <div class="tv-carousel-container">
         <div class="tv-carousel" id="tv-carousel"></div>
     </div>

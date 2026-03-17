@@ -52,6 +52,7 @@ const MobileApp = {
         if (btnHideMap) {
             btnHideMap.onclick = () => {
                 document.body.classList.add('map-hidden');
+                if (btnShowMap) btnShowMap.classList.remove('hidden');
             };
         }
 
@@ -59,6 +60,7 @@ const MobileApp = {
         if (btnShowMap) {
             btnShowMap.onclick = () => {
                 document.body.classList.remove('map-hidden');
+                btnShowMap.classList.add('hidden'); // Hide the bookmark when map is back
             };
         }
 
@@ -91,15 +93,16 @@ const MobileApp = {
         if (tvPrev && carousel) tvPrev.onclick = () => carousel.scrollBy({ left: -220, behavior: 'smooth' });
         if (tvNext && carousel) tvNext.onclick = () => carousel.scrollBy({ left: 220, behavior: 'smooth' });
 
-        // --- PiP Scrolling Observer ---
+        // --- PiP Scrolling Observer (Premium) ---
         const contentArea = document.querySelector('.content-area');
         contentArea.addEventListener('scroll', () => {
             if (this.activeTV) {
-                const tvSection = document.querySelector('.tv-carousel-container');
-                const tvTop = tvSection ? tvSection.offsetTop : 400;
+                const playerWrapper = document.getElementById('tv-player-wrapper');
+                if (!playerWrapper) return;
                 
-                // Trigger PiP when the TV section is scrolled out of view
-                if (contentArea.scrollTop > tvTop + 150) {
+                const rect = playerWrapper.getBoundingClientRect();
+                // If player is scrolled out of window, show PiP
+                if (rect.bottom < 50 || rect.top > window.innerHeight) {
                     this.showPiP();
                 } else {
                     this.hidePiP();
@@ -123,12 +126,19 @@ const MobileApp = {
         document.getElementById('btn-3d').classList.toggle('active', mode === '3d');
         document.getElementById('btn-2d').classList.toggle('active', mode === '2d');
         
+        const globeContainer = document.getElementById('globe-container');
+        const mapContainer = document.getElementById('map-container');
+
+        if (mode === '2d') {
+            if (globeContainer) globeContainer.classList.add('hidden');
+            if (mapContainer) mapContainer.classList.remove('hidden');
+        } else {
+            if (globeContainer) globeContainer.classList.remove('hidden');
+            if (mapContainer) mapContainer.classList.add('hidden');
+        }
+
         if (window.RasMirqabGlobe.toggleView) {
             RasMirqabGlobe.toggleView(mode);
-        } else {
-            // Fallback
-            if (mode === '3d' && window.RasMirqabGlobe.show3D) RasMirqabGlobe.show3D();
-            if (mode === '2d' && window.RasMirqabGlobe.show2D) RasMirqabGlobe.show2D();
         }
     },
 
@@ -137,6 +147,8 @@ const MobileApp = {
             // Override renderer for mobile design system
             BreakingNewsWidget.renderItems = this.renderMobileNewsItems.bind(this);
             BreakingNewsWidget.init();
+            // FORCE CACHE SYNC
+            if (BreakingNewsWidget.fetchServerCache) BreakingNewsWidget.fetchServerCache();
         }
     },
 
@@ -194,11 +206,16 @@ const MobileApp = {
         }
         if (closeBtn) closeBtn.onclick = () => modal.classList.add('hidden');
 
-        if (!list || !window.RasMirqabData || !RasMirqabData.categories) return;
+        // Check for RasMirqabData (Desktop script might be named differently or shared)
+        const dataHelper = window.RasMirqabData || (window.RasMirqabGlobe && RasMirqabGlobe.getData ? RasMirqabGlobe.getData() : null);
+        if (!list || !dataHelper || !dataHelper.categories) {
+            console.warn('--- Layers Data Missing ---');
+            return;
+        }
 
         let html = '';
-        Object.keys(RasMirqabData.categories).forEach(key => {
-            const cat = RasMirqabData.categories[key];
+        Object.keys(dataHelper.categories).forEach(key => {
+            const cat = dataHelper.categories[key];
             const isChecked = localStorage.getItem('layer-' + key) !== 'false';
             
             html += `
@@ -270,18 +287,21 @@ const MobileApp = {
         this.activeTV = channel;
         el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
-        const frame = document.getElementById('pip-video-frame');
-        if (frame) {
-            frame.innerHTML = `
-                <iframe src="https://www.youtube.com/embed/${channel.videoId}?autoplay=1&mute=0&modestbranding=1" 
-                        allow="autoplay; encrypted-media" allowfullscreen 
-                        style="width:100%; height:100%; border:none;"></iframe>
-            `;
-        }
+        // RENDER TO MAIN WRAPPER FIRST
+        const playerWrapper = document.getElementById('tv-player-wrapper');
+        const pipFrame = document.getElementById('pip-video-frame');
         
-        // Also update the main section if we want a "Genuine" look (not just iframe)
-        // For now, PiP is the main player. If the user wants a main player section:
-        this.showPiP();
+        const iframeHtml = `
+            <iframe src="https://www.youtube.com/embed/${channel.videoId}?autoplay=1&mute=0&modestbranding=1" 
+                    allow="autoplay; encrypted-media" allowfullscreen 
+                    style="width:100%; height:100%; border:none;"></iframe>
+        `;
+
+        if (playerWrapper) {
+            playerWrapper.innerHTML = iframeHtml;
+            this.hidePiP(); // Reset PiP when new video selected
+        }
+        if (pipFrame) pipFrame.innerHTML = iframeHtml;
     },
 
     showPiP: function() {

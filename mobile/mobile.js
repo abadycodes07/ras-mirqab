@@ -171,19 +171,33 @@ const MobileApp = {
         const landing = document.getElementById('luxury-landing');
         const dash = document.getElementById('main-dashboard');
 
+        if (!landing || !dash) return;
+
+        const transitionOut = () => {
+            landing.classList.add('hidden');
+            dash.classList.add('active');
+            document.body.classList.remove('landing-active');
+            this.landingMode = false;
+            if (window.RasMirqabGlobe && !window.RasMirqabGlobe.initialized) {
+                RasMirqabGlobe.init();
+            }
+        };
+
         if (enterBtn) {
-            enterBtn.onclick = () => {
-                landing.classList.add('hidden');
-                dash.classList.add('active');
-                document.body.classList.remove('landing-active');
-                this.landingMode = false;
-                
-                // Init globe now
-                if (window.RasMirqabGlobe) {
-                    RasMirqabGlobe.init();
-                }
-            };
+            enterBtn.onclick = transitionOut;
         }
+
+        // Safety Fallback: Scroll to enter
+        window.addEventListener('scroll', () => {
+            if (this.landingMode && window.scrollY > 50) transitionOut();
+        }, { once: true });
+        
+        // Safety Fallback 2: Timeout for slow assets
+        setTimeout(() => {
+            if (this.landingMode && !document.getElementById('telescope-img').complete) {
+                console.warn('Luxury assets slow, ensuring navigation is possible...');
+            }
+        }, 3000);
     },
 
     bindEvents: function() {

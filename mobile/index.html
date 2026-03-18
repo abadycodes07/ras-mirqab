@@ -59,17 +59,17 @@
       </div>
     </section>
 
-    <!-- ═══ MIDDLE 31vh: NEWS ═══ -->
+    <!-- ═══ MIDDLE 32vh: NEWS ═══ -->
     <section class="mid-third">
       <div class="news-box">
-        <div class="news-header">
+        <div class="news-gradient-header">
            <div class="hard-sync" id="hard-sync-launch" style="font-family: monospace;">
-             <span>↺</span> hard sync <span style="opacity:0.4; font-size:8px; margin-left:4px;">v54</span>
+             <span>↺</span> sync <span style="opacity:0.4; font-size:7px; margin-left:2px;">v55</span>
            </div>
-           <h2 class="news-title">الأخبار العاجلة</h2>
+           <h2 class="news-title-aajal">عاجل</h2>
         </div>
         <div id="breaking-news-body" class="news-scroll">
-            <!-- Dynamic Content -->
+            <!-- Dynamic Content (3 items default per layout) -->
         </div>
       </div>
     </section>
@@ -88,7 +88,7 @@
 
       <div class="widgets-box">
         <div class="w-card">
-            <div class="w-head"><span>الأسواق العالمية</span> <span style="color:var(--lux-orange)">LIVE</span></div>
+            <div class="w-head"><span>الذهب والعملات</span> <span style="color:var(--lux-orange)">LIVE</span></div>
             <div id="widget-market" style="flex:1;"></div>
         </div>
         <div class="w-card">
@@ -110,14 +110,16 @@
 
   </main>
 
-  <div id="layers-modal" class="l-modal hidden news-box" style="z-index:99999; top:10%; bottom:10%; left:10px; right:10px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px; margin-bottom:15px;">
-      <span style="color:var(--lux-orange); font-weight:900; font-size:18px;">إعدادات الطبقات</span>
-      <span id="close-layers" style="font-size:32px; cursor:pointer; color:#666;">×</span>
+  <div id="layers-modal" class="l-modal hidden news-box" style="z-index:99999; top:12%; bottom:15%; left:15px; right:15px; background:rgba(255,112,26,0.1); border:1px solid var(--lux-orange);">
+    <div style="padding:20px; display:flex; flex-direction:column; height:100%;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--lux-orange-dim); padding-bottom:15px; margin-bottom:15px;">
+          <span style="color:var(--lux-orange); font-weight:950; font-size:20px;">إعدادات الطبقات</span>
+          <span id="close-layers" style="font-size:32px; cursor:pointer; color:var(--lux-orange);">×</span>
+        </div>
+        <div id="layers-list" style="overflow-y:auto; flex:1;"></div>
     </div>
-    <div id="layers-list" style="overflow-y:auto; flex:1;"></div>
   </div>
 
-  <script src="mobile.js?v=54"></script>
+  <script src="mobile.js?v=55"></script>
 </body>
 </html>

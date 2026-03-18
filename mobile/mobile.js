@@ -34,7 +34,7 @@ const MobileApp = {
         document.addEventListener('click', unlock);
     },
 
-    // ═══ NEWS ENGINE (MOCKUP #3 ALIGNMENT) ═══
+    // ═══ NEWS ENGINE (AAJAL STYLE) ═══
     initNews: function() {
         if (!window.BreakingNewsWidget) return;
 
@@ -45,11 +45,10 @@ const MobileApp = {
             const BASE = window.location.pathname.startsWith('/ras-mirqab') ? '/ras-mirqab' : '';
             const ROOT = ORIGIN + BASE;
             
+            // Resource Parity: Show latest items with custom layout
             container.innerHTML = items.slice(0, 30).map(item => {
                 const date = item.pubDate ? new Date(item.pubDate) : new Date();
-                const timeStr = window.BreakingNewsWidget.getArabicRelativeTime ? 
-                                window.BreakingNewsWidget.getArabicRelativeTime(date) : 
-                                date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                const timeDigits = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
                 
                 const handle = (item.sourceHandle || 'Default').toLowerCase();
                 const source = item.source || 'rss';
@@ -62,17 +61,17 @@ const MobileApp = {
                 else if (item.image) thumb = item.image;
                 else if (item.media && item.media[0]) thumb = item.media[0].url || item.media[0];
                 
-                const platformColor = source === 'telegram' ? '#0088cc' : '#ff701a';
-                const platformIcon = source === 'telegram' ? 'T' : '𝕏';
+                const platformColor = source === 'telegram' ? '#0088cc' : (source === 'twitter' ? '#fff' : '#ff701a');
+                const platformIcon = source === 'telegram' ? 'T' : (source === 'twitter' ? '𝕏' : '🌐');
 
                 return `
                     <div class="item-news" onclick="window.open('${item.link}', '_blank')">
                         <div class="n-meta">
+                            <span class="n-time">${timeDigits}</span>
                             <div class="n-logo-wrap">
                                 <img src="${logo}" class="n-logo" onerror="this.src='${fallbackLogo}'">
-                                <div class="n-badge" style="background:${platformColor}">${platformIcon}</div>
+                                <div class="n-badge" style="background:${platformColor}; color:${source==='twitter'?'#000':'#fff'}">${platformIcon}</div>
                             </div>
-                            <span class="n-time">${timeStr}</span>
                         </div>
                         <div class="n-text">${item.title}</div>
                         ${thumb ? `<img src="${thumb}" class="n-thumb" onerror="this.style.display='none'">` : ''}
@@ -101,53 +100,75 @@ const MobileApp = {
 
         carousel.innerHTML = channels.map((ch, idx) => `
             <div class="tv-item ${idx === 0 ? 'active' : ''}" data-ytid="${ch.id}" id="tv-${ch.id}">
-                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.6;">
+                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
                 <div class="tv-live">LIVE</div>
                 <div class="tv-name">${ch.name}</div>
             </div>
         `).join('');
 
         carousel.querySelectorAll('.tv-item').forEach(card => {
-            card.onclick = () => this.playStream(card);
+            card.onclick = () => this.playStreamInPiP(card);
         });
 
+        // Autoplay Al Jazeera muted
         setTimeout(() => {
-            const alj = carousel.querySelector('.tv-item');
-            if (alj) this.playStream(alj);
+            const first = carousel.querySelector('.tv-item');
+            if (first) this.playStreamInPiP(first, true);
         }, 1500);
     },
 
-    playStream: function(card) {
+    playStreamInPiP: function(card, silent = false) {
         const id = card.getAttribute('data-ytid');
-        const mute = window.audioUnlocked ? 0 : 1;
+        const mute = silent ? 1 : 0;
         
         document.querySelectorAll('.tv-item').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
 
-        if (this.activeVideo) {
-            const old = this.activeVideo.closest('.tv-item');
-            if (old) old.innerHTML = old.dataset.prevHtml;
+        let pip = document.getElementById('mobile-pip-container');
+        if (!pip) {
+            pip = document.createElement('div');
+            pip.id = 'mobile-pip-container';
+            pip.className = 'pip-overlay';
+            pip.innerHTML = `
+                <div style="position:absolute; top:4px; right:4px; z-index:10; cursor:pointer; background:rgba(0,0,0,0.6); padding:2px 6px; border-radius:4px; font-size:10px;" id="close-pip">CLOSE ×</div>
+                <div id="pip-player-wrap" style="width:100%; height:100%;"></div>
+            `;
+            document.body.appendChild(pip);
+            document.getElementById('close-pip').onclick = () => { pip.style.display = 'none'; this.activeVideo = null; };
         }
-
-        card.dataset.prevHtml = card.innerHTML;
-        card.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=${mute}&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media" style="width:100%; height:100%;"></iframe>`;
-        this.activeVideo = card.querySelector('iframe');
+        
+        pip.style.display = 'block';
+        document.getElementById('pip-player-wrap').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=${mute}&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media" style="width:100%; height:100%;"></iframe>`;
+        this.activeVideo = pip.querySelector('iframe');
     },
 
     initWidgets: function() {
+        // 1. CLOCKS (NYC / KUWAIT)
         const clockEl = document.getElementById('widget-clocks');
         if (clockEl) {
-            const updateClock = () => {
-                const now = new Date();
-                const ryd = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' });
-                const ldn = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
+            const updateClocks = () => {
+                const nyc = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/New_York' });
+                const kwt = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kuwait' });
                 clockEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>🇸🇦 الرياض</span> <span style="color:var(--lux-orange); font-family:monospace;">${ryd}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--lux-orange); font-family:monospace;">${ldn}</span></div>
+                    <div class="clock-row">
+                        <div class="clock-city"><span>🇺🇸</span> NYC</div>
+                        <div class="clock-time">${nyc}</div>
+                    </div>
+                    <div class="clock-row">
+                        <div class="clock-city"><span>🇰🇼</span> KUWAIT</div>
+                        <div class="clock-time">${kwt}</div>
+                    </div>
                 `;
             };
-            updateClock();
-            setInterval(updateClock, 30000);
+            updateClocks();
+            setInterval(updateClocks, 60000);
+        }
+
+        // 2. GOLD/SILVER (TRADINGVIEW)
+        const marketEl = document.getElementById('widget-market');
+        if (marketEl) {
+            marketEl.style.padding = '0';
+            marketEl.innerHTML = `<iframe src="https://s.tradingview.com/embed-widget/single-quote/?symbol=OANDA%3AXAUUSD&colorTheme=dark&isTransparent=true&width=100%&height=120" frameborder="0" style="width:100%; height:120px;"></iframe>`;
         }
     },
 
@@ -159,9 +180,9 @@ const MobileApp = {
             const cat = RasMirqabData.categories[key];
             const isChecked = window.RasMirqabGlobe?.activeLayers?.[key] !== false ? 'checked' : '';
             return `
-                <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:18px; height:18px; accent-color:var(--lux-orange);">
-                    <span style="font-size:13px; font-weight:800;">${cat.emoji} ${cat.labelAr}</span>
+                <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:20px; height:20px; accent-color:var(--lux-orange);">
+                    <span style="font-size:14px; font-weight:800; color:#eee;">${cat.emoji} ${cat.labelAr}</span>
                 </div>
             `;
         }).join('');
@@ -181,7 +202,6 @@ const MobileApp = {
         const hideBtn = document.getElementById('btn-hide-map');
         const bookmark = document.getElementById('show-map-bookmark');
         const syncLaunch = document.getElementById('hard-sync-launch');
-
         if (syncLaunch) syncLaunch.onclick = () => window.location.reload(true);
 
         const setMapStatus = (isVisible) => {
@@ -210,6 +230,14 @@ const MobileApp = {
         const lModal = document.getElementById('layers-modal');
         if (lBtn) lBtn.onclick = () => { lModal.classList.remove('hidden'); };
         document.getElementById('close-layers').onclick = () => lModal.classList.add('hidden');
+
+        // Footer Nav Fix
+        document.querySelectorAll('.f-item').forEach(item => {
+            item.onclick = () => {
+                document.querySelectorAll('.f-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            };
+        });
     }
 };
 

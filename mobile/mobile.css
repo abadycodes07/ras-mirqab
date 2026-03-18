@@ -1,12 +1,12 @@
-/* ═══ V54 MOCKUP-TRUE COMPLETION (IMAGE #3 PARITY) ═══ */
+/* ═══ V55 RESOURCE-EXACT ALIGNMENT (IMAGE #3 PARITY) ═══ */
 :root {
   --lux-orange: #ff701a;
   --lux-orange-dim: rgba(255, 112, 26, 0.4);
   --bg-deep: #08080a;
-  --glass-bg: rgba(15, 15, 20, 0.9);
+  --glass-bg: rgba(18, 18, 24, 0.92);
   --ultra-border: rgba(255, 255, 255, 0.12);
   --accent: #ff701a;
-  --blur: blur(45px);
+  --blur: blur(48px);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
@@ -23,8 +23,8 @@ html, body {
 }
 
 .top-third { flex: 0 0 34vh; position: relative; overflow: hidden; z-index: 100; border-bottom: 1px solid var(--ultra-border); transition: flex 0.4s ease; }
-.mid-third { flex: 0 0 31vh; padding: 12px; overflow: hidden; z-index: 200; transition: opacity 0.3s; }
-.bot-third { flex: 1; padding: 0 12px; overflow-y: auto; z-index: 300; display: flex; flex-direction: column; gap: 12px; padding-bottom: 90px; }
+.mid-third { flex: 0 0 32vh; padding: 12px; overflow: hidden; z-index: 200; transition: opacity 0.3s; }
+.bot-third { flex: 1; padding: 0 12px; overflow-y: auto; z-index: 300; display: flex; flex-direction: column; gap: 14px; padding-bottom: 90px; }
 
 /* ═══ HEADER ═══ */
 .mobile-header {
@@ -50,12 +50,11 @@ html, body {
 }
 
 /* ═══ MAP HIDDEN ISOLATION ═══ */
-body.map-hidden .top-third { flex: 0 0 80px; border-bottom: none; }
+body.map-hidden #globe-container { display: none; }
 body.map-hidden .mid-third, 
 body.map-hidden .bot-third,
 body.map-hidden .footer-nav,
 body.map-hidden .globe-controls { opacity: 0; pointer-events: none; }
-body.map-hidden #globe-container { display: none; }
 
 /* ═══ GLOBE UI ═══ */
 .globe-controls {
@@ -74,32 +73,73 @@ body.map-hidden #globe-container { display: none; }
 .m-btn { padding: 6px 14px; border: none; background: none; color: #666; font-size: 11px; font-weight: 900; border-radius: 10px; }
 .m-btn.active { background: var(--lux-orange); color: #000; }
 
-/* ═══ NEWS (MOCKUP #3 ALIGNMENT) ═══ */
+/* ═══ NEWS (AAJAL GRADIENT STYLE) ═══ */
 .news-box {
-  height: 100%; display: flex; flex-direction: column; padding: 18px;
+  height: 100%; display: flex; flex-direction: column; padding: 0;
   background: var(--glass-bg); backdrop-filter: var(--blur);
   border-radius: 26px; border: 1px solid var(--ultra-border);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5); overflow: hidden;
 }
-.news-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.news-title { color: var(--lux-orange); font-size: 21px; font-weight: 950; }
+.news-gradient-header {
+  padding: 10px 18px;
+  background: linear-gradient(180deg, rgba(255,112,26,0.18) 0%, transparent 100%);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.news-title-aajal { color: var(--lux-orange); font-size: 24px; font-weight: 950; text-align: right; }
 
-.news-scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.news-scroll { flex: 1; overflow-y: auto; padding: 0 18px; max-height: 250px; }
 .news-scroll::-webkit-scrollbar { display: none; }
 
 .item-news {
-  display: flex; align-items: center; gap: 14px; padding: 12px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; gap: 14px; padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-/* Reorder for Mockup: Time/Logo | Content | Thumbnail */
-.n-meta { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 50px; order: 1; }
-.n-logo-wrap { position: relative; width: 34px; height: 34px; }
-.n-logo { width: 100%; height: 100%; border-radius: 50%; border: 1.5px solid var(--lux-orange-dim); background: #000; padding: 1px; }
-.n-badge { position: absolute; bottom: -1px; right: -1px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #000; font-size: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+/* RTL Layout: [Time/Logo left] | [Text center] | [Thumb right] */
+.n-meta { display: flex; align-items: center; gap: 8px; min-width: 65px; order: 1; }
+.n-logo-wrap { position: relative; width: 28px; height: 28px; }
+.n-logo { width: 100%; height: 100%; border-radius: 50%; border: 1.2px solid var(--lux-orange-dim); background: #000; padding: 1px; }
+.n-badge { position: absolute; bottom: -2px; right: -2px; width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid #000; font-size: 7px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
 
-.n-time { font-size: 10px; color: #777; font-weight: 900; }
-.n-text { flex: 1; font-size: 11.5px; font-weight: 750; text-align: right; color: rgba(255,255,255,0.95); line-height: 1.5; order: 2; }
-.n-thumb { width: 80px; height: 52px; border-radius: 10px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); order: 3; }
+.n-time { font-size: 11px; color: #888; font-weight: 900; }
+.n-text { flex: 1; font-size: 12px; font-weight: 800; text-align: right; color: #fff; line-height: 1.4; order: 2; }
+.n-thumb { width: 85px; height: 56px; border-radius: 12px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); order: 3; }
+
+/* ═══ TV & PiP ═══ */
+.tv-item {
+  min-width: 155px; height: 98px; border-radius: 16px; overflow: hidden; position: relative; flex-shrink: 0;
+  border: 1px solid var(--ultra-border); background: #000; transition: 0.3s;
+}
+.tv-item.active { border-color: var(--lux-orange); box-shadow: 0 0 15px var(--lux-orange-dim); }
+
+.pip-overlay {
+  position: fixed; top: 15px; left: 15px; width: 160px; height: 90px;
+  background: #000; border-radius: 12px; border: 1px solid var(--lux-orange);
+  z-index: 5000; box-shadow: 0 20px 40px rgba(0,0,0,0.8); overflow: hidden;
+  transition: all 0.5s ease;
+}
+
+/* ═══ WORLD CLOCK NYC/KUWAIT ═══ */
+.clock-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.clock-city { font-size: 12px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
+.clock-time { font-family: monospace; font-size: 14px; font-weight: 950; color: var(--lux-orange); }
+
+/* ═══ WIDGET GRID ═══ */
+.widgets-box { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 25px; }
+.w-card { padding: 18px; border-radius: 24px; background: var(--glass-bg); border: 1px solid var(--ultra-border); min-height: 125px; display: flex; flex-direction: column; }
+.w-head { font-size: 11px; font-weight: 950; color: #aaa; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px; margin-bottom: 12px; }
+
+/* ═══ FOOTER NAV (6 ITEMS RTL) ═══ */
+.footer-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 80px;
+  background: rgba(10, 10, 12, 0.98); backdrop-filter: blur(30px);
+  border-top: 1px solid var(--ultra-border);
+  display: flex; justify-content: space-around; align-items: center; z-index: 10000; padding-bottom: 22px;
+}
+.f-item { width: 16%; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #666; cursor: pointer; pointer-events: auto; }
+.f-item.active { color: var(--lux-orange); transform: translateY(-2px); }
+.f-item span { font-size: 9.5px; font-weight: 950; text-align: center; }
+
+.hidden { display: none !important; }
 
 /* ═══ TV CAROUSEL ═══ */
 .tv-item {

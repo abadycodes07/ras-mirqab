@@ -1,14 +1,13 @@
 /**
- * RAS MIRQAB MOBILE V49 - REAL REBUILD
- * Focus: Ultra-Compact Scaling & Robust Data Sync.
+ * RAS MIRQAB MOBILE V52 - ULTIMATE GLASS OVERHAUL
  */
 
 const MobileApp = {
-    version: 'v51',
+    version: 'v52',
     activeVideo: null,
 
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V51: EMERGENCY RESTORE START ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V52: ULTIMATE GLASS OVERHAUL START ---');
         
         try {
             this.initNews();
@@ -22,51 +21,58 @@ const MobileApp = {
                 RasMirqabGlobe.init();
             }
         } catch (e) {
-            console.error('V49 Init Failed:', e);
+            console.error('V52 Init Failed:', e);
         }
-        
-        document.body.classList.add('v49-ready');
     },
 
     unlockAudio: function() {
         const unlock = () => {
             window.audioUnlocked = true;
             document.removeEventListener('click', unlock);
+            if (this.activeVideo) this.activeVideo.muted = false;
         };
         document.addEventListener('click', unlock);
     },
 
-    // ═══ NEWS ENGINE (ULTRA-COMPACT RTL) ═══
+    // ═══ NEWS ENGINE (V52 MEDIA FIX) ═══
     initNews: function() {
-        if (!window.BreakingNewsWidget) {
-            console.error('BreakingNewsWidget not found!');
-            return;
-        }
+        if (!window.BreakingNewsWidget) return;
 
-        // V51: Use the new renderOverride hook
         window.BreakingNewsWidget.renderOverride = (container, items) => {
             if (!container) return;
-            console.log('V51: RENDERING', items.length, 'ITEMS TO MOBILE LIST');
-            // Limit to top 15 for extreme performance
-            container.innerHTML = items.slice(0, 15).map(item => {
+            
+            // Critical: Use paths relative to ROOT for images to avoid /mobile/ context issues
+            const ROOT = window.location.origin + window.location.pathname.split('/mobile')[0];
+            
+            container.innerHTML = items.slice(0, 20).map(item => {
                 const dateObj = item.pubDate ? new Date(item.pubDate) : new Date();
                 const time = dateObj.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const handle = (item.sourceHandle || 'Default').toLowerCase();
+                const source = item.source || 'rss';
                 
-                const logo = `../public/logos/${handle}.jpg`;
-                let thumb = logo; 
+                // V52: High-fidelity image resolution
+                const logo = `${ROOT}/public/logos/${handle}.jpg`;
+                const fallbackLogo = `${ROOT}/public/logos/default.png`;
+                
+                let thumb = null;
                 if (item.mediaUrl) thumb = item.mediaUrl;
                 else if (item.image) thumb = item.image;
                 else if (item.media && item.media[0]) thumb = item.media[0].url || item.media[0];
+                
+                const platformColor = source === 'telegram' ? '#0088cc' : '#ff701a';
+                const platformIcon = source === 'telegram' ? 'T' : '𝕏';
 
                 return `
                     <div class="item-news" onclick="window.open('${item.link}', '_blank')">
                         <div class="n-meta">
-                            <img src="${logo}" class="n-logo" onerror="this.src='../public/logos/default.png'">
+                            <div class="n-logo-wrap">
+                                <img src="${logo}" class="n-logo" onerror="this.src='${fallbackLogo}'">
+                                <div class="n-badge" style="background:${platformColor}">${platformIcon}</div>
+                            </div>
                             <span class="n-time">${time}</span>
                         </div>
                         <div class="n-text">${item.title}</div>
-                        <img src="${thumb}" class="n-thumb" onerror="this.src='../public/logos/default.png'">
+                        ${thumb ? `<img src="${thumb}" class="n-thumb" onerror="this.style.display='none'">` : ''}
                     </div>
                 `;
             }).join('');
@@ -78,7 +84,7 @@ const MobileApp = {
         }
     },
 
-    // ═══ TV ENGINE (MOBILE COMPACT) ═══
+    // ═══ TV ENGINE (V52 AUTOPLAY) ═══
     initTV: function() {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
@@ -91,9 +97,9 @@ const MobileApp = {
             { name: 'TRT Arabic', id: 'p0m0h94C0f8' }
         ];
 
-        carousel.innerHTML = channels.map(ch => `
-            <div class="tv-item" data-ytid="${ch.id}">
-                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.7;">
+        carousel.innerHTML = channels.map((ch, idx) => `
+            <div class="tv-item ${idx === 0 ? 'active' : ''}" data-ytid="${ch.id}" id="tv-${ch.id}">
+                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.6;">
                 <div class="tv-live">LIVE</div>
                 <div class="tv-name">${ch.name}</div>
             </div>
@@ -102,12 +108,21 @@ const MobileApp = {
         carousel.querySelectorAll('.tv-item').forEach(card => {
             card.onclick = () => this.playStream(card);
         });
+
+        // Autoplay Al Jazeera after small delay
+        setTimeout(() => {
+            const alj = carousel.querySelector('.tv-item');
+            if (alj) this.playStream(alj);
+        }, 1500);
     },
 
     playStream: function(card) {
         const id = card.getAttribute('data-ytid');
         const mute = window.audioUnlocked ? 0 : 1;
         
+        document.querySelectorAll('.tv-item').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+
         if (this.activeVideo) {
             const old = this.activeVideo.closest('.tv-item');
             if (old) old.innerHTML = old.dataset.prevHtml;
@@ -123,11 +138,11 @@ const MobileApp = {
         if (clockEl) {
             const updateClock = () => {
                 const now = new Date();
-                const riyadh = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-                const london = new Date(now.getTime() - 10800000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const ryd = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' });
+                const ldn = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
                 clockEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>🇸🇦 الرياض</span> <span style="color:var(--accent)">${riyadh}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--accent)">${london}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>🇸🇦 الرياض</span> <span style="color:var(--lux-gold); font-family:Orbitron;">${ryd}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--lux-gold); font-family:Orbitron;">${ldn}</span></div>
                 `;
             };
             updateClock();
@@ -143,9 +158,9 @@ const MobileApp = {
             const cat = RasMirqabData.categories[key];
             const isChecked = window.RasMirqabGlobe?.activeLayers?.[key] !== false ? 'checked' : '';
             return `
-                <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:18px; height:18px;">
-                    <span style="font-size:12px; font-weight:800;">${cat.emoji} ${cat.labelAr}</span>
+                <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:18px; height:18px; accent-color:var(--lux-gold);">
+                    <span style="font-size:13px; font-weight:800;">${cat.emoji} ${cat.labelAr}</span>
                 </div>
             `;
         }).join('');
@@ -167,37 +182,17 @@ const MobileApp = {
         const bookmark = document.getElementById('show-map-bookmark');
         const syncLaunch = document.getElementById('hard-sync-launch');
 
-        // ═══ V50 HARD SYNC ENGINE ═══
         if (syncLaunch) {
-            syncLaunch.onclick = async () => {
-                console.log('🔄 V50: INITIATING HARD SYNC & CACHE WIPE...');
-                
-                // 1. Clear State
-                localStorage.clear();
-                sessionStorage.clear();
-                
-                // 2. Trigger Render Deploy (Placeholder for Hook URL)
-                const DEPLOY_HOOK = ""; // I need the user to provide this
-                if (DEPLOY_HOOK) {
-                    try {
-                        await fetch(DEPLOY_HOOK, { method: 'POST' });
-                        console.log('🚀 DEPLOY TRIGGERED ON RENDER');
-                    } catch (e) {}
-                }
-
-                // 3. Force Bypass-Cache Reload
-                setTimeout(() => {
-                    window.location.reload(true);
-                }, 500);
-            };
+            syncLaunch.onclick = () => window.location.reload(true);
         }
 
         const setMapStatus = (isVisible) => {
             if (isVisible) {
-                wrap.style.flex = '0 0 34dvh';
+                wrap.style.flex = '0 0 34vh';
                 bookmark.classList.add('hidden');
             } else {
-                wrap.style.flex = '0 0 50px'; // Header only
+                wrap.style.height = '60px'; 
+                wrap.style.flex = '0 0 60px';
                 bookmark.classList.remove('hidden');
             }
         };
@@ -224,4 +219,6 @@ const MobileApp = {
 };
 
 window.MobileApp = MobileApp;
+document.addEventListener('DOMContentLoaded', () => MobileApp.init());
+p = MobileApp;
 document.addEventListener('DOMContentLoaded', () => MobileApp.init());

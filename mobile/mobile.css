@@ -1,49 +1,94 @@
-/* ═══ V46 ULTRA-GLASS & DASHBOARD SYSTEM ═══ */
+/* ═══ V47 LUXURY DARK LANDING & GLASS SYSTEM ═══ */
 :root {
-  --ultra-glass: rgba(25, 25, 30, 0.45);
-  --ultra-border: rgba(255, 255, 255, 0.12);
-  --ultra-highlight: inset 0 1px 0.5px rgba(255, 255, 255, 0.25);
-  --ultra-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  --accent: #ff701a;
-  --accent-glow: 0 0 15px rgba(255, 112, 26, 0.5);
+  --lux-gold: #c6946a;
+  --lux-gold-bright: #e7bc9d;
+  --lux-glass: rgba(255, 255, 255, 0.03);
+  --lux-border: rgba(198, 148, 106, 0.2);
+  --lux-shadow: 0 30px 60px rgba(0,0,0,0.9);
+  --dash-offset: 100vh;
 }
 
-body {
-  margin:0; padding:0; background:#000; color:#fff;
-  font-family: 'Tajawal', sans-serif; height: 100vh; overflow: hidden;
-  display: flex; flex-direction: column;
+body.landing-active { overflow: hidden; }
+
+/* ═══ LUXURY LANDING SECTION ═══ */
+.luxury-landing {
+  position: fixed; inset: 0; background: #000; z-index: 9000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: transform 1s cubic-bezier(0.86, 0, 0.07, 1), opacity 0.8s;
+  background: radial-gradient(circle at center, #111 0%, #000 70%);
+}
+.luxury-landing.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+
+/* ═══ 3D GLASS LOGO (IMAGE 3) ═══ */
+.logo-center-piece {
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  position: relative; scale: 0.9;
+}
+.huge-logo-text {
+  font-size: 80px; font-weight: 900; color: transparent;
+  background: linear-gradient(135deg, var(--lux-gold) 0%, #5d4037 50%, var(--lux-gold-bright) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 15px rgba(198, 148, 106, 0.3));
+  position: relative; letter-spacing: -2px;
+}
+.huge-logo-text::after {
+  content: "راس مرقاب"; position: absolute; inset: 0;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.1);
+  background: none; z-index: -1;
 }
 
-.glass-btn {
-  background: var(--ultra-glass);
-  backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  border: 1px solid var(--ultra-border);
-  box-shadow: var(--ultra-highlight), var(--ultra-shadow);
-  color: #fff; transition: 0.2s; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+/* TELESCOPE 3D ASSET SIMULATION */
+.glass-telescope {
+  width: 140px; height: 100px; position: relative;
+  filter: drop-shadow(0 20px 30px #000);
 }
-.glass-btn:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.1); }
+.t-base { width: 100px; height: 20px; background: var(--lux-gold); border-radius: 5px; position: absolute; bottom: 0; left: 20px; }
+.t-body { width: 40px; height: 80px; background: linear-gradient(90deg, #333, #666, #333); border-radius: 50% 50% 0 0; position: absolute; bottom: 20px; left: 50px; }
 
-/* ═══ DASHBOARD THREE-THIRDS ═══ */
-.top-third { height: 35vh; position: relative; }
-.mid-third { height: 32vh; padding: 0 15px; }
-.bot-third { height: 33vh; padding: 0 15px 85px 15px; overflow-y: auto; }
+/* ═══ TAGLINES & LABELS ═══ */
+.tagline-main { font-size: 20px; color: var(--lux-gold); font-weight: 500; margin-top: 10px; opacity: 0.8; }
+.floating-2026 { position: absolute; bottom: -20px; right: -20px; font-size: 10px; color: var(--lux-gold); opacity: 0.4; }
 
-/* ═══ HEADER (BELL LEFT, LOGO RIGHT) ═══ */
-.mobile-header {
-  height: 65px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between;
-  position: absolute; top:0; left:0; right:0; z-index: 2000;
+/* ═══ PROGRESS METRICS ═══ */
+.luxury-metrics {
+  position: absolute; bottom: 40px; right: 40px;
+  display: flex; flex-direction: column; gap: 15px; width: 220px;
 }
-.header-right { order: 2; position: relative; display: flex; align-items: center; }
-.header-left { order: 1; }
+.metric-row { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.metric-label { font-size: 11px; color: #888; font-weight: 800; }
+.metric-bar-bg { width: 100%; height: 2px; background: rgba(255,255,255,0.05); border-radius: 1px; }
+.metric-bar-fill { height: 100%; background: linear-gradient(90deg, transparent, var(--lux-gold)); border-radius: 1px; }
 
-.header-logo { height: 32px; filter: drop-shadow(0 0 10px rgba(255,112,26,0.3)); }
-.bell-btn {
-  width: 42px; height: 42px; border-radius: 12px;
-  background: none; border: 1.5px solid var(--ultra-border);
-  display: flex; align-items: center; justify-content: center; color: #fff;
-  box-shadow: var(--ultra-highlight); backdrop-filter: blur(15px);
+/* ═══ LUXURY NAV (IMAGE 3) ═══ */
+.luxury-header {
+  position: absolute; top: 0; left: 0; right: 0; height: 80px;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
 }
+.lux-left-logo { font-size: 18px; font-weight: 900; color: var(--lux-gold); }
+.lux-right-nav {
+  display: flex; gap: 20px; background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 10px; padding: 8px 15px; align-items: center;
+}
+.lux-nav-item { font-size: 12px; color: #aaa; font-weight: 800; cursor: pointer; }
+.lux-nav-item.active { color: #fff; position: relative; }
+.lux-nav-item.active::after { content: ''; position: absolute; top: -15px; left: 50%; width: 4px; height: 4px; background: var(--lux-gold); border-radius: 50%; transform: translateX(-50%); box-shadow: 0 0 10px var(--lux-gold); }
+
+/* ═══ ENTER ACTION ═══ */
+.enter-btn {
+  margin-top: 50px; padding: 12px 30px; border-radius: 30px;
+  background: none; border: 1px solid var(--lux-gold);
+  color: var(--lux-gold); font-size: 14px; font-weight: 900;
+  cursor: pointer; transition: 0.3s;
+}
+.enter-btn:hover { background: var(--lux-gold); color: #000; box-shadow: 0 0 20px rgba(198,148,106,0.4); }
+
+/* ═══ DASHBOARD OVERLAYS ═══ */
+.dashboard-v47 {
+  opacity: 0; visibility: hidden; transition: 1s;
+}
+.dashboard-v47.active { opacity: 1; visibility: visible; }
 
 /* ═══ GLOBE CONTROLS (V46 CLUSTER) ═══ */
 .globe-controls {

@@ -3,13 +3,17 @@
  */
 
 const MobileApp = {
-    version: 'v46',
+    version: 'v47',
+    landingMode: true,
     activeVideo: null,
 
     init: function() {
         console.log('--- 🚀 RAS MIRQAB MOBILE V46: DASHBOARD START ---');
         
-        if (window.RasMirqabGlobe) {
+        this.initLanding();
+        
+        // Delay globe for performance if in landing mode
+        if (!this.landingMode && window.RasMirqabGlobe) {
             RasMirqabGlobe.init();
         }
 
@@ -152,6 +156,26 @@ const MobileApp = {
                 }
             };
         });
+    },
+
+    initLanding: function() {
+        const enterBtn = document.getElementById('btn-enter-dash');
+        const landing = document.getElementById('luxury-landing');
+        const dash = document.getElementById('main-dashboard');
+
+        if (enterBtn) {
+            enterBtn.onclick = () => {
+                landing.classList.add('hidden');
+                dash.classList.add('active');
+                document.body.classList.remove('landing-active');
+                this.landingMode = false;
+                
+                // Init globe now
+                if (window.RasMirqabGlobe) {
+                    RasMirqabGlobe.init();
+                }
+            };
+        }
     },
 
     bindEvents: function() {

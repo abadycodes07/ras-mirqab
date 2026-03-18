@@ -28,12 +28,22 @@
       <header class="mobile-header">
         <div class="header-left">
             <button class="bell-btn" id="bell-trigger">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             </button>
+            <div id="bell-menu" class="bell-menu">
+                <div class="menu-row">
+                    <span class="menu-label">التنبيهات</span>
+                    <input type="checkbox" checked style="accent-color:var(--lux-orange); width:18px; height:18px;">
+                </div>
+                <div class="menu-row">
+                    <span class="menu-label">الصوت</span>
+                    <input type="range" min="0" max="100" value="80" style="accent-color:var(--lux-orange); flex:1; margin-left:10px;">
+                </div>
+            </div>
         </div>
         <div class="header-right">
             <img src="../public/logo.png" class="header-logo" alt="Logo">
-            <div id="show-map-bookmark" class="show-map hidden">عرض الخريطة ▾</div>
+            <div id="show-map-bookmark" class="show-map">عرض الخريطة ▾</div>
         </div>
       </header>
 

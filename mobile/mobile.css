@@ -1,11 +1,27 @@
-/* ═══ V47 LUXURY DARK LANDING & GLASS SYSTEM ═══ */
+/* ═══ V47 LUXURY DARK LANDING & DASHBOARD SYSTEM ═══ */
 :root {
+  /* Luxury Variables */
   --lux-gold: #c6946a;
   --lux-gold-bright: #e7bc9d;
-  --lux-glass: rgba(255, 255, 255, 0.03);
-  --lux-border: rgba(198, 148, 106, 0.2);
+  --lux-glass: rgba(255, 255, 255, 0.04);
+  --lux-border: rgba(198, 148, 106, 0.25);
   --lux-shadow: 0 30px 60px rgba(0,0,0,0.9);
-  --dash-offset: 100vh;
+  
+  /* Dashboard Glass Variables (Restored) */
+  --ultra-glass: rgba(25, 25, 30, 0.45);
+  --ultra-border: rgba(255, 255, 255, 0.12);
+  --ultra-highlight: inset 0 1px 0.5px rgba(255, 255, 255, 0.25);
+  --ultra-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  --accent: #ff701a;
+  --accent-glow: 0 0 15px rgba(255, 112, 26, 0.5);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin:0; padding:0; background:#000; color:#fff;
+  font-family: 'Tajawal', sans-serif; height: 100vh; width: 100vw;
+  overflow: hidden; display: flex; flex-direction: column;
 }
 
 body.landing-active { overflow: hidden; }

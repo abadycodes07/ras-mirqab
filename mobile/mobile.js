@@ -8,23 +8,31 @@ const MobileApp = {
     activeVideo: null,
 
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V46: DASHBOARD START ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V47: DASHBOARD START ---');
         
-        this.initLanding();
+        try {
+            this.initLanding();
+        } catch (e) {
+            console.error('Landing Init Failed:', e);
+        }
+        
+        try {
+            this.initNews();
+            this.initTV();
+            this.initWidgets();
+            this.bindEvents();
+            this.unlockAudio();
+            this.initLayers();
+        } catch (e) {
+            console.error('Core Components Failed:', e);
+        }
         
         // Delay globe for performance if in landing mode
         if (!this.landingMode && window.RasMirqabGlobe) {
-            RasMirqabGlobe.init();
+            try { RasMirqabGlobe.init(); } catch(e) {}
         }
-
-        this.initNews();
-        this.initTV();
-        this.initWidgets();
-        this.bindEvents();
-        this.unlockAudio();
-        this.initLayers();
         
-        document.body.classList.add('v46-ready');
+        document.body.classList.add('v47-ready');
     },
 
     unlockAudio: function() {

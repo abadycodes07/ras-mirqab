@@ -1,20 +1,16 @@
 /**
- * RAS MIRQAB MOBILE V46 - ULTRA-FIDELITY DASHBOARD
+ * RAS MIRQAB MOBILE V48 - FRESH GROUND-UP RECONSTRUCTION
+ * Focus: Stability, Performance, and Exact Mockup Parity.
  */
 
 const MobileApp = {
-    version: 'v47',
-    landingMode: true,
+    version: 'v48',
     activeVideo: null,
+    initialized: false,
 
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V47: DASHBOARD START ---');
-        
-        try {
-            this.initLanding();
-        } catch (e) {
-            console.error('Landing Init Failed:', e);
-        }
+        if (this.initialized) return;
+        console.log('--- 🚀 RAS MIRQAB MOBILE V48: FRESH START ---');
         
         try {
             this.initNews();
@@ -23,16 +19,17 @@ const MobileApp = {
             this.bindEvents();
             this.unlockAudio();
             this.initLayers();
+            
+            // Initialize Globe immediately for V48
+            if (window.RasMirqabGlobe) {
+                RasMirqabGlobe.init();
+            }
         } catch (e) {
-            console.error('Core Components Failed:', e);
+            console.error('Critical Init Failed:', e);
         }
         
-        // Delay globe for performance if in landing mode
-        if (!this.landingMode && window.RasMirqabGlobe) {
-            try { RasMirqabGlobe.init(); } catch(e) {}
-        }
-        
-        document.body.classList.add('v47-ready');
+        this.initialized = true;
+        document.body.classList.add('v48-ready');
     },
 
     unlockAudio: function() {
@@ -43,22 +40,20 @@ const MobileApp = {
         document.addEventListener('click', unlock);
     },
 
-    // ═══ DATA BRAIN: NEWS ═══
+    // ═══ NEWS ENGINE (RTL PARITY) ═══
     initNews: function() {
         if (!window.BreakingNewsWidget) return;
 
-        // Custom V46 News Renderer (Thumb on Right, Logo on Left)
+        // Custom V48 News Renderer (Logo/Time Left, Text Center, Thumb Right)
         window.BreakingNewsWidget.renderItems = (container, items) => {
             if (!container) return;
-            // Limit to 15 items for top-tier performance
-            container.innerHTML = items.slice(0, 15).map(item => {
+            container.innerHTML = items.slice(0, 20).map(item => {
                 const dateObj = item.pubDate ? new Date(item.pubDate) : new Date();
                 const time = dateObj.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const handle = (item.sourceHandle || 'Default').toLowerCase();
                 
-                // Construct high-fidelity paths
                 const logo = `../public/logos/${handle}.jpg`;
-                let thumb = logo; // Fallback
+                let thumb = logo; 
                 if (item.mediaUrl) thumb = item.mediaUrl;
                 else if (item.image) thumb = item.image;
                 else if (item.media && item.media[0]) thumb = item.media[0].url || item.media[0];
@@ -77,29 +72,27 @@ const MobileApp = {
         };
 
         window.BreakingNewsWidget.init();
-        // Force refresh from server cache to avoid old data
         if (window.BreakingNewsWidget.fetchServerCache) {
             window.BreakingNewsWidget.fetchServerCache();
         }
     },
 
-    // ═══ DATA BRAIN: TV ═══
+    // ═══ TV ENGINE (LIVE SYNC) ═══
     initTV: function() {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
 
-        // High-Fidelity Channel Sync from Desktop logic
         const channels = [
-            { name: 'Al Jazeera', id: 'bNyUyrR0PHo' },
-            { name: 'Al Arabiya', id: 'n7eQejkXbnM' },
-            { name: 'Al Hadath', id: 'xWXpl7azI8k' },
-            { name: 'Sky News AD', id: 'U--OjmpjF5o' },
-            { name: 'TRT World', id: 'p0m0h94C0f8' }
+            { name: 'الجزيرة', id: 'bNyUyrR0PHo' },
+            { name: 'العربية', id: 'n7eQejkXbnM' },
+            { name: 'الحدث', id: 'xWXpl7azI8k' },
+            { name: 'سكاي نيوز', id: 'U--OjmpjF5o' },
+            { name: 'TRT عربي', id: 'p0m0h94C0f8' }
         ];
 
         carousel.innerHTML = channels.map(ch => `
-            <div class="tv-card glass-btn" data-ytid="${ch.id}">
-                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.7;">
+            <div class="tv-card" data-ytid="${ch.id}">
+                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
                 <div class="tv-live-tag">LIVE</div>
                 <div class="tv-label">${ch.name}</div>
             </div>
@@ -114,7 +107,6 @@ const MobileApp = {
         const id = card.getAttribute('data-ytid');
         const mute = window.audioUnlocked ? 0 : 1;
         
-        // Modal or In-place? In-place for dashboard feel
         if (this.activeVideo) {
             const old = this.activeVideo.closest('.tv-card');
             if (old) old.innerHTML = old.dataset.prevHtml;
@@ -125,18 +117,21 @@ const MobileApp = {
         this.activeVideo = card.querySelector('iframe');
     },
 
+    // ═══ WIDGETS ENGINE (MARKET & CLOCK) ═══
     initWidgets: function() {
-        // Simple Clock Mini
         const clockEl = document.getElementById('widget-clocks');
         if (clockEl) {
-            setInterval(() => {
-                const riyadh = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-                const london = new Date(new Date().getTime() - 3600000 * 3).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const updateClocks = () => {
+                const now = new Date();
+                const riyadh = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const london = new Date(now.getTime() - 3600000 * 3).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
                 clockEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>🇸🇦 Riyadh</span> <span style="color:var(--accent)">${riyadh}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 London</span> <span style="color:var(--accent)">${london}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>🇸🇦 الرياض</span> <span style="color:var(--accent)">${riyadh}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--accent)">${london}</span></div>
                 `;
-            }, 1000);
+            };
+            updateClocks();
+            setInterval(updateClocks, 10000);
         }
     },
 
@@ -146,11 +141,11 @@ const MobileApp = {
 
         list.innerHTML = Object.keys(RasMirqabData.categories).map(key => {
             const cat = RasMirqabData.categories[key];
-            const isChecked = window.RasMirqabGlobe?.activeLayers[key] !== false ? 'checked' : '';
+            const isChecked = window.RasMirqabGlobe?.activeLayers?.[key] !== false ? 'checked' : '';
             return `
                 <div class="layer-row">
-                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:18px; height:18px;">
-                    <span style="font-size:13px; font-weight:700;">${cat.emoji} ${cat.labelAr}</span>
+                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:22px; height:22px;">
+                    <span style="font-size:14px; font-weight:800;">${cat.emoji} ${cat.labelAr}</span>
                 </div>
             `;
         }).join('');
@@ -166,40 +161,6 @@ const MobileApp = {
         });
     },
 
-    initLanding: function() {
-        const enterBtn = document.getElementById('btn-enter-dash');
-        const landing = document.getElementById('luxury-landing');
-        const dash = document.getElementById('main-dashboard');
-
-        if (!landing || !dash) return;
-
-        const transitionOut = () => {
-            landing.classList.add('hidden');
-            dash.classList.add('active');
-            document.body.classList.remove('landing-active');
-            this.landingMode = false;
-            if (window.RasMirqabGlobe && !window.RasMirqabGlobe.initialized) {
-                RasMirqabGlobe.init();
-            }
-        };
-
-        if (enterBtn) {
-            enterBtn.onclick = transitionOut;
-        }
-
-        // Safety Fallback: Scroll to enter
-        window.addEventListener('scroll', () => {
-            if (this.landingMode && window.scrollY > 50) transitionOut();
-        }, { once: true });
-        
-        // Safety Fallback 2: Timeout for slow assets
-        setTimeout(() => {
-            if (this.landingMode && !document.getElementById('telescope-img').complete) {
-                console.warn('Luxury assets slow, ensuring navigation is possible...');
-            }
-        }, 3000);
-    },
-
     bindEvents: function() {
         const wrap = document.getElementById('top-third-wrap');
         const hideBtn = document.getElementById('btn-hide-map');
@@ -208,12 +169,10 @@ const MobileApp = {
         const setMapStatus = (isVisible) => {
             if (isVisible) {
                 wrap.style.height = '35vh';
-                wrap.style.opacity = '1';
                 bookmark.classList.add('hidden');
                 document.getElementById('globe-container').classList.remove('hidden');
             } else {
-                wrap.style.height = '0';
-                wrap.style.opacity = '0.99'; // Stay slightly active but height 0 hides the globe
+                wrap.style.height = '65px'; // Collapse to header height
                 bookmark.classList.remove('hidden');
                 document.getElementById('globe-container').classList.add('hidden');
             }
@@ -223,10 +182,7 @@ const MobileApp = {
         if (bookmark) bookmark.onclick = () => setMapStatus(true);
 
         // 2D/3D Toggles
-        const btns = { 
-            "2d": document.getElementById('btn-2d'), 
-            "3d": document.getElementById('btn-3d') 
-        };
+        const btns = { "2d": document.getElementById('btn-2d'), "3d": document.getElementById('btn-3d') };
         Object.keys(btns).forEach(mode => {
             if (btns[mode]) {
                 btns[mode].onclick = () => {
@@ -237,7 +193,7 @@ const MobileApp = {
             }
         });
 
-        // Modals
+        // Modal Controls
         const lBtn = document.getElementById('btn-layers');
         const lModal = document.getElementById('layers-modal');
         if (lBtn) lBtn.onclick = () => lModal.classList.remove('hidden');

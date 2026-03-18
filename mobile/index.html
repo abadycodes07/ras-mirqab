@@ -3,75 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>راس مرقاب — V47 LUXURY</title>
+  <title>راس مرقاب — V48 DASHBOARD</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="mobile.css?v=47">
+  <link rel="stylesheet" href="mobile.css?v=48">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   
   <script src="../src/assets/three.min.js"></script>
   <script src="../src/assets/globe.gl.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
-  <script src="../src/data/feeds.js?v=47"></script>
-  <script src="../src/data/conflicts.js?v=47"></script>
-  <script src="../src/data/intelligence.js?v=47"></script>
-  <script src="../src/data/timezones.js?v=47"></script>
-  <script src="../src/globe.js?v=47"></script>
-  <script src="../src/widgets/breaking-news.js?v=47"></script>
+  <script src="../src/data/feeds.js?v=48"></script>
+  <script src="../src/data/conflicts.js?v=48"></script>
+  <script src="../src/data/intelligence.js?v=48"></script>
+  <script src="../src/data/timezones.js?v=48"></script>
+  <script src="../src/globe.js?v=48"></script>
+  <script src="../src/widgets/breaking-news.js?v=48"></script>
 </head>
-<body class="mobile-v47 landing-active">
+<body class="mobile-v48">
 
-  <!-- ═══ V47 LUXURY LANDING ═══ -->
-  <section class="luxury-landing" id="luxury-landing">
-    <header class="luxury-header">
-      <div class="lux-left-logo">RAS MIRQAB</div>
-      <div class="lux-right-nav">
-          <div class="lux-nav-item">البحث</div>
-          <div class="lux-nav-item">الآراء</div>
-          <div class="lux-nav-item">التقارير</div>
-          <div class="lux-nav-item">الأخبار العاجلة</div>
-          <div class="lux-nav-item active">الرئيسية</div>
-      </div>
-    </header>
-
-    <div class="logo-center-piece">
-        <h1 class="huge-logo-text">راس مرقاب</h1>
-        <div class="tagline-main">دقة الرصد.. عمق الخبر</div>
-        <div class="glass-telescope" id="telescope-trigger">
-            <img src="../public/luxury_telescope_3d.png" id="telescope-img" style="width:100%; height:100%; object-fit:contain;">
-        </div>
-        <div class="floating-2026">2026</div>
-        <button class="enter-btn" id="btn-enter-dash">دخول المنصة</button>
-    </div>
-
-    <div class="luxury-metrics">
-        <div class="metric-row">
-            <div class="metric-label">دقة المصدر</div>
-            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 85%;"></div></div>
-        </div>
-        <div class="metric-row" style="margin-top:10px;">
-            <div class="metric-label">سرعة التحليل</div>
-            <div class="metric-bar-bg"><div class="metric-bar-fill" style="width: 95%;"></div></div>
-        </div>
-    </div>
-  </section>
-
-  <main class="dashboard-v47" id="main-dashboard">
-
-  <!-- ═══ TOP 33% ═══ -->
+  <!-- ═══ TOP 35%: THE GLOBE ═══ -->
   <section class="top-third" id="top-third-wrap">
-    
     <header class="mobile-header">
       <div class="header-left">
           <button class="bell-btn" id="bell-trigger">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
           </button>
       </div>
-      <div class="header-right" id="logo-wrap">
+      <div class="header-right">
           <img src="../public/logo.png" class="header-logo" alt="Logo">
-          <!-- Bookmark précisément sous le logo -->
           <div id="show-map-bookmark" class="show-map-bookmark hidden">عرض الخريطة</div>
       </div>
     </header>
@@ -82,7 +43,7 @@
     <div class="globe-controls">
       <!-- LEFT: Layers -->
       <div class="left-cluster">
-          <button class="glass-btn layers-btn" id="btn-layers">
+          <button class="glass-btn" id="btn-layers" style="color:#3498db;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 16L1 9l11-7 11 7-11 7zm0 2.3l9-5.7v2.3l-9 5.8-9-5.8v-2.3l9 5.7z"/></svg>
               <span>الطبقات</span>
           </button>
@@ -94,15 +55,15 @@
               <button class="mode-btn active" id="btn-3d">3D</button>
               <button class="mode-btn" id="btn-2d">2D</button>
           </div>
-          <button class="glass-btn hide-btn" id="btn-hide-map">
-              <span>Hide Map</span>
+          <button class="glass-btn" id="btn-hide-map">
+              <span>اخفاء الخريطة</span>
               <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="transform:rotate(180deg)"><path d="M7 10l5 5 5-5z"/></svg>
           </button>
       </div>
     </div>
   </section>
 
-  <!-- ═══ MIDDLE 32% ═══ -->
+  <!-- ═══ MIDDLE 32%: NEWS ═══ -->
   <section class="mid-third">
     <div class="news-container">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -112,62 +73,62 @@
          </div>
          <div style="color:var(--accent); font-size:12px; font-weight:900;">الأخبار العاجلة ▾</div>
       </div>
-      <h2 style="color:var(--accent); font-size:22px; font-weight:900; margin:0 0 10px 0; text-align:right;">عاجل</h2>
+      <h2 style="color:var(--accent); font-size:24px; font-weight:900; margin:0 0 10px 0; text-align:right;">عاجل</h2>
       <div id="breaking-news-body" class="news-scroll">
           <!-- Dyn. -->
       </div>
     </div>
   </section>
 
-  <!-- ═══ BOTTOM 35% ═══ -->
+  <!-- ═══ BOTTOM 33%: TV & WIDGETS ═══ -->
   <section class="bot-third">
     <!-- Stream Carousel -->
     <div style="margin-bottom:15px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <div style="display:flex; gap:5px;">
-                <span style="width:16px; height:16px; background:rgba(255,255,255,0.05); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px;">&gt;</span>
-                <span style="width:16px; height:16px; background:rgba(255,255,255,0.05); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px;">&lt;</span>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="display:flex; gap:6px;">
+                <span style="width:20px; height:20px; background:rgba(255,255,255,0.05); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px;">&gt;</span>
+                <span style="width:20px; height:20px; background:rgba(255,255,255,0.05); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px;">&lt;</span>
             </div>
-            <div style="text-align:right; font-size:12px; font-weight:800; color:#666;">البث المباشر</div>
+            <div style="text-align:right; font-size:12px; font-weight:900; color:#666;">البث المباشر</div>
         </div>
-        <div class="tv-carousel" id="tv-carousel" style="display:flex; gap:12px; overflow-x:auto; padding-bottom:5px;">
+        <div class="tv-carousel" id="tv-carousel">
            <!-- Dyn. -->
         </div>
     </div>
 
-    <!-- Widgets -->
+    <!-- Widgets Grid -->
     <div class="widgets-grid">
-      <div class="news-container widget-card" style="grid-column: span 1;">
-          <div class="widget-title"><span style="color:var(--accent)">T7</span> الذهب والعملات</div>
-          <div id="widget-market" style="flex:1; background:rgba(255,112,26,0.02); border-radius:12px;"></div>
+      <div class="news-container widget-card">
+          <div class="widget-title"><span>الذهب والعملات</span> <span style="color:var(--accent)">T7</span></div>
+          <div id="widget-market" style="flex:1; background:rgba(255,112,26,0.02); border-radius:15px;"></div>
       </div>
-      <div class="news-container widget-card" style="grid-column: span 1;">
-          <div class="widget-title"><span style="color:var(--accent)">T7</span> توقيت العالم</div>
+      <div class="news-container widget-card">
+          <div class="widget-title"><span>توقيت العالم</span> <span style="color:var(--accent)">T7</span></div>
           <div id="widget-clocks" style="font-size:11px;"></div>
       </div>
-      <div class="news-container widget-card" style="grid-column: span 1;">
-          <div class="widget-title"><span style="color:var(--accent)">T7</span> تتبع التحركات</div>
-          <div style="flex:1; background:#000; border-radius:10px; overflow:hidden;">
+      <div class="news-container widget-card">
+          <div class="widget-title"><span>تتبع التحركات</span> <span style="color:var(--accent)">T7</span></div>
+          <div style="flex:1; background:#000; border-radius:12px; overflow:hidden;">
               <img src="https://api.placeholder.com/150/100" style="width:100%; height:100%; object-fit:cover; opacity:0.3;">
           </div>
       </div>
-      <div class="news-container widget-card" style="grid-column: span 1;">
-          <div class="widget-title"><span style="color:var(--accent)">T7</span> الاستخبارات السيبرانية</div>
-          <div style="flex:1; background:radial-gradient(circle, var(--accent) 0%, transparent 65%); opacity:0.15;"></div>
+      <div class="news-container widget-card">
+          <div class="widget-title"><span>الاستخبارات السيبرانية</span> <span style="color:var(--accent)">T7</span></div>
+          <div style="flex:1; background:radial-gradient(circle, var(--accent) 0%, transparent 70%); opacity:0.15;"></div>
       </div>
     </div>
   </section>
 
-  <!-- Layers Modal -->
+  <!-- Modals -->
   <div id="layers-modal" class="layers-modal hidden news-container">
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px; margin-bottom:15px;">
-      <span style="color:var(--accent); font-weight:900;">الطبقات</span>
-      <span id="close-layers" style="font-size:26px; cursor:pointer;">×</span>
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid rgba(255,255,255,0.08); padding-bottom:15px; margin-bottom:15px;">
+      <span style="color:var(--accent); font-weight:900; font-size:18px;">الطبقات</span>
+      <span id="close-layers" style="font-size:32px; cursor:pointer;">×</span>
     </div>
     <div id="layers-list"></div>
   </div>
 
-  <!-- Bottom Nav -->
+  <!-- Footer Nav -->
   <nav class="bottom-nav">
     <div class="nav-item"><span>الإعدادات</span></div>
     <div class="nav-item"><span>التقارير</span></div>
@@ -177,8 +138,6 @@
     <div class="nav-item active"><span>الرئيسية</span></div>
   </nav>
 
-  </main>
-
-  <script src="mobile.js?v=47"></script>
+  <script src="mobile.js?v=48"></script>
 </body>
 </html>

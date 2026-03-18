@@ -106,12 +106,34 @@ body.map-hidden #globe-container { display: none; }
   min-width: 145px; height: 92px; border-radius: 14px; overflow: hidden; position: relative; flex-shrink: 0;
   border: 1px solid var(--ultra-border); background: #000; transition: 0.3s;
 }
-.tv-item.active { border-color: var(--lux-orange); box-shadow: 0 0 15px var(--lux-orange-dim); }
+.tv-live { 
+  position: absolute; top: 8px; right: 8px; 
+  background: #ff3b30; color: #fff; 
+  font-size: 8px; font-weight: 950; 
+  padding: 2px 6px; border-radius: 4px; 
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 8px rgba(255,59,48,0.3);
+}
+.tv-name {
+  position: absolute; bottom: 8px; left: 0; right: 0;
+  text-align: center; font-size: 10px; font-weight: 950;
+  color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
 
 /* ═══ WIDGET GRID ═══ */
 .widgets-box { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 25px; }
 .w-card { padding: 16px; border-radius: 22px; background: var(--glass-bg); border: 1px solid var(--ultra-border); min-height: 115px; }
 .w-head { font-size: 10px; font-weight: 950; color: #888; display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px; margin-bottom: 10px; }
+
+/* ═══ HARD SYNC PILL ═══ */
+.hard-sync {
+  background: var(--lux-orange-dim); border: 1px solid var(--lux-orange);
+  color: #fff; font-size: 10px; font-weight: 900;
+  padding: 6px 14px; border-radius: 12px;
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  transition: 0.2s;
+}
+.hard-sync:active { transform: scale(0.95); background: var(--lux-orange); color: #000; }
 
 /* ═══ FOOTER NAV (6 ITEMS RTL) ═══ */
 .footer-nav {

@@ -34,21 +34,19 @@ const MobileApp = {
         document.addEventListener('click', unlock);
     },
 
-    // ═══ NEWS ENGINE (PRECISION MOCKUP STYLE) ═══
+    // ═══ NEWS ENGINE (MOCKUP #3 ALIGNMENT) ═══
     initNews: function() {
         if (!window.BreakingNewsWidget) return;
 
         window.BreakingNewsWidget.renderOverride = (container, items) => {
             if (!container) return;
             
-            // Standard Absolute Root for all assets
             const ORIGIN = window.location.origin;
             const BASE = window.location.pathname.startsWith('/ras-mirqab') ? '/ras-mirqab' : '';
             const ROOT = ORIGIN + BASE;
             
             container.innerHTML = items.slice(0, 30).map(item => {
                 const date = item.pubDate ? new Date(item.pubDate) : new Date();
-                // V53: Relative Time Polish
                 const timeStr = window.BreakingNewsWidget.getArabicRelativeTime ? 
                                 window.BreakingNewsWidget.getArabicRelativeTime(date) : 
                                 date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
@@ -144,8 +142,8 @@ const MobileApp = {
                 const ryd = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' });
                 const ldn = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
                 clockEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>🇸🇦 الرياض</span> <span style="color:var(--lux-orange); font-family:Orbitron;">${ryd}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--lux-orange); font-family:Orbitron;">${ldn}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>🇸🇦 الرياض</span> <span style="color:var(--lux-orange); font-family:monospace;">${ryd}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--lux-orange); font-family:monospace;">${ldn}</span></div>
                 `;
             };
             updateClock();

@@ -263,6 +263,3 @@ const MobileApp = {
 
 window.MobileApp = MobileApp;
 document.addEventListener('DOMContentLoaded', () => MobileApp.init());
-
-window.MobileApp = MobileApp;
-document.addEventListener('DOMContentLoaded', () => MobileApp.init());

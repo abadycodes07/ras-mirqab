@@ -1,16 +1,14 @@
 /**
- * RAS MIRQAB MOBILE V48 - FRESH GROUND-UP RECONSTRUCTION
- * Focus: Stability, Performance, and Exact Mockup Parity.
+ * RAS MIRQAB MOBILE V49 - REAL REBUILD
+ * Focus: Ultra-Compact Scaling & Robust Data Sync.
  */
 
 const MobileApp = {
-    version: 'v48',
+    version: 'v49',
     activeVideo: null,
-    initialized: false,
 
     init: function() {
-        if (this.initialized) return;
-        console.log('--- 🚀 RAS MIRQAB MOBILE V48: FRESH START ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V49: REAL REBUILD START ---');
         
         try {
             this.initNews();
@@ -20,16 +18,14 @@ const MobileApp = {
             this.unlockAudio();
             this.initLayers();
             
-            // Initialize Globe immediately for V48
             if (window.RasMirqabGlobe) {
                 RasMirqabGlobe.init();
             }
         } catch (e) {
-            console.error('Critical Init Failed:', e);
+            console.error('V49 Init Failed:', e);
         }
         
-        this.initialized = true;
-        document.body.classList.add('v48-ready');
+        document.body.classList.add('v49-ready');
     },
 
     unlockAudio: function() {
@@ -40,14 +36,14 @@ const MobileApp = {
         document.addEventListener('click', unlock);
     },
 
-    // ═══ NEWS ENGINE (RTL PARITY) ═══
+    // ═══ NEWS ENGINE (ULTRA-COMPACT RTL) ═══
     initNews: function() {
         if (!window.BreakingNewsWidget) return;
 
-        // Custom V48 News Renderer (Logo/Time Left, Text Center, Thumb Right)
         window.BreakingNewsWidget.renderItems = (container, items) => {
             if (!container) return;
-            container.innerHTML = items.slice(0, 20).map(item => {
+            // Limit to top 15 for extreme performance
+            container.innerHTML = items.slice(0, 15).map(item => {
                 const dateObj = item.pubDate ? new Date(item.pubDate) : new Date();
                 const time = dateObj.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const handle = (item.sourceHandle || 'Default').toLowerCase();
@@ -59,13 +55,13 @@ const MobileApp = {
                 else if (item.media && item.media[0]) thumb = item.media[0].url || item.media[0];
 
                 return `
-                    <div class="news-item" onclick="window.open('${item.link}', '_blank')">
-                        <div class="ni-meta">
-                            <img src="${logo}" class="ni-source-logo" onerror="this.src='../public/logos/default.png'">
-                            <span class="ni-time">${time}</span>
+                    <div class="item-news" onclick="window.open('${item.link}', '_blank')">
+                        <div class="n-meta">
+                            <img src="${logo}" class="n-logo" onerror="this.src='../public/logos/default.png'">
+                            <span class="n-time">${time}</span>
                         </div>
-                        <div class="ni-text">${item.title}</div>
-                        <img src="${thumb}" class="ni-thumb" onerror="this.src='../public/logos/default.png'">
+                        <div class="n-text">${item.title}</div>
+                        <img src="${thumb}" class="n-thumb" onerror="this.src='../public/logos/default.png'">
                     </div>
                 `;
             }).join('');
@@ -77,7 +73,7 @@ const MobileApp = {
         }
     },
 
-    // ═══ TV ENGINE (LIVE SYNC) ═══
+    // ═══ TV ENGINE (MOBILE COMPACT) ═══
     initTV: function() {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
@@ -86,19 +82,19 @@ const MobileApp = {
             { name: 'الجزيرة', id: 'bNyUyrR0PHo' },
             { name: 'العربية', id: 'n7eQejkXbnM' },
             { name: 'الحدث', id: 'xWXpl7azI8k' },
-            { name: 'سكاي نيوز', id: 'U--OjmpjF5o' },
-            { name: 'TRT عربي', id: 'p0m0h94C0f8' }
+            { name: 'Sky News', id: 'U--OjmpjF5o' },
+            { name: 'TRT Arabic', id: 'p0m0h94C0f8' }
         ];
 
         carousel.innerHTML = channels.map(ch => `
-            <div class="tv-card" data-ytid="${ch.id}">
-                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
-                <div class="tv-live-tag">LIVE</div>
-                <div class="tv-label">${ch.name}</div>
+            <div class="tv-item" data-ytid="${ch.id}">
+                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" style="width:100%; height:100%; object-fit:cover; opacity:0.7;">
+                <div class="tv-live">LIVE</div>
+                <div class="tv-name">${ch.name}</div>
             </div>
         `).join('');
 
-        carousel.querySelectorAll('.tv-card').forEach(card => {
+        carousel.querySelectorAll('.tv-item').forEach(card => {
             card.onclick = () => this.playStream(card);
         });
     },
@@ -108,7 +104,7 @@ const MobileApp = {
         const mute = window.audioUnlocked ? 0 : 1;
         
         if (this.activeVideo) {
-            const old = this.activeVideo.closest('.tv-card');
+            const old = this.activeVideo.closest('.tv-item');
             if (old) old.innerHTML = old.dataset.prevHtml;
         }
 
@@ -117,21 +113,20 @@ const MobileApp = {
         this.activeVideo = card.querySelector('iframe');
     },
 
-    // ═══ WIDGETS ENGINE (MARKET & CLOCK) ═══
     initWidgets: function() {
         const clockEl = document.getElementById('widget-clocks');
         if (clockEl) {
-            const updateClocks = () => {
+            const updateClock = () => {
                 const now = new Date();
                 const riyadh = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-                const london = new Date(now.getTime() - 3600000 * 3).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const london = new Date(now.getTime() - 10800000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
                 clockEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>🇸🇦 الرياض</span> <span style="color:var(--accent)">${riyadh}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><span>🇸🇦 الرياض</span> <span style="color:var(--accent)">${riyadh}</span></div>
                     <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--accent)">${london}</span></div>
                 `;
             };
-            updateClocks();
-            setInterval(updateClocks, 10000);
+            updateClock();
+            setInterval(updateClock, 30000);
         }
     },
 
@@ -143,9 +138,9 @@ const MobileApp = {
             const cat = RasMirqabData.categories[key];
             const isChecked = window.RasMirqabGlobe?.activeLayers?.[key] !== false ? 'checked' : '';
             return `
-                <div class="layer-row">
-                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:22px; height:22px;">
-                    <span style="font-size:14px; font-weight:800;">${cat.emoji} ${cat.labelAr}</span>
+                <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:18px; height:18px;">
+                    <span style="font-size:12px; font-weight:800;">${cat.emoji} ${cat.labelAr}</span>
                 </div>
             `;
         }).join('');
@@ -168,20 +163,17 @@ const MobileApp = {
 
         const setMapStatus = (isVisible) => {
             if (isVisible) {
-                wrap.style.height = '35vh';
+                wrap.style.flex = '0 0 34dvh';
                 bookmark.classList.add('hidden');
-                document.getElementById('globe-container').classList.remove('hidden');
             } else {
-                wrap.style.height = '65px'; // Collapse to header height
+                wrap.style.flex = '0 0 50px'; // Header only
                 bookmark.classList.remove('hidden');
-                document.getElementById('globe-container').classList.add('hidden');
             }
         };
 
         if (hideBtn) hideBtn.onclick = () => setMapStatus(false);
         if (bookmark) bookmark.onclick = () => setMapStatus(true);
 
-        // 2D/3D Toggles
         const btns = { "2d": document.getElementById('btn-2d'), "3d": document.getElementById('btn-3d') };
         Object.keys(btns).forEach(mode => {
             if (btns[mode]) {
@@ -193,10 +185,9 @@ const MobileApp = {
             }
         });
 
-        // Modal Controls
         const lBtn = document.getElementById('btn-layers');
         const lModal = document.getElementById('layers-modal');
-        if (lBtn) lBtn.onclick = () => lModal.classList.remove('hidden');
+        if (lBtn) lBtn.onclick = () => { lModal.classList.remove('hidden'); };
         document.getElementById('close-layers').onclick = () => lModal.classList.add('hidden');
     }
 };

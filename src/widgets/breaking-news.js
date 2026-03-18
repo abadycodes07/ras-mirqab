@@ -330,7 +330,14 @@ var BreakingNewsWidget = (function () {
         
         // Limit for mobile display
         var displayItems = (window.innerWidth <= 768) ? localCache.slice(0, 30) : localCache;
-        renderItems(container, displayItems);
+        
+        // V51: External Render Hook Support
+        if (BreakingNewsWidget.renderOverride) {
+            BreakingNewsWidget.renderOverride(container, displayItems);
+        } else {
+            renderItems(container, displayItems);
+        }
+        
         checkProxyStatus();
     }
 

@@ -4,11 +4,11 @@
  */
 
 const MobileApp = {
-    version: 'v49',
+    version: 'v51',
     activeVideo: null,
 
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V49: REAL REBUILD START ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V51: EMERGENCY RESTORE START ---');
         
         try {
             this.initNews();
@@ -38,10 +38,15 @@ const MobileApp = {
 
     // ═══ NEWS ENGINE (ULTRA-COMPACT RTL) ═══
     initNews: function() {
-        if (!window.BreakingNewsWidget) return;
+        if (!window.BreakingNewsWidget) {
+            console.error('BreakingNewsWidget not found!');
+            return;
+        }
 
-        window.BreakingNewsWidget.renderItems = (container, items) => {
+        // V51: Use the new renderOverride hook
+        window.BreakingNewsWidget.renderOverride = (container, items) => {
             if (!container) return;
+            console.log('V51: RENDERING', items.length, 'ITEMS TO MOBILE LIST');
             // Limit to top 15 for extreme performance
             container.innerHTML = items.slice(0, 15).map(item => {
                 const dateObj = item.pubDate ? new Date(item.pubDate) : new Date();

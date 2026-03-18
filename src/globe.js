@@ -21,8 +21,8 @@ var RasMirqabGlobe = (function () {
 
         initGlobe3D();
         initDimensionToggle();
-        initLayerToggles();
-        initLegend();
+        if (document.getElementById('layer-toggles')) initLayerToggles();
+        if (document.getElementById('globe-legend')) initLegend();
     }
 
     /* ─── 3D GLOBE (globe.gl) ─── */
@@ -476,7 +476,12 @@ var RasMirqabGlobe = (function () {
         toggleBtn.addEventListener('click', function () {
             container.classList.toggle('hidden');
         });
-        document.body.appendChild(toggleBtn);
+        
+        // V51: Don't append if header is missing (mobile uses custom header)
+        const header = document.getElementById('main-header');
+        if (header) {
+            document.body.appendChild(toggleBtn);
+        }
 
         var title = document.createElement('div');
         title.style.cssText = 'font-size:0.7rem;font-weight:700;color:var(--text-secondary);margin-bottom:8px;letter-spacing:1px;';

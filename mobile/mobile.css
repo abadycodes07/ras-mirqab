@@ -1,4 +1,4 @@
-/* ═══ V50 ULTRA-LUXURY DASHBOARD (FINAL COMPACT) ═══ */
+/* ═══ V51 EMERGENCY RESTORE (FINAL COMPACT) ═══ */
 :root {
   --lux-gold: #c6946a;
   --lux-gold-glow: rgba(198, 148, 106, 0.3);
@@ -12,7 +12,7 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
 html, body {
-  height: 100dvh; width: 100vw; overflow: hidden;
+  height: 100vh; height: 100dvh; width: 100vw; overflow: hidden;
   background: var(--bg-deep); color: #fff;
   font-family: 'Tajawal', sans-serif;
   font-size: 14px; /* Local base */
@@ -23,9 +23,9 @@ html, body {
   display: flex; flex-direction: column; height: 100%; width: 100%;
 }
 
-.top-third { flex: 0 0 34dvh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.mid-third { flex: 0 0 31dvh; padding: 10px 12px; overflow: hidden; }
-.bot-third { flex: 0 0 35dvh; padding: 0 12px 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+.top-third { flex: 0 0 34vh; flex: 0 0 34dvh; position: relative; overflow: hidden; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.mid-third { flex: 0 0 31vh; flex: 0 0 31dvh; padding: 10px 12px; overflow: hidden; }
+.bot-third { flex: 0 0 35vh; flex: 0 0 35dvh; padding: 0 12px 10px 12px; display: flex; flex-direction: column; gap: 10px; }
 
 /* ═══ HEADER (BELL LEFT, LOGO RIGHT) ═══ */
 .mobile-header {

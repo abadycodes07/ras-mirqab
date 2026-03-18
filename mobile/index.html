@@ -1,138 +1,143 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>راس مرقاب — V56 MOCKUP-TRUE</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="mobile_v56.css">
-  
-  <!-- Core Dependencies -->
-  <script src="../src/assets/three.min.js"></script>
-  <script src="../src/assets/globe.gl.min.js"></script>
-  <script src="../src/data/feeds.js?v=56"></script>
-  <script src="../src/data/conflicts.js?v=56"></script>
-  <script src="../src/data/intelligence.js?v=56"></script>
-  <script src="../src/data/timezones.js?v=56"></script>
-  <script src="../src/globe.js?v=56"></script>
-  <script src="../src/widgets/breaking-news.js?v=56"></script>
-</head>
-<body class="mobile-v56">
-
-  <main class="app-container">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>راس مرقاب — Mobile V57</title>
     
-    <!-- ═══ TOP 34vh: THE GLOBE ═══ -->
-    <section class="top-third" id="top-third-wrap">
-      <header class="mobile-header">
-        <div class="header-left">
-            <button class="bell-btn" id="bell-trigger">
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-            </button>
-            <div id="bell-menu" class="bell-menu">
-                <div class="menu-row">
-                    <span class="menu-label">التنبيهات</span>
-                    <input type="checkbox" checked style="accent-color:var(--lux-orange); width:18px; height:18px;">
-                </div>
-                <div class="menu-row">
-                    <span class="menu-label">الصوت</span>
-                    <input type="range" min="0" max="100" value="80" style="accent-color:var(--lux-orange); flex:1; margin-left:10px;">
-                </div>
-            </div>
-        </div>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=57">
+</head>
+<body>
+
+    <!-- ═══ LUX HEADER ═══ -->
+    <header class="main-header">
         <div class="header-right">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:8px; background:var(--lux-orange); color:#000; padding:2px 4px; border-radius:4px; font-weight:950;">V56</span>
-                <img src="../public/logo.png" class="header-logo" alt="Logo">
-            </div>
-            <div id="show-map-bookmark" class="show-map">عرض الخريطة ▾</div>
+            <span class="logo-text">راس مرقاب</span>
         </div>
-      </header>
-
-      <div id="globe-container" style="position:absolute; inset:0; z-index:1;"></div>
-
-      <div class="globe-controls">
-        <div class="left-controls">
-            <button class="glass-pill layers-btn" id="btn-layers" style="color:#ff701a">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 16L1 9l11-7 11 7-11 7zm0 2.3l9-5.7v2.3l-9 5.8-9-5.8v-2.3l9 5.7z"/></svg>
-                <span>الطبقات</span>
+        <div class="header-left">
+            <button class="bell-btn glass" id="bell-trigger">
+                <i class="fas fa-bell"></i>
             </button>
         </div>
-        <div class="right-controls">
-            <div class="m-toggle">
-                <button class="m-btn active" id="btn-3d">3D</button>
-                <button class="m-btn" id="btn-2d">2D</button>
+    </header>
+
+    <!-- ═══ GLOBE SECTION ═══ -->
+    <section class="globe-section" id="v57-globe-wrap">
+        <div id="globe-container"></div>
+        
+        <div class="globe-controls">
+            <button class="pill-btn glass" id="btn-layers">
+                <i class="fas fa-layer-group"></i> <span>الطبقات</span>
+            </button>
+            <div class="pill-btn glass" id="view-toggle">
+                <span id="label-3d" class="active">3D</span> | <span id="label-2d">2D</span>
             </div>
-            <button class="glass-pill hide-map-btn" id="btn-hide-map">
-                <span>اخفاء الخريطة</span>
-                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="transform:rotate(180deg)"><path d="M7 10l5 5 5-5z"/></svg>
+            <button class="pill-btn glass" id="btn-hide-map">
+                <span>إخفاء الخريطة</span> <i class="fas fa-chevron-up"></i>
             </button>
         </div>
-      </div>
     </section>
 
-    <!-- ═══ MIDDLE 32vh: NEWS ═══ -->
-    <section class="mid-third">
-      <div class="news-box">
-        <div class="news-gradient-header">
-           <div class="hard-sync" id="hard-sync-launch" style="font-family: monospace;">
-             <span>↺</span> sync <span style="opacity:0.4; font-size:7px; margin-left:2px;">v55</span>
-           </div>
-           <h2 class="news-title-aajal">عاجل</h2>
-        </div>
-        <div id="breaking-news-body" class="news-scroll">
-            <!-- Dynamic Content (3 items default per layout) -->
-        </div>
-      </div>
-    </section>
+    <!-- ═══ MAIN WIDGETS AREA ═══ -->
+    <div class="widget-container">
+        
+        <!-- BREAKING NEWS (AAJAL) -->
+        <section class="glass card-aajal">
+            <div class="card-top">
+                <div class="sync-pill"><i class="fas fa-sync"></i> hard sync <span style="font-size:8px; opacity:0.5;">v57</span></div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-weight:800;">الأخبار العاجلة</span>
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            <h2 class="urgent-title">عاجل</h2>
+            <div id="news-feed-v57" class="news-list">
+                <!-- Data linking from Desktop -->
+            </div>
+        </section>
 
-    <!-- ═══ BOTTOM: TV & WIDGETS ═══ -->
-    <section class="bot-third">
-      <div class="tv-section">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-              <div style="display:flex; gap:10px; color:#444; font-size:11px;"><span>&gt;</span><span>&lt;</span></div>
-              <div style="font-size:11px; font-weight:950; color:#888; text-align:right;">البث المباشر</div>
-          </div>
-          <div class="tv-scroll" id="tv-carousel">
-             <!-- Dynamic Content -->
-          </div>
-      </div>
+        <!-- LIVE STREAMS -->
+        <section style="margin-bottom:20px;">
+            <div class="tv-carousel-title">
+               <div style="display:flex; gap:10px; color:var(--text-muted);"><i class="fas fa-chevron-left"></i> <i class="fas fa-chevron-right"></i></div>
+               <div style="font-weight:900; font-size:14px;">البث المباشر</div>
+            </div>
+            <div class="tv-carousel" id="tv-feed-v57">
+                <!-- Channels injected via main.js -->
+            </div>
+        </section>
 
-      <div class="widgets-box">
-        <div class="w-card">
-            <div class="w-head"><span>الذهب والعملات</span> <span style="color:var(--lux-orange)">LIVE</span></div>
-            <div id="widget-market" style="flex:1;"></div>
-        </div>
-        <div class="w-card">
-            <div class="w-head"><span>تعدين توقيت العواصم</span> <span style="color:var(--lux-orange)">REAL</span></div>
-            <div id="widget-clocks"></div>
-        </div>
-      </div>
-    </section>
+        <!-- WIDGETS GRID -->
+        <section class="widgets-grid">
+            <!-- Market -->
+            <div class="glass w-card" id="w-market">
+                <span class="w-badge">T7</span>
+                <span class="w-title">الذهب والعملات</span>
+                <div id="market-viz" style="flex:1;"></div>
+            </div>
+            <!-- Clocks -->
+            <div class="glass w-card" id="w-clocks">
+                <span class="w-badge">T7</span>
+                <span class="w-title">توقيت العالم</span>
+                <div id="clocks-viz" style="flex:1;"></div>
+            </div>
+            <!-- Tracker -->
+            <div class="glass w-card">
+                <span class="w-badge">T7</span>
+                <span class="w-title">تتبع التحركات</span>
+                <div style="flex:1; background:rgba(255,112,26,0.05); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-plane" style="color:var(--lux-orange); opacity:0.4;"></i>
+                </div>
+            </div>
+            <!-- Cyber -->
+            <div class="glass w-card">
+                <span class="w-badge">T7</span>
+                <span class="w-title">الاستخبارات السيبرانية</span>
+                <div style="flex:1; background:rgba(255,0,0,0.05); border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <i class="fas fa-shield-halved" style="color:red; opacity:0.4;"></i>
+                </div>
+            </div>
+        </section>
 
-    <!-- Footer Nav -->
-    <nav class="footer-nav">
-      <div class="f-item"><span>إعدادات</span></div>
-      <div class="f-item"><span>تقارير</span></div>
-      <div class="f-item"><span>مخططات</span></div>
-      <div class="f-item"><span>أصول</span></div>
-      <div class="f-item"><span>أخبار</span></div>
-      <div class="f-item active"><span>الرئيسية</span></div>
+    </div>
+
+    <!-- ═══ BOTTOM NAV ═══ -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item">
+            <i class="fas fa-cog"></i> <span>الإعدادات</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-file-lines"></i> <span>التقارير</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-chart-line"></i> <span>المخططات</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-coins"></i> <span>الأصول</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-newspaper"></i> <span>الأخبار</span>
+        </a>
+        <a href="#" class="nav-item active">
+            <i class="fas fa-house"></i> <span>الرئيسية</span>
+        </a>
     </nav>
 
-  </main>
+    <!-- ─── SHARED DEPENDENCIES ─── -->
+    <script src="../src/assets/three.min.js"></script>
+    <script src="../src/assets/globe.gl.min.js"></script>
+    <script src="../src/data/feeds.js?v=57"></script>
+    <script src="../src/data/conflicts.js?v=57"></script>
+    <script src="../src/data/intelligence.js?v=57"></script>
+    <script src="../src/data/timezones.js?v=57"></script>
+    <script src="../src/globe.js?v=57"></script>
+    <script src="../src/widgets/breaking-news.js?v=57"></script>
+    
+    <!-- ─── MOBILE BRAIN ─── -->
+    <script src="main.js?v=57"></script>
 
-  <div id="layers-modal" class="l-modal hidden news-box" style="z-index:99999; top:12%; bottom:15%; left:15px; right:15px; background:rgba(255,112,26,0.1); border:1px solid var(--lux-orange);">
-    <div style="padding:20px; display:flex; flex-direction:column; height:100%;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--lux-orange-dim); padding-bottom:15px; margin-bottom:15px;">
-          <span style="color:var(--lux-orange); font-weight:950; font-size:20px;">إعدادات الطبقات</span>
-          <span id="close-layers" style="font-size:32px; cursor:pointer; color:var(--lux-orange);">×</span>
-        </div>
-        <div id="layers-list" style="overflow-y:auto; flex:1;"></div>
-    </div>
-  </div>
-
-  <script src="mobile.js?v=55"></script>
 </body>
 </html>

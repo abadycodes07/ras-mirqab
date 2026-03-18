@@ -1,0 +1,312 @@
+/* 
+ * RAS MIRQAB MOBILE V57 - THE NUCLEAR REBIRTH
+ * "Future 2026" Luxury Glassmorphism System
+ */
+
+:root {
+    --bg-dark: #070707;
+    --glass-bg: rgba(25, 25, 25, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(12px);
+    
+    --lux-copper: #d47b4a;      /* Logo & Urgent Accents */
+    --lux-orange: #ff701a;      /* Functional Accents */
+    --lux-orange-dim: rgba(255, 112, 26, 0.2);
+    
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-muted: #666666;
+    
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+}
+
+/* ═══ RESET & CORE ═══ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Tajawal', sans-serif;
+    direction: rtl;
+    min-height: 100vh;
+    padding-bottom: calc(85px + var(--safe-bottom));
+    overflow-x: hidden;
+}
+
+/* ═══ UTILITIES ═══ */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+}
+
+.hidden { display: none !important; }
+
+/* ═══ HEADER ═══ */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(15px + var(--safe-top)) 20px 15px;
+    background: linear-gradient(to bottom, rgba(7,7,7,0.8), transparent);
+}
+
+.logo-text {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--lux-copper);
+    letter-spacing: -0.5px;
+}
+
+.bell-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.bell-btn:active { transform: scale(0.9); background: var(--lux-orange-dim); }
+
+/* ═══ GLOBE SECTION ═══ */
+.globe-section {
+    position: relative;
+    width: 100%;
+    height: 45vh;
+    background: radial-gradient(circle at center, #1a1a2e 0%, var(--bg-dark) 100%);
+}
+
+#globe-container {
+    width: 100%;
+    height: 100%;
+}
+
+.globe-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    z-index: 10;
+}
+
+.pill-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* ═══ BREAKING NEWS (AAJAL) ═══ */
+.widget-container {
+    padding: 0 15px;
+    margin-top: -30px;
+    position: relative;
+    z-index: 20;
+}
+
+.card-aajal {
+    border-radius: 20px;
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 20px;
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 12px;
+}
+
+.sync-pill {
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: monospace;
+}
+
+.urgent-title {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--lux-copper);
+    line-height: 1;
+    margin-bottom: 15px;
+}
+
+.news-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.n-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 50px;
+}
+
+.n-time { font-size: 11px; color: var(--text-secondary); font-family: 'Orbitron'; }
+.n-logo { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
+
+.n-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: #eee;
+}
+
+.n-thumb {
+    width: 65px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ═══ LIVE TV CAROUSEL ═══ */
+.tv-carousel-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.tv-carousel {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scrollbar-width: none;
+}
+.tv-carousel::-webkit-scrollbar { display: none; }
+
+.tv-card {
+    min-width: 140px;
+    aspect-ratio: 16/10;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.tv-live-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #ff0000;
+    color: #fff;
+    font-size: 8px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* ═══ WIDGETS GRID ═══ */
+.widgets-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.w-card {
+    border-radius: 16px;
+    padding: 12px;
+    min-height: 110px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.w-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 9px;
+    font-weight: 950;
+    color: var(--text-muted);
+}
+
+.w-title {
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: right;
+    color: var(--text-secondary);
+}
+
+/* ═══ BOTTOM NAV ═══ */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(75px + var(--safe-bottom));
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 10px calc(5px + var(--safe-bottom));
+    z-index: 2000;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    gap: 4px;
+    font-size: 10px;
+    flex: 1;
+}
+
+.nav-item i { font-size: 18px; }
+.nav-item.active { color: var(--lux-copper); }
+
+/* ═══ PiP OVERLAY ═══ */
+.pip-wrapper {
+    position: fixed;
+    bottom: 90px;
+    left: 15px;
+    width: 160px;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 2500;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    background: #000;
+    border: 1px solid var(--lux-orange);
+}

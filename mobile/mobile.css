@@ -125,7 +125,3 @@ body.map-hidden #globe-container { display: none; }
 .f-item span { font-size: 9px; font-weight: 950; text-align: center; }
 
 .hidden { display: none !important; }
-); }
-.f-item span { font-size: 10px; font-weight: 900; }
-
-.hidden { display: none !important; }

@@ -3,11 +3,11 @@
  */
 
 const MobileApp = {
-    version: 'v53',
+    version: 'v54',
     activeVideo: null,
 
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V53: FINAL PRECISION START ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V54: MOCKUP-TRUE START ---');
         
         try {
             this.initNews();

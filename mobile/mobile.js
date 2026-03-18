@@ -160,6 +160,32 @@ const MobileApp = {
         const wrap = document.getElementById('top-third-wrap');
         const hideBtn = document.getElementById('btn-hide-map');
         const bookmark = document.getElementById('show-map-bookmark');
+        const syncLaunch = document.getElementById('hard-sync-launch');
+
+        // ═══ V50 HARD SYNC ENGINE ═══
+        if (syncLaunch) {
+            syncLaunch.onclick = async () => {
+                console.log('🔄 V50: INITIATING HARD SYNC & CACHE WIPE...');
+                
+                // 1. Clear State
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // 2. Trigger Render Deploy (Placeholder for Hook URL)
+                const DEPLOY_HOOK = ""; // I need the user to provide this
+                if (DEPLOY_HOOK) {
+                    try {
+                        await fetch(DEPLOY_HOOK, { method: 'POST' });
+                        console.log('🚀 DEPLOY TRIGGERED ON RENDER');
+                    } catch (e) {}
+                }
+
+                // 3. Force Bypass-Cache Reload
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 500);
+            };
+        }
 
         const setMapStatus = (isVisible) => {
             if (isVisible) {

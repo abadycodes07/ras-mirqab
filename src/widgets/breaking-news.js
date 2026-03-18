@@ -500,8 +500,8 @@ var BreakingNewsWidget = (function () {
             var avatar = item.customAvatar || AVATARS[handle] || AVATARS[handle.toLowerCase()] || '/public/logos/default.png';
             
             // Platform Badge
-            var badgeIcon = source === 'twitter' ? '𝕏' : (source === 'telegram' ? '<img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" style="width:12px; height:12px; display:block;">' : '🌐');
-            var badgeColor = source === 'twitter' ? '#fff' : (source === 'telegram' ? '#0088cc' : '#f1c40f');
+            const badgeIcon = source === 'twitter' ? '𝕏' : (source === 'telegram' ? 'T' : '🌐');
+            const badgeColor = source === 'twitter' ? '#fff' : (source === 'telegram' ? '#0088cc' : '#f1c40f');
 
             var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
             var relativeTime = getArabicRelativeTime(item.pubDate);
@@ -598,6 +598,7 @@ var BreakingNewsWidget = (function () {
         removeSource: removeSource, 
         toggleSettings: toggleSettings, 
         toggleVisibility: toggleVisibility,
-        fetchServerCache: fetchServerCache 
+        fetchServerCache: fetchServerCache,
+        getArabicRelativeTime: getArabicRelativeTime
     };
 })();

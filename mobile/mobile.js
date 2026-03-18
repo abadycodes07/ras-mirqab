@@ -1,13 +1,13 @@
 /**
- * RAS MIRQAB MOBILE V52 - ULTIMATE GLASS OVERHAUL
+ * RAS MIRQAB MOBILE V53 - THE FINAL PRECISION POLISH
  */
 
 const MobileApp = {
-    version: 'v52',
+    version: 'v53',
     activeVideo: null,
 
     init: function() {
-        console.log('--- 🚀 RAS MIRQAB MOBILE V52: ULTIMATE GLASS OVERHAUL START ---');
+        console.log('--- 🚀 RAS MIRQAB MOBILE V53: FINAL PRECISION START ---');
         
         try {
             this.initNews();
@@ -21,7 +21,7 @@ const MobileApp = {
                 RasMirqabGlobe.init();
             }
         } catch (e) {
-            console.error('V52 Init Failed:', e);
+            console.error('V53 Init Failed:', e);
         }
     },
 
@@ -34,23 +34,28 @@ const MobileApp = {
         document.addEventListener('click', unlock);
     },
 
-    // ═══ NEWS ENGINE (V52 MEDIA FIX) ═══
+    // ═══ NEWS ENGINE (PRECISION MOCKUP STYLE) ═══
     initNews: function() {
         if (!window.BreakingNewsWidget) return;
 
         window.BreakingNewsWidget.renderOverride = (container, items) => {
             if (!container) return;
             
-            // Critical: Use paths relative to ROOT for images to avoid /mobile/ context issues
-            const ROOT = window.location.origin + window.location.pathname.split('/mobile')[0];
+            // Standard Absolute Root for all assets
+            const ORIGIN = window.location.origin;
+            const BASE = window.location.pathname.startsWith('/ras-mirqab') ? '/ras-mirqab' : '';
+            const ROOT = ORIGIN + BASE;
             
-            container.innerHTML = items.slice(0, 20).map(item => {
-                const dateObj = item.pubDate ? new Date(item.pubDate) : new Date();
-                const time = dateObj.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+            container.innerHTML = items.slice(0, 30).map(item => {
+                const date = item.pubDate ? new Date(item.pubDate) : new Date();
+                // V53: Relative Time Polish
+                const timeStr = window.BreakingNewsWidget.getArabicRelativeTime ? 
+                                window.BreakingNewsWidget.getArabicRelativeTime(date) : 
+                                date.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                
                 const handle = (item.sourceHandle || 'Default').toLowerCase();
                 const source = item.source || 'rss';
                 
-                // V52: High-fidelity image resolution
                 const logo = `${ROOT}/public/logos/${handle}.jpg`;
                 const fallbackLogo = `${ROOT}/public/logos/default.png`;
                 
@@ -69,7 +74,7 @@ const MobileApp = {
                                 <img src="${logo}" class="n-logo" onerror="this.src='${fallbackLogo}'">
                                 <div class="n-badge" style="background:${platformColor}">${platformIcon}</div>
                             </div>
-                            <span class="n-time">${time}</span>
+                            <span class="n-time">${timeStr}</span>
                         </div>
                         <div class="n-text">${item.title}</div>
                         ${thumb ? `<img src="${thumb}" class="n-thumb" onerror="this.style.display='none'">` : ''}
@@ -84,7 +89,6 @@ const MobileApp = {
         }
     },
 
-    // ═══ TV ENGINE (V52 AUTOPLAY) ═══
     initTV: function() {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
@@ -109,7 +113,6 @@ const MobileApp = {
             card.onclick = () => this.playStream(card);
         });
 
-        // Autoplay Al Jazeera after small delay
         setTimeout(() => {
             const alj = carousel.querySelector('.tv-item');
             if (alj) this.playStream(alj);
@@ -129,7 +132,7 @@ const MobileApp = {
         }
 
         card.dataset.prevHtml = card.innerHTML;
-        card.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=${mute}" frameborder="0" allow="autoplay; encrypted-media" style="width:100%; height:100%;"></iframe>`;
+        card.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=${mute}&modestbranding=1" frameborder="0" allow="autoplay; encrypted-media" style="width:100%; height:100%;"></iframe>`;
         this.activeVideo = card.querySelector('iframe');
     },
 
@@ -141,8 +144,8 @@ const MobileApp = {
                 const ryd = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' });
                 const ldn = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
                 clockEl.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>🇸🇦 الرياض</span> <span style="color:var(--lux-gold); font-family:Orbitron;">${ryd}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--lux-gold); font-family:Orbitron;">${ldn}</span></div>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><span>🇸🇦 الرياض</span> <span style="color:var(--lux-orange); font-family:Orbitron;">${ryd}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>🇬🇧 لندن</span> <span style="color:var(--lux-orange); font-family:Orbitron;">${ldn}</span></div>
                 `;
             };
             updateClock();
@@ -159,7 +162,7 @@ const MobileApp = {
             const isChecked = window.RasMirqabGlobe?.activeLayers?.[key] !== false ? 'checked' : '';
             return `
                 <div style="display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:18px; height:18px; accent-color:var(--lux-gold);">
+                    <input type="checkbox" data-layer="${key}" ${isChecked} style="width:18px; height:18px; accent-color:var(--lux-orange);">
                     <span style="font-size:13px; font-weight:800;">${cat.emoji} ${cat.labelAr}</span>
                 </div>
             `;
@@ -177,23 +180,17 @@ const MobileApp = {
     },
 
     bindEvents: function() {
-        const wrap = document.getElementById('top-third-wrap');
         const hideBtn = document.getElementById('btn-hide-map');
         const bookmark = document.getElementById('show-map-bookmark');
         const syncLaunch = document.getElementById('hard-sync-launch');
 
-        if (syncLaunch) {
-            syncLaunch.onclick = () => window.location.reload(true);
-        }
+        if (syncLaunch) syncLaunch.onclick = () => window.location.reload(true);
 
         const setMapStatus = (isVisible) => {
             if (isVisible) {
-                wrap.style.flex = '0 0 34vh';
-                bookmark.classList.add('hidden');
+                document.body.classList.remove('map-hidden');
             } else {
-                wrap.style.height = '60px'; 
-                wrap.style.flex = '0 0 60px';
-                bookmark.classList.remove('hidden');
+                document.body.classList.add('map-hidden');
             }
         };
 
@@ -219,6 +216,4 @@ const MobileApp = {
 };
 
 window.MobileApp = MobileApp;
-document.addEventListener('DOMContentLoaded', () => MobileApp.init());
-p = MobileApp;
 document.addEventListener('DOMContentLoaded', () => MobileApp.init());

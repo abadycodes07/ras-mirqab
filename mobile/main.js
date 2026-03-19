@@ -158,8 +158,8 @@
             const lSrc    = logoSrc(handle);
             const badgeCls= source==='telegram'?'tg':source==='twitter'?'tw':'rss';
             const badge   = source==='telegram'
-                ? '<img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" style="width:9px;height:9px;filter:brightness(0) invert(1);">'
-                : source==='twitter' ? '𝕏' : '⊕';
+                ? '<i class="fab fa-telegram-plane"></i>'
+                : source==='twitter' ? '<i class="fab fa-x-twitter" style="font-size:7px;"></i>' : '⊕';
             const thumb   = item.mediaUrl || item.image || null;
             const title   = cleanText(item.title || '');
             return `<div class="news-item" onclick="__M575.openNews(${idx})">

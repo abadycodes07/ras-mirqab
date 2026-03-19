@@ -19,7 +19,7 @@ var BreakingNewsWidget = (function () {
     var hiddenSources = new Set(JSON.parse(localStorage.getItem('rasmirqab_hidden_sources') || '[]'));
     var currentMirrorIndex = 0;
     var NITTER_MIRRORS = [
-        'https://ras-mirqab-proxy.onrender.com', // Primary
+        'https://ras-mirqab-production.up.railway.app', // Primary
         'https://nitter.net',
         'https://nitter.cz',
         'https://nitter.it',
@@ -504,7 +504,7 @@ var BreakingNewsWidget = (function () {
             origin + '/ras-mirqab/news.json', 
             '../news.json', 
             '/news.json', 
-            'https://ras-mirqab-proxy.onrender.com/public/news.json'
+            'https://ras-mirqab-production.up.railway.app/public/news.json'
         ];
         for (let path of paths) {
             try {

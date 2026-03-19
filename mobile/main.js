@@ -14,7 +14,7 @@
             { name: 'Sky News',  id: 'Xbzz3X-8SKE' },
         ],
         logoBase: '../public/logos/',
-        serverBase: 'https://ras-mirqab-proxy.onrender.com',
+        serverBase: 'https://ras-mirqab-production.up.railway.app',
     };
 
     const state = { activeChannelId: null, pipChannel: null, isPip: false };

@@ -250,25 +250,29 @@ async def layer4_socialdata():
     return []
 
 async def fetch_breaking_news():
-    # Attempt Layer 1 (X/Twitter official GraphQL)
-    print("DEBUG: [V61.0] Attempting Layer 1 (X/twscrape)...", file=sys.stderr)
-    data = await layer1_twscrape()
+    # Attempt Layer 1: SocialData.tools (Professional - Prioritized if Key exists)
+    print("DEBUG: [V61.1] Starting 4-Layer Stealth Scraper...", file=sys.stderr)
+    data = []
     
-    # Fallback to Layer 2 (Nitter RSS)
-    if not data:
-        print("DEBUG: Layer 1 failed. Falling back to Layer 2 (Nitter RSS).", file=sys.stderr)
-        data = layer2_nitter()
-        
-    # Fallback to Layer 3 (Playwright Nitter Browser)
-    if not data:
-        print("DEBUG: Layer 2 failed. Falling back to Layer 3 (Playwright Browser).", file=sys.stderr)
-        data = await layer3_playwright_nitter()
-        
-    # Fallback to Layer 4 (SocialData.tools)
-    if not data:
-        print("DEBUG: Layer 3 failed. Falling back to Layer 4 (SocialData API).", file=sys.stderr)
+    if SOCIALDATA_API_KEY:
+        print("DEBUG: Prioritizing Layer 4 (SocialData API)...", file=sys.stderr)
         data = await layer4_socialdata()
+        if data: return data
+
+    # Fallback to Layer 1: twscrape (Old Layer 1)
+    print("DEBUG: Falling back to Layer 1 (X/twscrape)...", file=sys.stderr)
+    data = await layer1_twscrape()
+    if data: return data
+    
+    # Fallback to Layer 2: Nitter RSS
+    print("DEBUG: Falling back to Layer 2 (Nitter RSS).", file=sys.stderr)
+    data = layer2_nitter()
+    if data: return data
         
+    # Fallback to Layer 3: Playwright Nitter Browser
+    print("DEBUG: Falling back to Layer 3 (Playwright Browser).", file=sys.stderr)
+    data = await layer3_playwright_nitter()
+    
     return data
 
 if __name__ == "__main__":

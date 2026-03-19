@@ -7,7 +7,7 @@ import httpx
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-# V61.3: Universal 4-Layer Stealth Scraper (Nuclear Env Fix)
+# V61.4: Universal 4-Layer Stealth Scraper (Avatar metadata)
 # Targeted List: https://x.com/i/lists/2031445708524421549
 TWITTER_LIST_ID = int(os.getenv("TWITTER_LIST_ID", "2031445708524421549"))
 SOCIALDATA_API_KEY = os.getenv("SOCIALDATA_API_KEY")
@@ -64,6 +64,7 @@ async def layer1_twscrape():
             results.append({
                 "headline_text": tw.rawContent.replace("\n", " ").strip(),
                 "media_url": tw.media.photos[0].url if tw.media.photos else (tw.media.videos[0].thumbnailUrl if tw.media.videos else None),
+                "avatar_url": tw.user.profileImageUrl,
                 "channel_name": tw.user.displayname,
                 "source_platform": "twscrape",
                 "timestamp": tw.date.isoformat()
@@ -125,6 +126,7 @@ def layer2_nitter():
                     results.append({
                         "headline_text": title,
                         "media_url": media_url,
+                        "avatar_url": f"{instance}/{user}/avatar" if instance and user else None,
                         "channel_name": user,
                         "source_platform": "nitter_rss",
                         "timestamp": pub_date
@@ -201,6 +203,7 @@ async def layer3_playwright_nitter():
                     results.append({
                         "headline_text": text,
                         "media_url": media_url,
+                        "avatar_url": f"{instance}/{user}/avatar" if instance and user else None,
                         "channel_name": user,
                         "source_platform": "nitter_browser",
                         "timestamp": timestamp
@@ -236,6 +239,7 @@ async def layer4_socialdata():
                     results.append({
                         "headline_text": t.get("full_text", ""),
                         "media_url": t.get("entities", {}).get("media", [{}])[0].get("media_url_https"),
+                        "avatar_url": t.get("user", {}).get("profile_image_url_https"),
                         "channel_name": t.get("user", {}).get("name", "News"),
                         "source_platform": "socialdata",
                         "timestamp": t.get("created_at")
@@ -251,7 +255,7 @@ async def layer4_socialdata():
 
 async def fetch_breaking_news():
     # Attempt Layer 1: SocialData.tools (Professional - Prioritized if Key exists)
-    print("DEBUG: [V61.3] Starting 4-Layer Stealth Scraper...", file=sys.stderr)
+    print("DEBUG: [V61.4] Starting 4-Layer Stealth Scraper...", file=sys.stderr)
     
     # Deep diagnostic for environment keys
     key_exists = bool(SOCIALDATA_API_KEY)

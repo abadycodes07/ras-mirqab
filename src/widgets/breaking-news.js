@@ -415,9 +415,10 @@ var BreakingNewsWidget = (function () {
             id: (it.timestamp + it.headline_text).substring(0, 32),
             title: it.headline_text,
             mediaUrl: it.media_url,
+            avatarUrl: it.avatar_url, // V61.4: Capture from backend
             sourceName: it.channel_name,
             sourceHandle: it.channel_name,
-            source: it.source_platform.includes('python') || it.source_platform === 'twitter' ? 'twitter' : 'rss',
+            source: it.source_platform.includes('python') || it.source_platform === 'twitter' || it.source_platform === 'socialdata' ? 'twitter' : 'rss',
             pubDate: it.timestamp,
             source_platform: it.source_platform
         }));
@@ -516,8 +517,8 @@ var BreakingNewsWidget = (function () {
             var handle = item.sourceHandle || '';
             var source = item.source || 'rss';
             
-            // Try to find avatar: 1. Item-specific, 2. Mapping by handle (lower case), 3. Default
-            var avatar = item.customAvatar || AVATARS[handle] || AVATARS[handle.toLowerCase()] || '/public/logos/default.png';
+            // Try to find avatar: 1. Item-specific (from backend V61.4), 2. Mapping by handle (lower case), 3. Default
+            var avatar = item.avatarUrl || item.customAvatar || AVATARS[handle] || AVATARS[handle.toLowerCase()] || 'public/logos/default.png';
             
             // Platform Badge
             const badgeIcon = source === 'twitter' ? '<i class="fa-brands fa-x-twitter" style="font-size:8px;"></i>' : (source === 'telegram' ? '<i class="fa-brands fa-telegram" style="font-size:10px;"></i>' : '<i class="fas fa-rss" style="font-size:8px;"></i>');
@@ -555,7 +556,7 @@ var BreakingNewsWidget = (function () {
                 '        <div class="v12-platform-overlap ' + source + '">' + badgeIcon + '</div>' +
                 '      </div>' +
                 '      <div class="v12-source-name-ref">' + 
-                           (item.sourceName || handle).substring(0, 15) + (source === 'twitter' ? ' Breaking' : '') + 
+                           (item.sourceName || handle).substring(0, 15) + 
                        '</div>' +
                 '      <div class="v12-time-ref">' + relativeTime + '</div>' +
                 '    </div>' +

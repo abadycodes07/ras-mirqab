@@ -4,10 +4,13 @@
 
 var BreakingNewsWidget = (function () {
     var STORAGE_KEY = 'rasmirqab_custom_sources';
-    // V57: 3-Layer Architecture — RSS.app | TwitterAPI.io | Telegram Web
+    // V57: 3-Layer Architecture — RSS.app | TwitterAPI.io | Python Scraper Fallback
     var TWITTER_API_KEY = 'new1_9a59c3ffc7e04c0bb5032b97c2d06ef5';
     var TWITTER_LIST_ID = '2031445708524421549';
     var RSS_APP_FEED    = 'https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json';
+    var BACKEND_URL     = window.location.origin.includes('localhost') 
+                          ? 'http://localhost:3001' 
+                          : 'https://ras-mirqab-production.up.railway.app';
 
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
@@ -308,7 +311,11 @@ var BreakingNewsWidget = (function () {
         }
 
         if (localCache.length === 0 && isFirstLoad) {
-            container.innerHTML = '<div style="color:#666; text-align:center; padding:20px;">جاري تحديث البيانات...</div>';
+            container.innerHTML = 
+                '<div class="loading-state-v12" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:50px; color:#e67e22;">' +
+                '  <i class="fas fa-circle-notch fa-spin" style="font-size:32px; margin-bottom:15px;"></i>' +
+                '  <div style="font-family:var(--font-ar); font-size:14px; font-weight:700;">جاري تحديث الأخبار العالمية...</div>' +
+                '</div>';
             return;
         }
 
@@ -348,147 +355,72 @@ var BreakingNewsWidget = (function () {
         var fetchResults = [];
 
         // ═══════════════════════════════════════════════════════════
-        //  LAYER 1 ─ RSS.app JSON Feed (Primary, instant JSON parse)
+        // V57.9: 3-LAYER TWITTER PIPELINE
         // ═══════════════════════════════════════════════════════════
-        try {
-            const res = await fetch(RSS_APP_FEED + '?nocache=' + Date.now());
-            if (res.ok) {
-                const data = await res.json();
-                if (data && data.items && data.items.length) {
-                    data.items.forEach(function(item) {
-                        fetchResults.push({
-                            title:        item.title || '',
-                            link:         item.url   || item.link || '#',
-                            pubDate:      item.date_published || new Date().toISOString(),
-                            mediaUrl:     item.image || null,
-                            source:       'rss',
-                            sourceHandle: 'rss-app',
-                            sourceName:   'RSS.app'
-                        });
-                    });
-                    console.log('V57 Layer-1 RSS OK:', fetchResults.length, 'items');
-                }
-            }
-        } catch (e) {
-            console.warn('V57 Layer-1 RSS failed:', e.message);
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        //  LAYER 2 ─ TwitterAPI.io — List Timeline (LIST ID from user)
-        // ═══════════════════════════════════════════════════════════
-        try {
-            const twitterRes = await fetch(
-                'https://api.twitterapi.io/twitter/list/tweets_timeline?listId=' + TWITTER_LIST_ID,
-                { headers: { 'X-API-Key': TWITTER_API_KEY } }
-            );
-            if (twitterRes.ok) {
-                const tData = await twitterRes.json();
-                const tweets = tData.tweets || tData.data || [];
-                tweets.forEach(function(tweet) {
-                    var mediaUrl = null;
-                    // Check extended entities first (actual media attachments)
-                    if (tweet.extended_entities && tweet.extended_entities.media) {
-                        var m = tweet.extended_entities.media[0];
-                        mediaUrl = m.media_url_https || m.media_url || null;
-                    } else if (tweet.entities && tweet.entities.media) {
-                        mediaUrl = tweet.entities.media[0].media_url_https || null;
-                    }
-                    var handle = (tweet.author && tweet.author.userName) || 'twitter-list';
-                    fetchResults.push({
-                        title:        (tweet.text || '').replace(/https?:\/\/\S+/g, '').trim(),
-                        link:         tweet.url || ('https://twitter.com/' + handle + '/status/' + tweet.id),
-                        pubDate:      tweet.createdAt || new Date().toISOString(),
-                        mediaUrl:     mediaUrl,
-                        source:       'twitter',
-                        sourceHandle: handle.toLowerCase(),
-                        sourceName:   handle
-                    });
-                });
-                console.log('V57 Layer-2 TwitterAPI OK, total now:', fetchResults.length);
-            }
-        } catch (e) {
-            console.warn('V57 Layer-2 TwitterAPI failed:', e.message);
-        }
-
-        // ═══════════════════════════════════════════════════════════
-        //  LAYER 3 ─ Direct Telegram Web Scraping (via CORS bridge)
-        // ═══════════════════════════════════════════════════════════
-        var CORS_BRIDGES = [
-            'https://api.allorigins.win/get?url=',
-            'https://thingproxy.freeboard.io/fetch/'
-        ];
-
-        const tgHandles = [
-            'ajanews', 'alhadath_brk', 'Alarabiya_brk', 'asharqnewsbrk',
-            'alekhbariyanews', 'RT_Arabic', 'SABQ_NEWS', 'AjelNews24',
-            'SkyNewsArabia_Breaking'
-        ];
-
-        await Promise.allSettled(tgHandles.map(async function(h) {
-            for (var b = 0; b < CORS_BRIDGES.length; b++) {
-                try {
-                    const res = await fetch(CORS_BRIDGES[b] + encodeURIComponent('https://t.me/s/' + h));
-                    const data = await res.json();
-                    if (data.contents) {
-                        const html = data.contents;
-                        const chunks = html.split('tgme_widget_message_wrap');
-                        chunks.shift();
-                        chunks.forEach(function(msgHtml) {
-                            const textM  = msgHtml.match(/tgme_widget_message_text[^>]*>([\s\S]*?)<\/div>/);
-                            const timeM  = msgHtml.match(/<time[^>]*datetime="([^"]*)"/);
-                            const imgM   = msgHtml.match(/tgme_widget_message_photo_wrap[^>]*style="[^"]*background-image:url\('([^']+)'\)/);
-                            if (textM && timeM) {
-                                fetchResults.push({
-                                    title:        textM[1].replace(/<[^>]+>/g, '').trim(),
-                                    link:         'https://t.me/s/' + h,
-                                    pubDate:      new Date(timeM[1]).toISOString(),
-                                    mediaUrl:     imgM ? imgM[1] : null,
-                                    source:       'telegram',
-                                    sourceHandle: h.toLowerCase(),
-                                    sourceName:   h
-                                });
-                            }
-                        });
-                        break; // Bridge succeeded; no need to try the next one
-                    }
-                } catch (e) {}
-            }
-        }));
-
-        // Also scrape the RSS backup feeds
-        const rssFeeds = [
-            { h: 'alhadath',   u: 'https://www.alhadath.net/static/struct/rss/alarabiya-breaking.xml' },
-            { h: 'alarabiya',  u: 'https://www.alarabiya.net/.mrss/ar/breaking-news.xml' },
-            { h: 'skynews_ar', u: 'https://www.skynewsarabia.com/web/rss/breaking-news.xml' }
-        ];
-
-        await Promise.allSettled(rssFeeds.map(async function(f) {
+        
+        async function tryLayer1() {
             try {
-                const res = await fetch(CORS_BRIDGES[0] + encodeURIComponent(f.u));
+                const res = await fetch(RSS_APP_FEED);
                 const data = await res.json();
-                if (data.contents) {
-                    var items = data.contents.match(/<item>([\s\S]*?)<\/item>/g) || [];
-                    items.forEach(function(itemXml) {
-                        var titleM = itemXml.match(/<title>([\s\S]*?)<\/title>/);
-                        var linkM  = itemXml.match(/<link>([\s\S]*?)<\/link>/);
-                        var dateM  = itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                        if (titleM && linkM) {
-                            fetchResults.push({
-                                title:        titleM[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim(),
-                                link:         linkM[1].trim(),
-                                pubDate:      dateM ? new Date(dateM[1]).toISOString() : new Date().toISOString(),
-                                source:       'rss',
-                                sourceHandle: f.h,
-                                sourceName:   f.h
-                            });
-                        }
-                    });
+                if (data && data.items) {
+                    return data.items.map(it => ({
+                        headline_text: it.title,
+                        media_url: it.image || null,
+                        channel_name: it.author?.name || 'RSS Feed',
+                        source_platform: 'rss',
+                        timestamp: it.date_published || new Date().toISOString()
+                    }));
                 }
-            } catch (e) {}
-        }));
+            } catch(e) { console.warn('Layer 1 (RSS.app) failed'); }
+            return null;
+        }
 
-        console.log('V57 All Layers Done. Total raw items:', fetchResults.length);
-        return fetchResults;
+        async function tryLayer2() {
+            try {
+                const res = await fetch(`https://api.twitterapi.io/twitter/list/tweets_timeline?listId=${TWITTER_LIST_ID}`, {
+                    headers: { 'X-API-Key': TWITTER_API_KEY }
+                });
+                const data = await res.json();
+                if (data && data.tweets) {
+                    return data.tweets.map(tw => ({
+                        headline_text: (tw.text || tw.full_text || '').replace(/https?:\/\/\S+/g, '').trim(),
+                        media_url: tw.extended_entities?.media?.[0]?.media_url_https || tw.entities?.media?.[0]?.media_url_https || null,
+                        channel_name: tw.author?.userName || 'Twitter',
+                        source_platform: 'twitter',
+                        timestamp: tw.created_at || tw.createdAt
+                    }));
+                }
+            } catch(e) { console.warn('Layer 2 (TwitterAPI.io) failed'); }
+            return null;
+        }
+
+        async function tryLayer3() {
+            try {
+                const res = await fetch(BACKEND_URL + '/api/twitter-scraper-fallback');
+                const data = await res.json();
+                if (data && !data.error) return data;
+            } catch(e) { console.warn('Layer 3 (Python Scraper) failed'); }
+            return [];
+        }
+
+        // Execute Chain
+        let twitterItems = await tryLayer1();
+        if (!twitterItems) twitterItems = await tryLayer2();
+        if (!twitterItems) twitterItems = await tryLayer3();
+
+        if (twitterItems) fetchResults = fetchResults.concat(twitterItems);
+
+        // Map to internal fields for backward compatibility with renderItems
+        return fetchResults.map(it => ({
+            id: (it.timestamp + it.headline_text).substring(0, 32),
+            title: it.headline_text,
+            mediaUrl: it.media_url,
+            sourceName: it.channel_name,
+            sourceHandle: it.channel_name,
+            source: it.source_platform.includes('python') || it.source_platform === 'twitter' ? 'twitter' : 'rss',
+            pubDate: it.timestamp,
+            source_platform: it.source_platform
+        }));
     }
 
     async function fetchServerCache() {

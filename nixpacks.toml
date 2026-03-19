@@ -1,0 +1,12 @@
+[phases.setup]
+nixPkgs = ["python3", "nodejs", "playwright"]
+
+[phases.install]
+cmds = [
+    "npm install",
+    "pip install twscrape apify-client beautifulsoup4",
+    "playwright install chromium --with-deps"
+]
+
+[start]
+cmd = "node proxy.js"

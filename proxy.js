@@ -3,7 +3,7 @@
    ═══════════════════════════════════════════════ */
 
 const express = require('express');
-const { execSync } = require('child_process');
+const { exec, execSync } = require('child_process');
 const https   = require('https');
 const http    = require('http');
 const app = express();
@@ -147,24 +147,8 @@ const TG_AGENT = new https.Agent({
 });
 
 const TG_CHANNELS = [
-    // Al Jazeera Arabic
     'ajanews',
-    // Al Hadath Breaking
-    'alhadath_brk',
-    // Al Arabiya
-    'alarabiyabrk',
-    // Asharq News Breaking
-    'asharqnewsbrk',
-    // Al Ekhbariya News
-    'alekhbariyanews',
-    // RT Arabic
-    'rt_arabic',
-    // Sky News Arabia Breaking
-    'skynewsarabia_breaking',
-    // Saudi Ministry of Defense
-    'modgovksa',
-    // Al Rougui
-    'alrougui',
+    'alhadath_brk'
 ];
 
 /**
@@ -455,105 +439,43 @@ async function fetchTwitterAPI() {
 }
 
 async function updateTwitterActive() {
-    console.log('📡 [Active] Twitter cycle start...');
-    let localItems = [];
-
-    // Layer 1: TwitterAPI.io (paid key)
-    try {
-        const data = await fetchTwitterAPI();
-        if (data && data.tweets && data.tweets.length > 0) {
-            localItems = data.tweets.map(tw => {
-                const media = tw.extended_entities?.media?.[0]?.media_url_https
-                           || tw.entities?.media?.[0]?.media_url_https || null;
-                const handle = tw.author?.userName || 'twitter';
-                return {
-                    title: (tw.text || tw.full_text || '').replace(/https?:\/\/\S+/g, '').trim(),
-                    link: `https://x.com/${handle}/status/${tw.id || tw.id_str}`,
-                    pubDate: new Date(tw.created_at || tw.createdAt).toISOString(),
-                    source: 'twitter', sourceHandle: handle, sourceName: handle,
-                    mediaUrl: media || null,
-                    customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
-                };
-            }).filter(t => t.title && t.title.length > 5);
-            console.log(`✅ [TwitterAPI.io] ${localItems.length} tweets fetched`);
+    console.log('📡 [Active] Twitter cycle start (V58.0 — 2-Layer Python)...');
+    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    
+    exec(`${pythonCmd} scripts/twitter_scraper.py`, (error, stdout, stderr) => {
+        if (stderr) {
+            console.log(`🐍 [Twitter Scraper] Stderr: ${stderr.trim()}`);
         }
-    } catch(e) {}
-
-    // Layer 2: Nitter RSS mirrors (if API fails or low count)
-    if (localItems.length < 5) {
-        const nitterMirrors = [
-            `https://nitter.privacydev.net/i/lists/${LIST_ID_TW}/rss`,
-            `https://nitter.dafrary.com/i/lists/${LIST_ID_TW}/rss`,
-            `https://nitter.it/i/lists/${LIST_ID_TW}/rss`,
-        ];
-        for (const url of nitterMirrors) {
-            try {
-                const xml = stealthFetch(url, false);
-                if (xml && xml.length > 500 && xml.includes('<item>')) {
-                    const matches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-                    if (matches.length > 0) {
-                        for (const m of matches) {
-                            const c = m[1];
-                            const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
-                            const l = c.match(/<link>([\s\S]*?)<\/link>/);
-                            const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                            const auth = c.match(/<dc:creator><!\[CDATA\[([\s\S]*?)\]\]><\/dc:creator>/);
-                            if (t && t[1].trim().length > 5) {
-                                localItems.push({
-                                    title: t[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').trim(),
-                                    link: (l?.[1] || '').replace('nitter.privacydev.net','x.com').replace('nitter.dafrary.com','x.com').replace('nitter.it','x.com'),
-                                    pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
-                                    source: 'twitter', sourceHandle: auth?.[1] || 'List', sourceName: auth?.[1] || 'Twitter List',
-                                    customAvatar: 'public/logos/default.png'
-                                });
-                            }
-                        }
-                        console.log(`✅ [Nitter] ${matches.length} tweets from ${url}`);
-                        break;
-                    }
-                }
-            } catch(e) {}
+        if (error) {
+            console.error(`❌ [Twitter Scraper] Python Error: ${error.message}`);
+            return;
         }
-    }
+        try {
+            const data = JSON.parse(stdout);
+            if (data && data.length > 0) {
+                // Map Python schema to internal proxy schema
+                const normalized = data.map(it => ({
+                    title: it.headline_text,
+                    mediaUrl: it.media_url,
+                    sourceName: it.channel_name,
+                    sourceHandle: it.channel_name.replace(/\s+/g, '').toLowerCase(),
+                    source: 'twitter',
+                    pubDate: it.timestamp,
+                    customAvatar: AVATAR_MAP[it.channel_name] || 'public/logos/default.png',
+                    link: `https://x.com/search?q=${encodeURIComponent(it.headline_text)}`
+                }));
 
-    // Layer 3: RSSHub (last resort)
-    if (localItems.length < 5) {
-        const rssHubs = [
-            `https://rsshub.app/twitter/list/${LIST_ID_TW}`,
-            `https://rsshub.rssforever.com/twitter/list/${LIST_ID_TW}`,
-        ];
-        for (const url of rssHubs) {
-            try {
-                const xml = stealthFetch(url, false);
-                if (xml && xml.length > 500 && xml.includes('<item>')) {
-                    const matches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-                    for (const m of matches) {
-                        const c = m[1];
-                        const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
-                        const l = c.match(/<link>([\s\S]*?)<\/link>/);
-                        const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                        if (t && t[1].trim().length > 5) {
-                            localItems.push({
-                                title: t[1].replace(/<[^>]+>/g,'&').replace(/&amp;/g,'&').trim(),
-                                link: l?.[1] || '#',
-                                pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
-                                source: 'twitter', sourceHandle: 'List', sourceName: 'Twitter List',
-                                customAvatar: 'public/logos/default.png'
-                            });
-                        }
-                    }
-                    if (matches.length > 0) { console.log(`✅ [RSSHub] ${matches.length} from ${url}`); break; }
-                }
-            } catch(e) {}
+                twitterCache = mergeCache(twitterCache, normalized, 300);
+                saveCache();
+                writeNewsJson(); // push to public/news.json
+                console.log(`✅ [Twitter Scraper] Synced ${data.length} items. Total: ${twitterCache.length}`);
+            } else {
+                console.log('⚠️ [Twitter Scraper] No new items returned.');
+            }
+        } catch (e) {
+            console.error('❌ [Twitter Scraper] Failed to parse output:', e.message);
         }
-    }
-
-    if (localItems.length > 0) {
-        twitterCache = mergeCache(twitterCache, localItems, 300);
-        saveCache();
-        writeNewsJson(); // push to public/news.json
-        console.log(`✅ Twitter cache: ${twitterCache.length} total`);
-    }
+    });
 }
 
 // Write combined cache to public/news.json for frontend consumption
@@ -569,7 +491,7 @@ function writeNewsJson() {
 }
 
 async function startScrapers() {
-    console.log("🚀 [V17.3] ACTIVE SCRAPING MODE: Telegram 10s + Twitter 60s");
+    console.log("🚀 [V58.0] ACTIVE SCRAPING MODE: Telegram 5s + Twitter 5m");
     
     // Immediate first run
     await updateTelegram();
@@ -585,7 +507,7 @@ async function startScrapers() {
     // Twitter every 60 seconds
     setInterval(async () => {
         await updateTwitterActive();
-    }, 60000);
+    }, 300000); // 5 minutes (V58.0)
 }
 
 app.get('/api/news/telegram', (req, res) => res.json({ items: telegramCache }));
@@ -622,6 +544,21 @@ app.post('/api/v17/sync-push', (req, res) => {
 
     saveCache();
     res.json({ status: "success", syncedAt: new Date().toISOString() });
+});
+
+// ═══════════════════════════════════════════
+app.get('/api/debug/twitter', (req, res) => {
+    console.log('🔍 [Debug] Manually triggering Twitter Scraper...');
+    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    exec(`${pythonCmd} scripts/twitter_scraper.py`, (error, stdout, stderr) => {
+        res.header("Content-Type", "application/json");
+        res.send({
+            timestamp: new Date().toISOString(),
+            python_error: error ? error.message : null,
+            python_stdout: stdout,
+            python_stderr: stderr
+        });
+    });
 });
 
 app.get('/ping', (req, res) => res.send('pong'));

@@ -9,14 +9,21 @@ from datetime import datetime
 from urllib.parse import quote
 
 # ═══════════════════════════════════════════════
-# V66.1: Resilient Scraper (Debug-Ready)
+# V66.5: Resilient Scraper (Hybrid Swarm)
 # ═══════════════════════════════════════════════
 
 TWITTER_LIST_ID = os.getenv("TWITTER_LIST_ID", "2031445708524421549")
 SCRAPEDO_API_KEY = os.getenv("SCRAPEDO_API_KEY", "20a03e1d412a44c1a19277ba8feb43be000d574775d")
 
-# Primary Nitter instance (poast.org)
-NITTER_BASE = "https://nitter.poast.org"
+# Swarm of Nitter instances
+NITTER_INSTANCES = [
+    "https://nitter.poast.org",
+    "https://nitter.moomoo.me",
+    "https://nitter.privacydev.net",
+    "https://nitter.dafrary.com",
+    "https://nitter.it",
+    "https://nitter.net"
+]
 
 def enforce_https(url):
     if not url: return None
@@ -24,85 +31,102 @@ def enforce_https(url):
     if url.startswith('http://'): return 'https' + url[4:]
     return url
 
-async def fetch_via_scrapedo():
-    """V66.1: Hardened extraction & verbose error reporting."""
-    print(f"DEBUG: [V66.1] Starting Scrape.do Fetch...", file=sys.stderr)
+async def fetch_from_instance(client, instance, list_id):
+    """Attempt direct fetch then Scrape.do failover."""
+    target_url = f"{instance}/i/lists/{list_id}/rss"
     
-    if not SCRAPEDO_API_KEY:
-        print("ERROR: SCRAPEDO_API_KEY missing.", file=sys.stderr)
-        return []
+    # 1. Direct Fetch (Fast, 8s timeout)
+    try:
+        print(f"DEBUG: Trying direct fetch from {instance}...", file=sys.stderr)
+        resp = await client.get(target_url, timeout=8.0)
+        if resp.status_code == 200 and len(resp.text) > 500:
+            return resp.text, instance
+    except: pass
 
-    target_url = f"{NITTER_BASE}/i/lists/{TWITTER_LIST_ID}/rss"
+    # 2. Scrape.do Failover (Reliable, 60s timeout)
+    if not SCRAPEDO_API_KEY: return None
+    
+    print(f"DEBUG: Falling back to Scrape.do for {instance}...", file=sys.stderr)
     encoded_url = quote(target_url)
     api_url = f"https://api.scrape.do?token={SCRAPEDO_API_KEY}&url={encoded_url}&super=true"
-    
     try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(api_url, timeout=45.0)
-            if resp.status_code != 200:
-                print(f"ERROR: Scrape.do Status {resp.status_code}", file=sys.stderr)
-                return []
-                
-            soup = BeautifulSoup(resp.text, 'xml')
+        resp = await client.get(api_url, timeout=60.0)
+        if resp.status_code == 200:
+            return resp.text, instance
+    except Exception as e:
+        print(f"WARN: Scrape.do failed for {instance}: {str(e)}", file=sys.stderr)
+    
+    return None
+
+async def fetch_via_scrapedo():
+    """V66.5: Hybrid Swarm Scraper."""
+    print(f"DEBUG: [V66.5] Starting Hybrid Swarm Fetch...", file=sys.stderr)
+    
+    async with httpx.AsyncClient() as client:
+        html = None
+        active_instance = None
+        
+        for inst in NITTER_INSTANCES:
+            res = await fetch_from_instance(client, inst, TWITTER_LIST_ID)
+            if res:
+                html, active_instance = res
+                break
+        
+        if not html:
+            print("ERROR: All instances in swarm failed.", file=sys.stderr)
+            return []
+
+        try:
+            soup = BeautifulSoup(html, 'xml')
             items = soup.find_all('item')
-            
             results = []
-            for item in items[:40]:
+            
+            # Ensure active_instance is a string for path building
+            base = str(active_instance)
+            
+            for item in items[:50]:
                 try:
                     title = item.find('title').get_text().strip() if item.find('title') else ""
                     creator = item.find('dc:creator')
                     user_handle = creator.get_text().strip() if creator else "News"
                     handle = user_handle.replace("@", "")
+                    avatar_url = enforce_https(f"{base}/{handle}/avatar")
                     
-                    # Avatar with HTTPS
-                    avatar_url = enforce_https(f"{NITTER_BASE}/{handle}/avatar")
-                    
-                    # Hardened Media Extraction V66.1
                     media_url = None
                     desc = item.find('description')
                     if desc:
-                        desc_soup = BeautifulSoup(desc.get_text(), 'html.parser')
-                        
-                        # 1. Look for .still-image or direct img
-                        img = desc_soup.find('img')
+                        ds = BeautifulSoup(desc.get_text(), 'html.parser')
+                        img = ds.find('img')
                         if img and img.get('src'):
                             src = img['src']
-                            raw_url = NITTER_BASE + src if src.startswith('/') else src
-                            media_url = enforce_https(raw_url)
+                            media_url = enforce_https(f"{base}{src}" if src.startswith('/') else src)
                         
-                        # 2. Look for video/media links if no img or to double check
                         if not media_url:
-                            a_media = desc_soup.find('a', href=lambda h: h and ('/pic/media' in h or '/pic/video' in h))
-                            if a_media and a_media.get('href'):
-                                src = a_media['href']
-                                raw_url = NITTER_BASE + src if src.startswith('/') else src
-                                media_url = enforce_https(raw_url)
+                            a = ds.find('a', href=lambda h: h and ('/pic/media' in h or '/pic/video' in h))
+                            if a and a.get('href'):
+                                src = a['href']
+                                media_url = enforce_https(f"{base}{src}" if src.startswith('/') else src)
 
-                    pub_date = item.find('pubDate').get_text() if item.find('pubDate') else datetime.now().isoformat()
-                    
                     results.append({
                         "headline_text": title,
                         "media_url": media_url,
                         "avatar_url": avatar_url,
                         "channel_name": handle,
-                        "source_platform": "scrapedo_nitter",
-                        "timestamp": pub_date
+                        "source_platform": "hybrid_swarm",
+                        "timestamp": item.find('pubDate').get_text() if item.find('pubDate') else datetime.now().isoformat()
                     })
                 except: continue
             
-            print(f"DEBUG: V66.1 Sync Complete - {len(results)} items.", file=sys.stderr)
+            print(f"DEBUG: V66.5 Success - {len(results)} items from {base}", file=sys.stderr)
             return results
-            
-    except Exception as e:
-        print(f"ERROR: {e}", file=sys.stderr)
-        traceback.print_exc(file=sys.stderr)
-        return []
+        except Exception as e:
+            print(f"ERROR: Parsing failed: {str(e)}", file=sys.stderr)
+            return []
 
 if __name__ == "__main__":
     try:
         data = asyncio.run(fetch_via_scrapedo())
         print(json.dumps(data, ensure_ascii=False))
     except Exception as e:
-        print(f"MAIN_ERROR: {e}", file=sys.stderr)
-        traceback.print_exc(file=sys.stderr)
+        print(f"MAIN_ERROR: {str(e)}", file=sys.stderr)
         print(json.dumps([]))

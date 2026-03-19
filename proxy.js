@@ -547,6 +547,18 @@ app.post('/api/v17/sync-push', (req, res) => {
 });
 
 // ═══════════════════════════════════════════
+app.get('/api/debug/env', (req, res) => {
+    const { exec } = require('child_process');
+    exec('env && which python && which python3 && which pip && which pip3', (error, stdout, stderr) => {
+        res.json({
+            timestamp: new Date().toISOString(),
+            stdout: stdout,
+            stderr: stderr,
+            error: error ? error.message : null
+        });
+    });
+});
+
 app.get('/api/debug/twitter', (req, res) => {
     console.log('🔍 [Debug] Manually triggering Twitter Scraper...');
     const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';

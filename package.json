@@ -4,11 +4,13 @@
   "description": "CORS Proxy and Scraper for Ras Mirqab",
   "main": "proxy.js",
   "scripts": {
-    "start": "node proxy.js"
+    "start": "node proxy.js",
+    "postinstall": "npx playwright install chromium --with-deps"
   },
   "dependencies": {
     "cheerio": "^1.2.0",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "playwright": "^1.42.1"
   },
   "engines": {
     "node": ">=18.0.0"

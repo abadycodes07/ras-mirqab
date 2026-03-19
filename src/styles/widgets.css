@@ -1310,23 +1310,26 @@
 
 .v12-platform-overlap {
     position: absolute;
-    bottom: -2px;
-    right: -2px;
-    width: 18px;
-    height: 18px;
+    bottom: -1px;
+    right: -1px;
+    width: 17px;
+    height: 17px;
     border-radius: 50%;
-    background: #000;
-    border: 1px solid #333;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
-    font-family: sans-serif;
     color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-.v12-platform-overlap.telegram { color: #0088cc; }
-.v12-platform-overlap.twitter { color: #fff; }
+.v12-platform-overlap.telegram { background: #229ED9; }
+.v12-platform-overlap.twitter { background: #000; }
+.v12-platform-overlap.rss { background: #e67e22; }
+
+.v12-platform-overlap i {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
 
 .v12-source-name-ref {
     font-family: var(--font-ar);

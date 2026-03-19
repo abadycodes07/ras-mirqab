@@ -4,7 +4,7 @@ nixPkgs = ["python3", "nodejs", "playwright"]
 [phases.install]
 cmds = [
     "npm install",
-    "playwright install chromium --with-deps"
+    "npx playwright install chromium --with-deps"
 ]
 
 [start]

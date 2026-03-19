@@ -7,7 +7,7 @@ import httpx
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-# V61.2: Universal 4-Layer Stealth Scraper (Fixed Libs)
+# V61.3: Universal 4-Layer Stealth Scraper (Nuclear Env Fix)
 # Targeted List: https://x.com/i/lists/2031445708524421549
 TWITTER_LIST_ID = int(os.getenv("TWITTER_LIST_ID", "2031445708524421549"))
 SOCIALDATA_API_KEY = os.getenv("SOCIALDATA_API_KEY")
@@ -251,7 +251,19 @@ async def layer4_socialdata():
 
 async def fetch_breaking_news():
     # Attempt Layer 1: SocialData.tools (Professional - Prioritized if Key exists)
-    print("DEBUG: [V61.2] Starting 4-Layer Stealth Scraper...", file=sys.stderr)
+    print("DEBUG: [V61.3] Starting 4-Layer Stealth Scraper...", file=sys.stderr)
+    
+    # Deep diagnostic for environment keys
+    key_exists = bool(SOCIALDATA_API_KEY)
+    print(f"DEBUG: [Env Check] SOCIALDATA_API_KEY present: {key_exists}", file=sys.stderr)
+    if SOCIALDATA_API_KEY:
+        masked_key = str(SOCIALDATA_API_KEY)[:5]
+        print(f"DEBUG: [Env Check] Key starts with: {masked_key}...", file=sys.stderr)
+    else:
+        # Check all env vars for clues
+        relevant_vars = [k for k in os.environ.keys() if "SOCIAL" in k or "TWITTER" in k]
+        print(f"DEBUG: [Env Check] Available Social/Twitter vars: {relevant_vars}", file=sys.stderr)
+
     data = []
     
     if SOCIALDATA_API_KEY:

@@ -14,4 +14,4 @@ cmds = [
 LD_LIBRARY_PATH = "/usr/lib:/usr/local/lib:/nix/var/nix/profiles/default/lib:/run/current-system/sw/lib:$LD_LIBRARY_PATH"
 
 [start]
-cmd = "node proxy.js"
+cmd = "export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/nix/var/nix/profiles/default/lib:/run/current-system/sw/lib:$LD_LIBRARY_PATH && node proxy.js"

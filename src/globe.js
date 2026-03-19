@@ -121,7 +121,7 @@ var RasMirqabGlobe = (function () {
             updateGlobePaths();
 
             // Fetch live OSINT Naval Intelligence (Battleships)
-            fetch('http://localhost:3001/battleships')
+            fetch('https://ras-mirqab-production.up.railway.app/battleships')
                 .then(function (res) { return res.json(); })
                 .then(function (data) {
                     if (data.items && data.items.length > 0 && window.RasMirqabData) {
@@ -771,7 +771,7 @@ var RasMirqabGlobe = (function () {
             Math.abs(pov.altitude - lastSentPOV.altitude) > 0.05) {
             
             lastSentPOV = pov;
-            fetch('http://localhost:3001/sync', {
+            fetch('https://ras-mirqab-production.up.railway.app/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ pov: pov })

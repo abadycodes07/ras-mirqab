@@ -322,8 +322,21 @@
                     showUnmuteHint(CFG.channels[0].id);
                 }
             });
-        }, { threshold: 0.3 });
+        }, { threshold: 0.1 });
         if (tvSection) autoplayObs.observe(tvSection);
+
+        // Scroll fallback for Safari (ensures trigger even if observer threshold is picky)
+        const onScrollTrigger = () => {
+            if (ajStarted) return;
+            const rect = tvSection?.getBoundingClientRect();
+            if (rect && rect.top < window.innerHeight * 0.9) {
+                ajStarted = true;
+                playTV(CFG.channels[0].id, true);
+                showUnmuteHint(CFG.channels[0].id);
+                window.removeEventListener('scroll', onScrollTrigger);
+            }
+        };
+        window.addEventListener('scroll', onScrollTrigger, { passive: true });
 
         // Fallback: also play on first user interaction (covers page-load on non-Safari)
         const onFirstTouch = () => {

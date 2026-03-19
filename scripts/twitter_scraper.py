@@ -3,12 +3,13 @@ import json
 import sys
 import os
 import httpx
+import traceback
 from bs4 import BeautifulSoup
 from datetime import datetime
 from urllib.parse import quote
 
 # ═══════════════════════════════════════════════
-# V66.0: Hardened Scraper (Zero-Lag & Media)
+# V66.1: Resilient Scraper (Debug-Ready)
 # ═══════════════════════════════════════════════
 
 TWITTER_LIST_ID = os.getenv("TWITTER_LIST_ID", "2031445708524421549")
@@ -24,8 +25,8 @@ def enforce_https(url):
     return url
 
 async def fetch_via_scrapedo():
-    """V66.0: Hardened extraction logic for zero-lag pipeline."""
-    print(f"DEBUG: [V66.0] Starting Scrape.do Fetch...", file=sys.stderr)
+    """V66.1: Hardened extraction & verbose error reporting."""
+    print(f"DEBUG: [V66.1] Starting Scrape.do Fetch...", file=sys.stderr)
     
     if not SCRAPEDO_API_KEY:
         print("ERROR: SCRAPEDO_API_KEY missing.", file=sys.stderr)
@@ -56,7 +57,7 @@ async def fetch_via_scrapedo():
                     # Avatar with HTTPS
                     avatar_url = enforce_https(f"{NITTER_BASE}/{handle}/avatar")
                     
-                    # Hardened Media Extraction V66.0
+                    # Hardened Media Extraction V66.1
                     media_url = None
                     desc = item.find('description')
                     if desc:
@@ -89,16 +90,19 @@ async def fetch_via_scrapedo():
                     })
                 except: continue
             
-            print(f"DEBUG: V66.0 Sync Complete - {len(results)} items.", file=sys.stderr)
+            print(f"DEBUG: V66.1 Sync Complete - {len(results)} items.", file=sys.stderr)
             return results
             
     except Exception as e:
         print(f"ERROR: {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         return []
 
 if __name__ == "__main__":
     try:
         data = asyncio.run(fetch_via_scrapedo())
         print(json.dumps(data, ensure_ascii=False))
-    except:
+    except Exception as e:
+        print(f"MAIN_ERROR: {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         print(json.dumps([]))

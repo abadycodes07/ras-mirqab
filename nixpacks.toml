@@ -1,17 +1,8 @@
 [phases.setup]
-nixPkgs = ["python311", "nodejs_20", "gcc", "stdenv.cc.cc.lib", "libz", "openssl"]
+nixPkgs = ["python311Full", "nodejs", "git"]
 
 [phases.install]
-cmds = [
-    "npm install",
-    "python3.11 -m venv /app/venv",
-    "/app/venv/bin/pip install -r requirements.txt",
-    "/app/venv/bin/playwright install chromium --with-deps",
-    "npx playwright install chromium --with-deps"
-]
-
-[env]
-LD_LIBRARY_PATH = "/usr/lib:/usr/local/lib:/nix/var/nix/profiles/default/lib:/run/current-system/sw/lib:$LD_LIBRARY_PATH"
+cmds = ["npm install", "python3 -m pip install -r requirements.txt --break-system-packages"]
 
 [start]
-cmd = "export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/nix/var/nix/profiles/default/lib:/run/current-system/sw/lib:$LD_LIBRARY_PATH && node proxy.js"
+cmd = "node proxy.js"

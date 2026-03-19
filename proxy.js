@@ -1,27 +1,19 @@
 /* ═══════════════════════════════════════════════
-   V9 ULTIMATE ENGINE (SOLID-STEALTH)
+   V66.1 ENGINE (RESILIENT ZERO-LAG)
    ═══════════════════════════════════════════════ */
 
 const express = require('express');
 const { exec, execSync } = require('child_process');
 const https   = require('https');
 const http    = require('http');
-const app = express();
-const PORT = process.env.PORT || 3001;
+const fs      = require('fs');
+const path    = require('path');
+const app     = express();
+const PORT    = process.env.PORT || 3001;
 
 // Configuration
 const LIST_ID = "2031445708524421549";
-const TELEGRAM_INTERVAL = 7000; 
-const TWITTER_INTERVAL = 60000;
 const SENTINEL_TOKEN = "RAS_SENTINEL_777";
-
-const RSSHUB_BRIDGES = [
-    'https://rsshub.rssforever.com',
-    'https://rsshub.moeyy.cn',
-    'https://rss.owo.nz',
-    'https://rsshub.app',
-    'https://rss.artpro.io'
-];
 
 const BROWSER_FINGERPRINTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -46,19 +38,13 @@ const AVATAR_MAP = {
     'ajanews': 'public/logos/ajanews_new.png',
     'alhadath_brk': 'public/logos/alhadath.jpg',
     'AlArabiya': 'public/logos/alarabiya.png',
-    'asharqnewsbrk': 'public/logos/asharqnewsbrk.jpg',
-    'alekhbariyanews': 'public/logos/alekhbariyanews.jpg',
     'rt_arabic': 'public/logos/rt.png'
 };
 
 // Global State
-let proxyPool = [];
-const fs = require('fs');
-const path = require('path');
-
-const CACHE_FILE = path.join(__dirname, 'news_cache_v9.json');
 let telegramCache = [];
 let twitterCache = [];
+const CACHE_FILE = path.join(__dirname, 'news_cache_v66.json');
 
 // Load persisted cache on startup
 try {
@@ -66,7 +52,7 @@ try {
         const saved = JSON.parse(fs.readFileSync(CACHE_FILE));
         telegramCache = saved.telegram || [];
         twitterCache = saved.twitter || [];
-        console.log(`💾 [V9] Loaded persisted cache: TG(${telegramCache.length}), TW(${twitterCache.length})`);
+        console.log(`💾 [V66.1] Loaded persisted cache: TG(${telegramCache.length}), TW(${twitterCache.length})`);
     }
 } catch(e) { console.log("❌ Cache load error:", e.message); }
 
@@ -76,47 +62,36 @@ function saveCache() {
     } catch(e) {}
 }
 
+// Write combined cache to public/news.json for frontend consumption
+function writeNewsJson() {
+    try {
+        const combined = [...telegramCache, ...twitterCache]
+            .sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate))
+            .slice(0, 200);
+        
+        // V66.1 persistence guard: Do not overwrite with empty if both caches are zero
+        if (combined.length === 0) {
+            console.log('⚠️ [Persistence Guard] Skipping news.json update - Combined cache is empty.');
+            return;
+        }
+
+        const jsonPath = path.join(__dirname, 'public', 'news.json');
+        if (!fs.existsSync(path.join(__dirname, 'public'))) fs.mkdirSync(path.join(__dirname, 'public'));
+        fs.writeFileSync(jsonPath, JSON.stringify(combined, null, 2));
+        console.log(`💾 news.json updated: ${combined.length} items (V66.1)`);
+    } catch(e) { console.log('❌ news.json write error:', e.message); }
+}
+
+// Middleware
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     next();
 });
-
-// Serve public directory for icons/logos
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
-
-async function refreshProxyPool() {
-    try {
-        const res = execSync('curl -s "https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=5000&country=all&ssl=all&anonymity=all"').toString();
-        const fresh = res.split('\n').map(p => p.trim()).filter(p => p && p.includes(':'));
-        if (fresh.length > 5) proxyPool = fresh;
-    } catch (e) {}
-}
-
-function stealthFetch(url, useProxy = true) {
-    const ua = BROWSER_FINGERPRINTS[Math.floor(Math.random() * BROWSER_FINGERPRINTS.length)];
-    const proxy = (useProxy && proxyPool.length > 0) ? proxyPool[Math.floor(Math.random() * proxyPool.length)] : null;
-    
-    try {
-        const proxyCmd = proxy ? `-x http://${proxy}` : '';
-        const cmd = `curl -L ${proxyCmd} -H "User-Agent: ${ua}" --connect-timeout 8 --max-time 15 "${url}"`;
-        let res = execSync(cmd).toString();
-        
-        // V11: Detect Rate Limit and Retry with Proxy automatically
-        if (res.includes('Rate limit exceeded') && !proxy) {
-            console.log(`⚠️ Rate limit hit on direct fetch. Retrying with proxy...`);
-            return stealthFetch(url, true);
-        }
-
-        if (!useProxy) console.log(`📡 [DirectFetch] ${url.substring(0,60)}... | Length: ${res.length}`);
-        return res;
-    } catch (e) {
-        if (!useProxy) console.log(`❌ [DirectFetch] Error fetching ${url.substring(0,40)}: ${e.message}`);
-        return '';
-    }
-}
+app.use(express.json({ limit: '5mb' }));
 
 // Helper for Cumulative Merging
 function mergeCache(existing, fresh, limit = 120) {
@@ -130,322 +105,55 @@ function mergeCache(existing, fresh, limit = 120) {
     }).sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate)).slice(0, limit);
 }
 
-
-// ═══════════════════════════════════════════
-// TURBO TELEGRAM — Pure async Node.js https,
-// zero child process overhead, keep-alive pool,
-// all channels fetched truly in parallel.
-// ═══════════════════════════════════════════
-
-// Connection pool: keep-alive agent reuses TCP connections to t.me
-const TG_AGENT = new https.Agent({
-    keepAlive: true,
-    keepAliveMsecs: 30000,
-    maxSockets: 20,           // up to 20 simultaneous connections
-    maxFreeSockets: 10,
-    timeout: 10000,
-});
-
-const TG_CHANNELS = [
-    'ajanews',
-    'alhadath_brk'
-];
-
-/**
- * Fetch a Telegram public channel page using pure Node.js https.
- * Returns the HTML string. Resolves in typically 200-600ms.
- */
-function fetchTelegramFast(handle) {
-    return new Promise((resolve) => {
-        const url = `https://t.me/s/${handle}`;
-        const req = https.get(url, {
-            agent: TG_AGENT,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-                'Accept': 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'ar,en;q=0.5',
-                'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive',
-                'Cache-Control': 'no-cache',
-            },
-        }, (res) => {
-            // Follow redirects
-            if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                resolve(''); return;
-            }
-            const chunks = [];
-            const decompress = (() => {
-                const enc = res.headers['content-encoding'];
-                if (enc === 'gzip')    return require('zlib').createGunzip();
-                if (enc === 'deflate') return require('zlib').createInflate();
-                if (enc === 'br')      return require('zlib').createBrotliDecompress();
-                return null;
-            })();
-            const stream = decompress ? res.pipe(decompress) : res;
-            stream.on('data', c => chunks.push(c));
-            stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-            stream.on('error', () => resolve(''));
-        });
-        req.setTimeout(8000, () => { req.destroy(); resolve(''); });
-        req.on('error', () => resolve(''));
-    });
-}
-
-/**
- * Parse Telegram HTML into news items.
- * Extracts: text, datetime, media image, message link.
- */
-function parseTelegramHtml(html, handle) {
-    if (!html || html.length < 200) return [];
-    const items = [];
-    const blocks = html.split('<div class="tgme_widget_message_wrap');
-    blocks.shift(); // drop content before first message
-
-    for (const block of blocks) {
-        // Text
-        const textM = block.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
-        // Datetime
-        const timeM = block.match(/<time[^>]*datetime="([^"]*)"/);
-        if (!textM || !timeM) continue;
-
-        const rawText = textM[1]
-            .replace(/<br\s*\/?>/gi, ' ')
-            .replace(/<[^>]+>/g, '')
-            .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
-            .replace(/\s{2,}/g, ' ').trim();
-
-        if (!rawText || rawText.length < 8) continue;
-
-        // Media image (photo)
-        const imgM  = block.match(/style="background-image:url\('([^']+)'\)"/);
-        const imgM2 = block.match(/<img[^>]+src="(https:\/\/cdn[^"]+)"/);
-        const media = imgM?.[1] || imgM2?.[1] || null;
-
-        // Message permalink
-        const linkM = block.match(/href="(https:\/\/t\.me\/[^"]+)"[^>]*class="[^"]*tgme_widget_message_date/);
-        const link  = linkM?.[1] || `https://t.me/s/${handle}`;
-
-        items.push({
-            title:        rawText,
-            source:       'telegram',
-            sourceHandle: handle,
-            sourceName:   handle,
-            pubDate:      new Date(timeM[1]).toISOString(),
-            link,
-            mediaUrl:     media,
-            customAvatar: AVATAR_MAP[handle] || AVATAR_MAP[handle.toLowerCase()] || 'public/logos/default.png',
-        });
-    }
-    return items;
-}
+// Telegram Engine
+const TG_AGENT = new https.Agent({ keepAlive: true, timeout: 10000 });
+const TG_CHANNELS = ['ajanews', 'alhadath_brk'];
 
 async function updateTelegram() {
-    const t0 = Date.now();
-
-    // TRUE parallel: all channels fetched simultaneously, no blocking
-    const results = await Promise.all(
-        TG_CHANNELS.map(async handle => {
-            try {
-                const html  = await fetchTelegramFast(handle);
-                const items = parseTelegramHtml(html, handle);
-                if (items.length) console.log(`  ✅ TG ${handle}: ${items.length} items`);
-                return items;
-            } catch(e) {
-                console.log(`  ❌ TG ${handle}: ${e.message}`);
-                return [];
-            }
-        })
-    );
-
-    const localItems = results.flat();
-    const ms = Date.now() - t0;
-
-    if (localItems.length > 0) {
-        telegramCache = mergeCache(telegramCache, localItems, 120);
-        saveCache();
-        console.log(`⚡ TURBO TELEGRAM: ${localItems.length} items from ${TG_CHANNELS.length} channels in ${ms}ms`);
-    } else {
-        console.log(`⚠️ TG: No items (${ms}ms)`);
-    }
-}
-
-
-
-async function updateTwitter() {
-    console.log('📡 [V10] Twitter Hyper-Resilient Cycle...');
-    let localItems = [];
-
-    // Protocol 1: Hybrid Syndication (Direct + Proxy)
-    // Key members from the list
-    const directHandles = ['AlHadath', 'SkyNewsArabia_B', 'AlArabiya_Brk', 'AsharqNewsBrk', 'AJELNEWS2475'];
-    const proxyHandles = ['alekhbariyaNews', 'alekhbariyaBRK', 'RTonline_ar', 'alrougui', 'ajmubasher', 'modgovksa', 'NewsNow4USA'];
-    
-    // 1a. Fast Direct Fetch (No Proxy) - 100% Reliability for key channels
-    for (const h of directHandles) {
+    const results = await Promise.all(TG_CHANNELS.map(async handle => {
         try {
-            const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${h}`, false);
-            const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
-            if (match) {
-                const data = JSON.parse(match[1]);
-                const tweets = data.props.pageProps.timeline.entries.map(e => {
-                    const t = e.content.tweet;
-                    if (!t) return null;
-                    return {
-                        title: t.full_text,
-                        link: `https://x.com/${h}/status/${t.id_str}`,
-                        pubDate: new Date(t.created_at).toISOString(),
-                        source: 'twitter', sourceHandle: h, sourceName: h,
-                        image: t.entities?.media?.[0]?.media_url_https || null,
-                        customAvatar: AVATAR_MAP[h] || 'public/logos/default.png'
-                    };
-                }).filter(Boolean);
-                if (tweets.length > 0) {
-                    localItems = [...localItems, ...tweets];
-                    console.log(`📡 [V10] P1a (Direct) ${h}: ${tweets.length} items`);
-                }
-            }
-        } catch (e) {}
-    }
-
-    // 1b. Parallel Proxy Fetch (Supporting handles)
-    try {
-        const syncResults = await Promise.all(proxyHandles.map(async h => {
-            try {
-                const html = stealthFetch(`https://syndication.twitter.com/srv/timeline-profile/screen-name/${h}`, true);
-                const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
-                if (!match) return [];
-                const data = JSON.parse(match[1]);
-                return data.props.pageProps.timeline.entries.map(e => {
-                    const t = e.content.tweet;
-                    if (!t) return null;
-                    return {
-                        title: t.full_text,
-                        link: `https://x.com/${h}/status/${t.id_str}`,
-                        pubDate: new Date(t.created_at).toISOString(),
-                        source: 'twitter', sourceHandle: h, sourceName: h,
-                        image: t.entities?.media?.[0]?.media_url_https || null,
-                        customAvatar: AVATAR_MAP[h] || 'public/logos/default.png'
-                    };
-                }).filter(Boolean);
-            } catch (e) { return []; }
-        }));
-        const p1b = syncResults.flat();
-        if (p1b.length > 0) {
-            localItems = [...localItems, ...p1b];
-            console.log(`📡 [V10] P1b (Proxy) found ${p1b.length} items`);
-        }
-    } catch (e) {}
-
-    // Protocol 2: V13 DIY Master Bridge (The "Iron" Layer)
-    try {
-        const bridgeUrl = "https://script.google.com/macros/s/AKfycbwR3buIurRZhlwWM5ieYo8gZZHxoKMxx2tVcegnOIumq0a0aGlkdbnqlsm_saad9550/exec";
-        const responseData = stealthFetch(bridgeUrl, false); 
-        if (responseData) {
-            const data = JSON.parse(responseData);
-            if (data.status === "success" && data.items && data.items.length > 0) {
-                console.log(`📡 [V13] Master Bridge found ${data.items.length} items via ${data.source}`);
-                localItems = [...localItems, ...data.items.map(item => ({
-                    ...item,
-                    customAvatar: AVATAR_MAP[item.sourceHandle] || 'public/logos/default.png'
-                }))];
-            }
-        }
-    } catch(e) {
-        console.log("⚠️ [V13] Master Bridge Fetch Failed:", e.message);
-    }
-
-    // Protocol 3: V12 Recursive Mirror Failover (The "Swarm")
-    if (localItems.length < 10) {
-        console.log("📡 [V12] Low item count. Engaging Swarm Failover...");
-        const swarmMirrors = [
-            `https://rsshub.app/twitter/list/${LIST_ID}`,
-            `https://rsshub.rssforever.com/twitter/list/${LIST_ID}`,
-            `https://rss.owo.nz/twitter/list/${LIST_ID}`,
-            `https://nitter.net/i/lists/${LIST_ID}/rss`,
-            `https://nitter.privacydev.net/i/lists/${LIST_ID}/rss`,
-            `https://nitter.dafrary.com/i/lists/${LIST_ID}/rss`
-        ];
-
-        for (const url of swarmMirrors) {
-            try {
-                const xml = stealthFetch(url, true);
-                if (xml && xml.length > 500 && !xml.includes("Rate limit")) {
-                    const matches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
-                    if (matches.length > 0) {
-                        console.log(`✅ [V12] Swarm Success via ${url.substring(0,30)}... (${matches.length} items)`);
-                        for (const m of matches) {
-                            const c = m[1];
-                            const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
-                            const l = c.match(/<link>([\s\S]*?)<\/link>/);
-                            const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
-                            if (t && l) {
-                                localItems.push({
-                                    title: t[1].replace(/<[^>]+>/g, '').trim(),
-                                    link: l[1].replace('nitter.net', 'x.com'),
-                                    pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
-                                    source: 'twitter', sourceHandle: 'List', sourceName: 'Twitter List',
-                                    customAvatar: 'public/logos/default.png'
-                                });
-                            }
-                        }
-                        break; // Stop swarm if successful
-                    }
-                }
-            } catch (e) {}
-        }
-    }
-
-    if (localItems.length > 0) {
-        // V12: Persistent Cumulative Guard (Max 300 items)
-        twitterCache = mergeCache(twitterCache, localItems, 300);
-        saveCache();
-        console.log(`✅ [V12] Twitter Sync Stable: ${twitterCache.length} items in cache.`);
-    } else {
-        console.log("⚠️ [V12] Full Cycle Failed. Retaining previous cache.");
-    }
-}
-
-// ═══════════════════════════════════════════
-// TWITTER — Active scraper using TwitterAPI.io
-// ═══════════════════════════════════════════
-const TWITTER_API_KEY = 'new1_9a59c3ffc7e04c0bb5032b97c2d06ef5';
-const LIST_ID_TW = '2031445708524421549';
-
-async function fetchTwitterAPI() {
-    try {
-        return await new Promise((resolve, reject) => {
-            const options = {
-                hostname: 'api.twitterapi.io',
-                path: `/twitter/list/tweets_timeline?listId=${LIST_ID_TW}`,
-                method: 'GET',
-                headers: { 'X-API-Key': TWITTER_API_KEY }
-            };
-            const req = https.request(options, res => {
-                let data = '';
-                res.on('data', d => data += d);
-                res.on('end', () => {
-                    try { resolve(JSON.parse(data)); }
-                    catch(e) { reject(e); }
-                });
+            const html = await new Promise(r => {
+                https.get(`https://t.me/s/${handle}`, { agent: TG_AGENT }, res => {
+                    let data = '';
+                    res.on('data', d => data += d);
+                    res.on('end', () => r(data));
+                }).on('error', () => r(''));
             });
-            req.on('error', reject);
-            req.setTimeout(10000, () => req.destroy());
-            req.end();
-        });
-    } catch(e) {
-        console.log('❌ TwitterAPI.io failed:', e.message);
-        return null;
+            if (!html) return [];
+            const items = [];
+            const blocks = html.split('<div class="tgme_widget_message_wrap').slice(1);
+            for (const block of blocks) {
+                const textM = block.match(/<div class="[^"]*tgme_widget_message_text[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+                const timeM = block.match(/<time[^>]*datetime="([^"]*)"/);
+                if (!textM || !timeM) continue;
+                const rawText = textM[1].replace(/<[^>]+>/g, '').trim();
+                const imgM = block.match(/style="background-image:url\('([^']+)'\)"/);
+                items.push({
+                    title: rawText, source: 'telegram', sourceHandle: handle, sourceName: handle,
+                    pubDate: new Date(timeM[1]).toISOString(),
+                    link: (block.match(/href="(https:\/\/t\.me\/[^"]+)"[^>]*class="[^"]*tgme_widget_message_date/) || [])[1] || `https://t.me/s/${handle}`,
+                    mediaUrl: imgM?.[1] || null,
+                    customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
+                });
+            }
+            return items;
+        } catch(e) { return []; }
+    }));
+    const fresh = results.flat();
+    if (fresh.length > 0) {
+        telegramCache = mergeCache(telegramCache, fresh, 150);
+        saveCache();
+        writeNewsJson();
     }
 }
 
+// Twitter Engine
 async function updateTwitterActive() {
-    console.log('📡 [Active] Twitter cycle start (V66.0 — Scrape.do)...');
-    const pythonCmd = '/app/venv/bin/python3.11';
+    console.log('📡 [Active] Twitter cycle start (V66.1)...');
+    const pythonCmd = 'python3'; // Use global python3 after nixpacks restore
     
     exec(`${pythonCmd} scripts/twitter_scraper.py`, (error, stdout, stderr) => {
-        if (stderr) {
-            console.log(`🐍 [Twitter Scraper] Stderr: ${stderr.trim()}`);
-        }
+        if (stderr) console.log(`🐍 [Twitter Scraper] Stderr: ${stderr.trim()}`);
         if (error) {
             console.error(`❌ [Twitter Scraper] Python Error: ${error.message}`);
             return;
@@ -453,130 +161,50 @@ async function updateTwitterActive() {
         try {
             const data = JSON.parse(stdout);
             if (data && data.length > 0) {
-                // Map Python schema to internal proxy schema
                 const normalized = data.map(it => ({
                     title: it.headline_text,
                     mediaUrl: it.media_url,
                     sourceName: it.channel_name,
-                    sourceHandle: it.channel_name.replace(/\s+/g, '').toLowerCase(),
+                    sourceHandle: it.channel_name.toLowerCase(),
                     source: 'twitter',
                     pubDate: it.timestamp,
                     customAvatar: AVATAR_MAP[it.channel_name] || 'public/logos/default.png',
                     link: `https://x.com/search?q=${encodeURIComponent(it.headline_text)}`
                 }));
-
                 twitterCache = mergeCache(twitterCache, normalized, 300);
                 saveCache();
-                writeNewsJson(); // push to public/news.json
+                writeNewsJson();
                 console.log(`✅ [Twitter Scraper] Synced ${data.length} items. Total: ${twitterCache.length}`);
-            } else {
-                console.log('⚠️ [Twitter Scraper] No new items returned.');
             }
-        } catch (e) {
-            console.error('❌ [Twitter Scraper] Failed to parse output:', e.message);
-        }
+        } catch (e) { console.error('❌ [Twitter Scraper] Parse Fail:', e.message); }
     });
 }
 
-// Write combined cache to public/news.json for frontend consumption
-function writeNewsJson() {
-    try {
-        const combined = [...telegramCache, ...twitterCache]
-            .sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate))
-            .slice(0, 200);
-        const jsonPath = path.join(__dirname, 'public', 'news.json');
-        fs.writeFileSync(jsonPath, JSON.stringify(combined, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items`);
-    } catch(e) { console.log('❌ news.json write error:', e.message); }
-}
-
-async function startScrapers() {
-    
-    // Immediate first run
-    await updateTelegram();
-    writeNewsJson();
-    await updateTwitterActive();
-
-    // Telegram every 5 seconds (turbo async fetch is fast enough)
-    setInterval(async () => {
-        await updateTelegram();
-        writeNewsJson();
-    }, 5000);
-
-    // Twitter every 60 seconds (V66.0 Zero-Lag)
-    setInterval(async () => {
-        await updateTwitterActive();
-    }, 60000); 
-}
-
-app.get('/api/news/telegram', (req, res) => res.json({ items: telegramCache }));
-app.get('/api/news/twitter', (req, res) => res.json({ items: twitterCache }));
+// Endpoints
 app.get('/api/news-v4-list', (req, res) => {
-    // Zero-Lag: Serve directly from RAM cache
     const combined = [...telegramCache, ...twitterCache].sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
     res.json({ items: combined });
 });
-
-// ═══════════════════════════════════════════════
-// V17 SENTINEL SYNC (LOCAL-TO-CLOUD)
-// ═══════════════════════════════════════════════
-app.use(express.json({ limit: '5mb' }));
-
-// SENTINEL_TOKEN already defined at line 14
-
-app.post('/api/v17/sync-push', (req, res) => {
-    const { token, telegram, twitter } = req.body;
-
-    if (token !== SENTINEL_TOKEN) {
-        return res.status(403).json({ error: "Unauthorized" });
-    }
-
-    if (telegram) {
-        telegramCache = mergeCache(telegramCache, telegram, 150);
-        console.log(`📡 [Sentinel] Injected ${telegram.length} Telegram items.`);
-    }
-
-    if (twitter) {
-        twitterCache = mergeCache(twitterCache, twitter, 300);
-        console.log(`📡 [Sentinel] Injected ${twitter.length} Twitter items.`);
-    }
-
-    saveCache();
-    res.json({ status: "success", syncedAt: new Date().toISOString() });
-});
-
-// ═══════════════════════════════════════════
 app.get('/api/debug/env', (req, res) => {
-    const { exec } = require('child_process');
-    exec('env && which python && which python3 && which pip && which pip3', (error, stdout, stderr) => {
-        res.json({
-            timestamp: new Date().toISOString(),
-            stdout: stdout,
-            stderr: stderr,
-            error: error ? error.message : null
-        });
+    exec('env && which python3 && python3 --version', (error, stdout, stderr) => {
+        res.json({ timestamp: new Date().toISOString(), stdout, stderr });
     });
 });
-
 app.get('/api/debug/twitter', (req, res) => {
-    console.log('🔍 [Debug] Manually triggering Twitter Scraper...');
-    const pythonCmd = '/app/venv/bin/python3.11';
-    exec(`${pythonCmd} scripts/twitter_scraper.py`, (error, stdout, stderr) => {
-        res.header("Content-Type", "application/json");
-        res.send({
-            timestamp: new Date().toISOString(),
-            python_error: error ? error.message : null,
-            python_stdout: stdout,
-            python_stderr: stderr
-        });
+    console.log('🔍 [Debug] Triggering Twitter Scraper...');
+    exec(`python3 scripts/twitter_scraper.py`, (error, stdout, stderr) => {
+        res.json({ timestamp: new Date().toISOString(), python_error: error?.message, stdout, stderr });
     });
 });
-
 app.get('/ping', (req, res) => res.send('pong'));
-app.get('/health', (req, res) => res.json({ status: "ok", mode: "sentinel-sync" }));
 
 // Boot
-startScrapers().catch(console.error);
-setInterval(refreshProxyPool, 600000);
+async function startScrapers() {
+    await updateTelegram();
+    updateTwitterActive(); 
+    setInterval(updateTelegram, 7000);
+    setInterval(updateTwitterActive, 60000);
+}
 
-app.listen(PORT, () => console.log(`🚀 V66.0 ENGINE LIVE - Zero-Lag News Active`));
+startScrapers().catch(console.error);
+app.listen(PORT, () => console.log(`🚀 V66.1 ENGINE LIVE — Zero-Lag Pulse Engine`));

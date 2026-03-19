@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   V66.6 ENGINE (VERIFIED SWARM)
+   V66.7 ENGINE (DEEP DIAGNOSTIC)
    ═══════════════════════════════════════════════ */
 
 const express = require('express');
@@ -20,7 +20,7 @@ let telegramCache = [];
 let twitterCache  = [];
 
 // ═══════════════════════════════════════════════
-// NEW: TG_CHANNELS for avatar recovery
+// TG_CHANNELS for avatar recovery
 // ═══════════════════════════════════════════════
 const TG_CHANNELS = {
     "ajanews": { name: "الجزيرة", avatar: "AJ.png" },
@@ -47,7 +47,7 @@ app.use((req, res, next) => {
 app.get('/api/debug/env', (req, res) => {
     try {
         res.json({
-            version: "V66.6",
+            version: "V66.7",
             time: new Date().toISOString(),
             python: execSync('python3 --version').toString().trim(),
             pip: execSync('pip3 --version').toString().trim()
@@ -86,7 +86,7 @@ function runScraper() {
 }
 
 async function updateTwitter() {
-    console.log(`📡 [Active] Twitter cycle start (V66.6)...`);
+    console.log(`📡 [Active] Twitter cycle start (V66.7)...`);
     const { stdout, stderr } = await runScraper();
     
     if (stderr) console.error(`🐍 [Twitter Scraper] Stderr: ${stderr}`);
@@ -99,7 +99,7 @@ async function updateTwitter() {
                 pubDate: item.timestamp || new Date().toISOString(),
                 source: "Twitter"
             }));
-            console.log(`✅ [Twitter] Synced ${twitterCache.length} items (V66.6)`);
+            console.log(`✅ [Twitter] Synced ${twitterCache.length} items (V66.7)`);
             writeNewsJson();
         } else {
             console.warn(`⚠️ [Twitter] Scrape returned zero items or failed.`);
@@ -110,15 +110,14 @@ async function updateTwitter() {
 }
 
 async function updateTelegram() {
-    // Note: Telegram fetching logic is assumed to be handled elsewhere or by a separate task
     console.log(`📡 [Active] Telegram cycle start...`);
 }
 
 function writeNewsJson() {
     try {
-        // PERSISTENCE GUARD: Don't wipe the file if scrapers both failed
+        // PERSISTENCE GUARD
         if (telegramCache.length === 0 && twitterCache.length === 0) {
-            console.warn("🛡️ [Guard] Both caches empty. Skipping news.json update to prevent UI wipe.");
+            console.warn("🛡️ [Guard] Both caches empty. Skipping news.json update.");
             return;
         }
 
@@ -128,7 +127,7 @@ function writeNewsJson() {
 
         const targetPath = path.join(__dirname, 'public', 'news.json');
         fs.writeFileSync(targetPath, JSON.stringify(combined, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V66.6)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V66.7)`);
     } catch (err) {
         console.error(`❌ [FileIO] Write failed: ${err.message}`);
     }
@@ -139,14 +138,11 @@ function writeNewsJson() {
 // ═══════════════════════════════════════════════
 
 async function startScrapers() {
-    // Initial runs
     await updateTwitter();
-    
-    // Intervals
     setInterval(updateTwitter, 120000); // 2 mins
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 V66.6 ENGINE LIVE — Verified Swarm Logic`);
+    console.log(`🚀 V66.7 ENGINE LIVE — Deep Diagnostic Swarm`);
     startScrapers();
 });

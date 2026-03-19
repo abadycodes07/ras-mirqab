@@ -89,7 +89,33 @@
 
     /* ─ Globe Controls ─ */
     function bindGlobeControls() {
-        // 2D/3D: globe.js handles via .dimension-toggle + data-dim
+        // 2D/3D: toggle globe-container vs map-container directly
+        document.querySelectorAll('.dim-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const is2D = btn.dataset.dim === '2d';
+                document.querySelectorAll('.dim-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const gc = document.getElementById('globe-container');
+                const mc = document.getElementById('map-container');
+                if (is2D) {
+                    if (gc) gc.style.display = 'none';
+                    if (mc) { mc.style.display = 'block'; mc.classList.remove('hidden'); }
+                    // Initialize Leaflet map if not done yet
+                    if (!window._leafletMap && window.L) {
+                        window._leafletMap = L.map('map-container', { zoomControl: true })
+                            .setView([24, 45], 4);
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                            attribution: '© CARTO', maxZoom: 18
+                        }).addTo(window._leafletMap);
+                    } else if (window._leafletMap) {
+                        window._leafletMap.invalidateSize();
+                    }
+                } else {
+                    if (gc) gc.style.display = '';
+                    if (mc) mc.style.display = 'none';
+                }
+            });
+        });
         document.getElementById('pill-hidemap')?.addEventListener('click', () => {
             document.body.classList.add('map-hidden');
         });

@@ -53,13 +53,13 @@ body {
 
 /* Show-map button — inside header, under logo */
 .show-map-hdr {
-    display: none; align-items: center; gap: 5px;
-    padding: 4px 12px; border-radius: 0 0 12px 12px;
-    font-size: 11px; font-weight: 700; color: var(--orange);
+    display: none; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 0 0 10px 10px;
+    font-size: 10px; font-weight: 700; color: var(--orange);
     border: 1px solid var(--orange); border-top: none;
     background: rgba(255,112,26,.12); backdrop-filter: var(--blur);
-    box-shadow: 0 4px 18px rgba(255,112,26,.35), 0 0 12px rgba(255,112,26,.2);
-    cursor: pointer; white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(255,112,26,.3), 0 0 10px rgba(255,112,26,.15);
+    cursor: pointer; white-space: nowrap; max-width: 130px;
 }
 body.map-hidden .show-map-hdr { display: flex; }
 

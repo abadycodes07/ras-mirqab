@@ -4,6 +4,8 @@
 
 const express = require('express');
 const { execSync } = require('child_process');
+const https   = require('https');
+const http    = require('http');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -130,8 +132,6 @@ function mergeCache(existing, fresh, limit = 120) {
 // zero child process overhead, keep-alive pool,
 // all channels fetched truly in parallel.
 // ═══════════════════════════════════════════
-const https = require('https');
-const http  = require('http');
 
 // Connection pool: keep-alive agent reuses TCP connections to t.me
 const TG_AGENT = new https.Agent({
@@ -425,7 +425,6 @@ const LIST_ID_TW = '2031445708524421549';
 
 async function fetchTwitterAPI() {
     try {
-        const https = require('https');
         return await new Promise((resolve, reject) => {
             const options = {
                 hostname: 'api.twitterapi.io',

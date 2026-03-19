@@ -10,13 +10,12 @@ from datetime import datetime
 # V58.0: Robust 2-Layer "GraphQL + Apify" Scraper
 # Targeted List: https://x.com/i/lists/2031445708524421549
 TWITTER_LIST_ID = int(os.getenv("TWITTER_LIST_ID", "2031445708524421549"))
-# Nitter instances for fallback (rotating for reliability)
+# Nitter instances for fallback (prioritizing RSS-enabled ones)
 NITTER_INSTANCES = [
-    "https://nitter.tiekoetter.com",
-    "https://nitter.it",
+    "https://nitter.perennialte.ch",
     "https://nitter.cz",
-    "https://nitter.net",
-    "https://nitter.no-logs.com"
+    "https://nitter.it",
+    "https://nitter.net"
 ]
 
 async def layer1_twscrape():
@@ -67,71 +66,70 @@ async def layer1_twscrape():
         return None
 
 def layer2_nitter():
-    """Layer 2: Nitter Mirror Scraper (Free & Public Fallback)"""
-    print("DEBUG: Initiating Layer 2 (Nitter Mirror Fallback)...", file=sys.stderr)
+    """Layer 2: Nitter RSS Scraper (The most robust free fallback)"""
+    print("DEBUG: Initiating Layer 2 (Nitter RSS Fallback)...", file=sys.stderr)
     
     for instance in NITTER_INSTANCES:
         try:
-            url = f"{instance}/i/lists/{TWITTER_LIST_ID}"
-            print(f"DEBUG: Trying Nitter instance: {instance}...", file=sys.stderr)
+            # We use the /rss endpoint which is more stable than HTML
+            url = f"{instance}/i/lists/{TWITTER_LIST_ID}/rss"
+            print(f"DEBUG: Trying Nitter RSS: {url}...", file=sys.stderr)
             
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
             response = httpx.get(url, headers=headers, timeout=15, follow_redirects=True)
             
             if response.status_code != 200:
-                print(f"DEBUG: Instance {instance} returned status {response.status_code}", file=sys.stderr)
+                print(f"DEBUG: RSS Instance {instance} returned status {response.status_code}", file=sys.stderr)
+                continue
+            
+            if "RSS feed is disabled" in response.text:
+                print(f"DEBUG: RSS disabled on {instance}", file=sys.stderr)
                 continue
                 
-            soup = BeautifulSoup(response.text, 'html.parser')
-            items = soup.find_all('div', class_='timeline-item')
+            soup = BeautifulSoup(response.text, 'xml')
+            items = soup.find_all('item')
             
             if not items:
-                print(f"DEBUG: No tweets found on {instance}", file=sys.stderr)
+                print(f"DEBUG: No RSS items found on {instance}", file=sys.stderr)
                 continue
                 
             results = []
             for item in items[:20]:
                 try:
-                    # Skip if it's not a tweet
-                    if 'tweet-body' not in str(item): continue
+                    title = item.find('title').get_text().strip() if item.find('title') else ""
+                    # Nitter titles often include the full tweet text
                     
-                    text_div = item.find('div', class_='tweet-content')
-                    text = text_div.get_text().replace("\n", " ").strip() if text_div else ""
+                    creator = item.find('dc:creator')
+                    user = creator.get_text().strip() if creator else "News Channel"
                     
-                    # Basic text validation: ignore empty or system messages
-                    if not text: continue
-                    
-                    user_div = item.find('a', class_='fullname')
-                    user = user_div.get_text().strip() if user_div else "News Channel"
-                    
-                    # Extract media if present
+                    # Extract media from description if present
                     media_url = None
-                    attachment_div = item.find('div', class_='attachments')
-                    if attachment_div:
-                        img = attachment_div.find('img')
-                        if img: media_url = instance + img['src'] if img['src'].startswith('/') else img['src']
+                    desc = item.find('description')
+                    if desc:
+                        desc_soup = BeautifulSoup(desc.get_text(), 'html.parser')
+                        img = desc_soup.find('img')
+                        if img: 
+                            src = img['src']
+                            media_url = instance + src if src.startswith('/') else src
                     
-                    time_span = item.find('span', class_='tweet-date')
-                    timestamp = datetime.now().isoformat() # Fallback
-                    if time_span and time_span.find('a'):
-                        timestamp = time_span.find('a')['title']
+                    pub_date = item.find('pubDate').get_text() if item.find('pubDate') else datetime.now().isoformat()
                     
                     results.append({
-                        "headline_text": text,
+                        "headline_text": title,
                         "media_url": media_url,
                         "channel_name": user,
-                        "source_platform": "nitter",
-                        "timestamp": timestamp
+                        "source_platform": "nitter_rss",
+                        "timestamp": pub_date
                     })
-                except Exception as inner_e:
+                except Exception:
                     continue
             
             if results:
-                print(f"DEBUG: Layer 2 found {len(results)} tweets via {instance}.", file=sys.stderr)
+                print(f"DEBUG: Layer 2 found {len(results)} tweets via RSS {instance}.", file=sys.stderr)
                 return results
                 
         except Exception as e:
-            print(f"DEBUG: Error with Nitter instance {instance}: {e}", file=sys.stderr)
+            print(f"DEBUG: Error with Nitter RSS {instance}: {e}", file=sys.stderr)
             continue
             
     return []

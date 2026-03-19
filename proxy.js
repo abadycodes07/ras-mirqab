@@ -439,7 +439,7 @@ async function fetchTwitterAPI() {
 }
 
 async function updateTwitterActive() {
-    console.log('📡 [Active] Twitter cycle start (V61.0 — 4-Layer Python)...');
+    console.log('📡 [Active] Twitter cycle start (V61.2 — 4-Layer Python)...');
     const pythonCmd = '/app/venv/bin/python3.11';
     
     exec(`${pythonCmd} scripts/twitter_scraper.py`, (error, stdout, stderr) => {
@@ -491,7 +491,7 @@ function writeNewsJson() {
 }
 
 async function startScrapers() {
-    console.log("🚀 [V61.0] ACTIVE SCRAPING MODE: Telegram 5s + Twitter 5m");
+    console.log("🚀 [V61.2] ACTIVE SCRAPING MODE: Telegram 5s + Twitter 5m");
     
     // Immediate first run
     await updateTelegram();
@@ -507,7 +507,7 @@ async function startScrapers() {
     // Twitter every 60 seconds
     setInterval(async () => {
         await updateTwitterActive();
-    }, 300000); // 5 minutes (V61.0)
+    }, 300000); // 5 minutes (V61.2)
 }
 
 app.get('/api/news/telegram', (req, res) => res.json({ items: telegramCache }));

@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["python311", "nodejs_20", "gcc", "stdenv.cc.cc.lib"]
+nixPkgs = ["python311", "nodejs_20", "gcc", "stdenv.cc.cc.lib", "libz", "openssl"]
 
 [phases.install]
 cmds = [
@@ -11,7 +11,7 @@ cmds = [
 ]
 
 [env]
-LD_LIBRARY_PATH = "/usr/lib:/usr/local/lib:/nix/var/nix/profiles/default/lib:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH = "/usr/lib:/usr/local/lib:/nix/var/nix/profiles/default/lib:/run/current-system/sw/lib:$LD_LIBRARY_PATH"
 
 [start]
 cmd = "node proxy.js"

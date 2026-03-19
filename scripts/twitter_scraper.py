@@ -7,7 +7,7 @@ import httpx
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-# V61.0: Universal 4-Layer "Stealth + Professional" Scraper
+# V61.2: Universal 4-Layer Stealth Scraper (Fixed Libs)
 # Targeted List: https://x.com/i/lists/2031445708524421549
 TWITTER_LIST_ID = int(os.getenv("TWITTER_LIST_ID", "2031445708524421549"))
 SOCIALDATA_API_KEY = os.getenv("SOCIALDATA_API_KEY")
@@ -251,13 +251,15 @@ async def layer4_socialdata():
 
 async def fetch_breaking_news():
     # Attempt Layer 1: SocialData.tools (Professional - Prioritized if Key exists)
-    print("DEBUG: [V61.1] Starting 4-Layer Stealth Scraper...", file=sys.stderr)
+    print("DEBUG: [V61.2] Starting 4-Layer Stealth Scraper...", file=sys.stderr)
     data = []
     
     if SOCIALDATA_API_KEY:
         print("DEBUG: Prioritizing Layer 4 (SocialData API)...", file=sys.stderr)
         data = await layer4_socialdata()
         if data: return data
+    else:
+        print("⚠️ WARNING: SOCIALDATA_API_KEY missing from environment. Skipping professional layer.", file=sys.stderr)
 
     # Fallback to Layer 1: twscrape (Old Layer 1)
     print("DEBUG: Falling back to Layer 1 (X/twscrape)...", file=sys.stderr)

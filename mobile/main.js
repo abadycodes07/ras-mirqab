@@ -306,17 +306,58 @@
         document.getElementById('tv-right')?.addEventListener('click', () =>
             carousel.scrollBy({ left:150, behavior:'smooth' }));
 
-        // Al Jazeera auto-plays on first user interaction
-        const startAJ = () => {
-            playTV(CFG.channels[0].id, false);
-            document.removeEventListener('touchstart', startAJ);
-            document.removeEventListener('click', startAJ);
+        // ─ Safari-compatible autoplay ─
+        // Safari blocks unmuted autoplay. Strategy:
+        // 1. When TV section scrolls into view → play Al Jazeera MUTED
+        // 2. Show a tap-to-unmute badge on the card
+        // 3. On first user touch anywhere → unmute via postMessage
+        let ajStarted = false;
+        const tvSection = document.querySelector('.tv-section');
+        const autoplayObs = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !ajStarted) {
+                    ajStarted = true;
+                    autoplayObs.disconnect();
+                    playTV(CFG.channels[0].id, true); // muted first
+                    showUnmuteHint(CFG.channels[0].id);
+                }
+            });
+        }, { threshold: 0.3 });
+        if (tvSection) autoplayObs.observe(tvSection);
+
+        // Fallback: also play on first user interaction (covers page-load on non-Safari)
+        const onFirstTouch = () => {
+            if (!ajStarted) { ajStarted = true; playTV(CFG.channels[0].id, false); }
+            document.removeEventListener('touchstart', onFirstTouch);
+            document.removeEventListener('click', onFirstTouch);
         };
-        document.addEventListener('touchstart', startAJ, { once:true, passive:true });
-        document.addEventListener('click', startAJ, { once:true });
-        // Also try after a delay (some browsers allow unmuted autoplay)
-        setTimeout(() => playTV(CFG.channels[0].id, true), 2000);
+        document.addEventListener('touchstart', onFirstTouch, { once:true, passive:true });
+        document.addEventListener('click', onFirstTouch, { once:true });
     }
+
+    function showUnmuteHint(id) {
+        const card = document.getElementById('tv-' + id);
+        if (!card) return;
+        const hint = document.createElement('div');
+        hint.className = 'unmute-hint';
+        hint.innerHTML = '<i class="fas fa-volume-xmark"></i> اضغط للصوت';
+        hint.id = 'unmute-hint';
+        card.appendChild(hint);
+        // First real user tap → unmute the iframe via src swap
+        const unmute = () => {
+            const h = document.getElementById('unmute-hint');
+            if (h) h.remove();
+            const player = document.getElementById('player-' + id);
+            if (player) {
+                const ifrm = player.querySelector('iframe');
+                if (ifrm) ifrm.src = ifrm.src.replace('mute=1', 'mute=0');
+            }
+            document.removeEventListener('touchstart', unmute);
+            document.removeEventListener('click', unmute);
+        };
+        document.addEventListener('touchstart', unmute, { once:true, passive:true });
+        document.addEventListener('click', unmute, { once:true });
+    } // end showUnmuteHint
 
     function playTV(id, muted=false) {
         // Stop previously playing channel

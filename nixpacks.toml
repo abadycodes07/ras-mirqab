@@ -6,6 +6,7 @@ cmds = [
     "npm install",
     "python3.11 -m venv /app/venv",
     "/app/venv/bin/pip install -r requirements.txt",
+    "/app/venv/bin/playwright install chromium --with-deps",
     "npx playwright install chromium --with-deps"
 ]
 

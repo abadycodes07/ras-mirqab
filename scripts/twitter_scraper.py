@@ -5,6 +5,7 @@ import os
 from twscrape import API, AccountsPool, gather
 import httpx
 from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright
 from datetime import datetime
 
 # V58.0: Robust 2-Layer "GraphQL + Apify" Scraper
@@ -134,14 +135,87 @@ def layer2_nitter():
             
     return []
 
+async def layer3_playwright_nitter():
+    """Layer 3: Browser-based scraping (The "Nuclear" Fallback)"""
+    print("DEBUG: Initiating Layer 3 (Playwright Browser Fallback)...", file=sys.stderr)
+    
+    # Instance that worked for the subagent's browser
+    instance = "https://nitter.tiekoetter.com"
+    url = f"{instance}/i/lists/{TWITTER_LIST_ID}"
+    
+    try:
+        async with async_playwright() as p:
+            print(f"DEBUG: Launching headless browser for {url}...", file=sys.stderr)
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context(
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
+            page = await context.new_page()
+            
+            # Go to the list page
+            await page.goto(url, timeout=30000, wait_until="networkidle")
+            
+            # Wait for tweets to appear
+            await page.wait_for_selector(".timeline-item", timeout=10000)
+            
+            # Extract items
+            items = await page.query_selector_all(".timeline-item")
+            print(f"DEBUG: Playwright found {len(items)} items on page.", file=sys.stderr)
+            
+            results = []
+            for item in items[:20]:
+                try:
+                    # Check if it's a real tweet (has body)
+                    body_exists = await item.query_selector(".tweet-body")
+                    if not body_exists: continue
+                    
+                    text_el = await item.query_selector(".tweet-content")
+                    text = (await text_el.inner_text()).replace("\n", " ").strip() if text_el else ""
+                    if not text: continue
+                    
+                    user_el = await item.query_selector(".fullname")
+                    user = (await user_el.inner_text()).strip() if user_el else "News Channel"
+                    
+                    timestamp_el = await item.query_selector(".tweet-date a")
+                    timestamp = await timestamp_el.get_attribute("title") if timestamp_el else datetime.now().isoformat()
+                    
+                    media_url = None
+                    img_el = await item.query_selector(".attachments img")
+                    if img_el:
+                        src = await img_el.get_attribute("src")
+                        media_url = instance + src if src.startswith("/") else src
+                    
+                    results.append({
+                        "headline_text": text,
+                        "media_url": media_url,
+                        "channel_name": user,
+                        "source_platform": "nitter_browser",
+                        "timestamp": timestamp
+                    })
+                except Exception:
+                    continue
+            
+            await browser.close()
+            return results
+            
+    except Exception as e:
+        print(f"DEBUG: Layer 3 (Playwright) failed: {e}", file=sys.stderr)
+        return []
+
 async def fetch_breaking_news():
-    # Attempt Layer 1
+    # Attempt Layer 1 (X/Twitter official GraphQL)
+    print("DEBUG: Attempting Layer 1 (X/twscrape)...", file=sys.stderr)
     data = await layer1_twscrape()
     
-    # Fallback to Layer 2 if Layer 1 failed (None) or returned no items ([])
-    if not data or len(data) == 0:
-        print("DEBUG: Layer 1 returned no data. Falling back to Layer 2.", file=sys.stderr)
+    # Fallback to Layer 2 (Nitter RSS)
+    if not data:
+        print("DEBUG: Layer 1 failed. Falling back to Layer 2 (Nitter RSS).", file=sys.stderr)
         data = layer2_nitter()
+        
+    # Fallback to Layer 3 (Playwright Nitter Browser)
+    if not data:
+        print("DEBUG: Layer 2 failed. Falling back to Layer 3 (Playwright Browser).", file=sys.stderr)
+        data = await layer3_playwright_nitter()
         
     return data
 

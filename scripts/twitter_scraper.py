@@ -63,23 +63,30 @@ async def fetch_via_scrapedo():
                     # Construct Avatar URL (Nitter convention)
                     avatar_url = f"{NITTER_BASE}/{handle}/avatar"
                     
-                    # Extract media from description
+                    # Extract media from description - V65.0 improved media extraction
                     media_url = None
                     desc = item.find('description')
                     if desc:
                         desc_soup = BeautifulSoup(desc.get_text(), 'html.parser')
-                        # Prioritize images
+                        
+                        # Prioritize images directly linked
                         img = desc_soup.find('img')
-                        if img: 
+                        if img and img.get('src'):
                             src = img['src']
                             media_url = NITTER_BASE + src if src.startswith('/') else src
                         else:
-                            # Fallback to video/GIF links if no image is found
-                            # Nitter often wraps media in <a> tags with specific classes or href patterns
-                            video_link = desc_soup.find('a', href=lambda href: href and ('/pic/video' in href or '/pic/tweet_video' in href))
-                            if video_link:
+                            # Look for video/GIF links, often wrapped in <a> tags
+                            # Nitter's HTML structure can vary, so check common patterns
+                            video_link = desc_soup.find('a', href=lambda href: href and ('/pic/video' in href or '/pic/tweet_video' in href or '/pic/media' in href))
+                            if video_link and video_link.get('href'):
                                 src = video_link['href']
                                 media_url = NITTER_BASE + src if src.startswith('/') else src
+                            else:
+                                # Fallback: sometimes media is in a <p> tag with an <a> inside
+                                media_a_tag = desc_soup.find('p', class_='tweet-text').find('a', href=lambda href: href and '/pic/' in href) if desc_soup.find('p', class_='tweet-text') else None
+                                if media_a_tag and media_a_tag.get('href'):
+                                    src = media_a_tag['href']
+                                    media_url = NITTER_BASE + src if src.startswith('/') else src
                     
                     pub_date = item.find('pubDate').get_text() if item.find('pubDate') else datetime.now().isoformat()
                     

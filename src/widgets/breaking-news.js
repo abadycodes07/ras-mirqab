@@ -358,41 +358,6 @@ var BreakingNewsWidget = (function () {
         // V57.9: 3-LAYER TWITTER PIPELINE
         // ═══════════════════════════════════════════════════════════
         
-        async function tryLayer1() {
-            try {
-                const res = await fetch(RSS_APP_FEED);
-                const data = await res.json();
-                if (data && data.items) {
-                    return data.items.map(it => ({
-                        headline_text: it.title,
-                        media_url: it.image || null,
-                        channel_name: it.author?.name || 'RSS Feed',
-                        source_platform: 'rss',
-                        timestamp: it.date_published || new Date().toISOString()
-                    }));
-                }
-            } catch(e) { console.warn('Layer 1 (RSS.app) failed'); }
-            return null;
-        }
-
-        async function tryLayer2() {
-            try {
-                const res = await fetch(`https://api.twitterapi.io/twitter/list/tweets_timeline?listId=${TWITTER_LIST_ID}`, {
-                    headers: { 'X-API-Key': TWITTER_API_KEY }
-                });
-                const data = await res.json();
-                if (data && data.tweets) {
-                    return data.tweets.map(tw => ({
-                        headline_text: (tw.text || tw.full_text || '').replace(/https?:\/\/\S+/g, '').trim(),
-                        media_url: tw.extended_entities?.media?.[0]?.media_url_https || tw.entities?.media?.[0]?.media_url_https || null,
-                        channel_name: tw.author?.userName || 'Twitter',
-                        source_platform: 'twitter',
-                        timestamp: tw.created_at || tw.createdAt
-                    }));
-                }
-            } catch(e) { console.warn('Layer 2 (TwitterAPI.io) failed'); }
-            return null;
-        }
 
         async function tryLayer3() {
             try {
@@ -404,9 +369,7 @@ var BreakingNewsWidget = (function () {
         }
 
         // Execute Chain
-        let twitterItems = await tryLayer1();
-        if (!twitterItems) twitterItems = await tryLayer2();
-        if (!twitterItems) twitterItems = await tryLayer3();
+        let twitterItems = await tryLayer3();
 
         if (twitterItems) fetchResults = fetchResults.concat(twitterItems);
 

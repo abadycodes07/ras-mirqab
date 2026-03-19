@@ -491,7 +491,6 @@ function writeNewsJson() {
 }
 
 async function startScrapers() {
-    console.log("🚀 [V63.0] ACTIVE SCRAPING MODE: Telegram 5s + Twitter 2m (Scrape.do)");
     
     // Immediate first run
     await updateTelegram();

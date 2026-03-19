@@ -30,24 +30,24 @@ const BROWSER_FINGERPRINTS = [
 ];
 
 const AVATAR_MAP = {
-    'AsharqNewsBrk': 'public/logos/asharq2.jpg',
-    'AlHadath': 'public/logos/hadath.png',
-    'AlArabiya_Brk': 'public/logos/alarabiya.png',
-    'SkyNewsArabia_B': 'public/logos/skynews.png',
+    'AsharqNewsBrk': 'public/logos/asharqnewsbrk.jpg',
+    'AlHadath': 'public/logos/alhadath.jpg',
+    'AlArabiya_Brk': 'public/logos/alarabiya_brk.jpg',
+    'SkyNewsArabia_B': 'public/logos/skynewsarabia_b.jpg',
     'RT_Arabic': 'public/logos/rt.png',
     'RTonline_ar': 'public/logos/rt.png',
     'alrougui': 'public/logos/alrougui.jpg',
-    'ajmubasher': 'public/logos/ajmubasher.png',
+    'ajmubasher': 'public/logos/ajmubasher.jpg',
     'alekhbariyaNews': 'public/logos/alekhbariyanews.jpg',
     'alekhbariyaBRK': 'public/logos/alekhbariyabrk.jpg',
-    'modgovksa': 'public/logos/modgovksa2.png',
-    'NewsNow4USA': 'public/logos/newsnow.jpg',
-    'AJELNEWS2475': 'public/logos/ajelnews.jpg',
-    'ajanews': 'public/logos/aljazeera.png',
-    'alhadath_brk': 'public/logos/hadath.png',
-    'AlArabiya': 'public/logos/arabiya.png',
-    'asharqnewsbrk': 'public/logos/asharq.png',
-    'alekhbariyanews': 'public/logos/ekhbariya.png',
+    'modgovksa': 'public/logos/modgovksa.jpg',
+    'NewsNow4USA': 'public/logos/newsnow4usa.jpg',
+    'AJELNEWS2475': 'public/logos/ajelnews2475.jpg',
+    'ajanews': 'public/logos/ajanews_new.png',
+    'alhadath_brk': 'public/logos/alhadath.jpg',
+    'AlArabiya': 'public/logos/alarabiya.png',
+    'asharqnewsbrk': 'public/logos/asharqnewsbrk.jpg',
+    'alekhbariyanews': 'public/logos/alekhbariyanews.jpg',
     'rt_arabic': 'public/logos/rt.png'
 };
 
@@ -491,7 +491,7 @@ function writeNewsJson() {
 }
 
 async function startScrapers() {
-    console.log("🚀 [V62.0] ACTIVE SCRAPING MODE: Telegram 5s + Twitter 2m (Scrape.do)");
+    console.log("🚀 [V63.0] ACTIVE SCRAPING MODE: Telegram 5s + Twitter 2m (Scrape.do)");
     
     // Immediate first run
     await updateTelegram();

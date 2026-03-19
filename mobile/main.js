@@ -20,20 +20,20 @@
     const state = { activeChannelId: null, pipChannel: null, isPip: false };
 
     const LOGO_MAP = {
-        'ajanews': 'ajanews_new.png', 'alhadath_brk': 'hadath.png', 'alhadath': 'hadath.png',
-        'alarabiya_brk': 'alarabiya.png', 'alarabiya': 'alarabiya.png', 'asharqnewsbrk': 'asharq2.jpg',
+        'ajanews': 'ajanews_new.png', 'alhadath_brk': 'alhadath.jpg', 'alhadath': 'alhadath.jpg',
+        'alarabiya_brk': 'alarabiya_brk.jpg', 'alarabiya': 'alarabiya.png', 'asharqnewsbrk': 'asharqnewsbrk.jpg',
         'alekhbariyanews': 'alekhbariyanews.jpg', 'alekhbariyabrk': 'alekhbariyabrk.jpg',
         'rt_arabic': 'rt.png', 'rtonline_ar': 'rt.png', 'sabq_news': 'kbsalsaud.png',
-        'ajelnews24': 'ajelnews.jpg', 'skynewsarabia_breaking': 'skynews.png', 'skynews_ar': 'skynews.png',
+        'ajelnews24': 'ajelnews.jpg', 'skynewsarabia_breaking': 'skynewsarabia_b.jpg', 'skynews_ar': 'skynewsarabia_b.jpg',
         'aljazeera': 'aljazeera.png', 'rss-app': 'aljazeera.png',
-        'alhadath': 'hadath.png', 'alhurra': 'alhurra.png', 'modgovksa': 'modgovksa2.png',
-        'alhadasharq': 'asharq2.jpg', 'alHadath': 'hadath.png',
+        'alhadath': 'alhadath.jpg', 'alhurra': 'alhurra.png', 'modgovksa': 'modgovksa.jpg',
+        'alhadasharq': 'asharqnewsbrk.jpg', 'alHadath': 'alhadath.jpg',
         // Twitter handles from AVATAR_MAP
-        'asharqnewsbrk': 'asharq2.jpg', 'alhadath_x': 'hadath.png',
-        'AlArabiya_Brk': 'alarabiya.png', 'SkyNewsArabia_B': 'skynews.png',
-        'RT_Arabic': 'rt.png', 'alrougui': 'alrougui.jpg', 'ajmubasher': 'ajmubasher.png',
+        'asharqnewsbrk': 'asharqnewsbrk.jpg', 'alhadath_x': 'alhadath.jpg',
+        'AlArabiya_Brk': 'alarabiya_brk.jpg', 'SkyNewsArabia_B': 'skynewsarabia_b.jpg',
+        'RT_Arabic': 'rt.png', 'alrougui': 'alrougui.jpg', 'ajmubasher': 'ajmubasher.jpg',
         'alekhbariyaews': 'alekhbariyanews.jpg', 'alekhbariyaBRK': 'alekhbariyabrk.jpg',
-        'modgovksa': 'modgovksa2.png', 'newsnow4usa': 'newsnow.jpg', 'AJELNEWS2475': 'ajelnews.jpg',
+        'modgovksa': 'modgovksa.jpg', 'newsnow4usa': 'newsnow4usa.jpg', 'AJELNEWS2475': 'ajelnews2475.jpg',
     };
 
     function logoSrc(handle) {
@@ -140,9 +140,9 @@
         if (!data?.categories) { list.innerHTML='<div style="padding:14px;color:#666;font-size:12px;">لا توجد طبقات</div>'; return; }
         list.innerHTML = Object.entries(data.categories).map(([key, cat]) => {
             const on = window.RasMirqabGlobe?.activeLayers?.[key] !== false;
-            return `<label class="layer-row" onclick="__M575.toggleLayer('${key}')">
+            return `<label class="layer-row">
                 <span>${cat.emoji||'●'} ${cat.labelAr||key}</span>
-                <input type="checkbox" id="lyr-${key}" ${on?'checked':''}>
+                <input type="checkbox" id="lyr-${key}" ${on?'checked':''} onchange="__M575.toggleLayer('${key}')">
             </label>`;
         }).join('');
     }
@@ -150,10 +150,10 @@
     window.__M575 = {
         toggleLayer(key) {
             const cb = document.getElementById('lyr-'+key);
-            if (!window.RasMirqabGlobe) return;
+            if (!cb || !window.RasMirqabGlobe) return;
             RasMirqabGlobe.activeLayers = RasMirqabGlobe.activeLayers || {};
-            RasMirqabGlobe.activeLayers[key] = !(RasMirqabGlobe.activeLayers[key] !== false);
-            if (cb) cb.checked = RasMirqabGlobe.activeLayers[key];
+            // Direct sync from checkbox state
+            RasMirqabGlobe.activeLayers[key] = cb.checked;
             try { RasMirqabGlobe.updateGlobeMarkers?.(); } catch(e) {}
         }
     };

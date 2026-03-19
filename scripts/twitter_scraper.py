@@ -68,10 +68,18 @@ async def fetch_via_scrapedo():
                     desc = item.find('description')
                     if desc:
                         desc_soup = BeautifulSoup(desc.get_text(), 'html.parser')
+                        # Prioritize images
                         img = desc_soup.find('img')
                         if img: 
                             src = img['src']
                             media_url = NITTER_BASE + src if src.startswith('/') else src
+                        else:
+                            # Fallback to video/GIF links if no image is found
+                            # Nitter often wraps media in <a> tags with specific classes or href patterns
+                            video_link = desc_soup.find('a', href=lambda href: href and ('/pic/video' in href or '/pic/tweet_video' in href))
+                            if video_link:
+                                src = video_link['href']
+                                media_url = NITTER_BASE + src if src.startswith('/') else src
                     
                     pub_date = item.find('pubDate').get_text() if item.find('pubDate') else datetime.now().isoformat()
                     

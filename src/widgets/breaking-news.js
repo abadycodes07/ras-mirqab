@@ -245,7 +245,7 @@ var BreakingNewsWidget = (function () {
             var isSelected = s.fixed;
             var isHidden = hiddenSources.has(s.handle);
             var color = s.type === 'twitter' ? '#1DA1F2' : '#0088cc';
-            var icon = s.type === 'twitter' ? '𝕏' : (s.type === 'telegram' ? '<img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" style="width:12px; height:12px; display:block;">' : '📱');
+            var icon = s.type === 'twitter' ? '<i class="fa-brands fa-x-twitter"></i>' : (s.type === 'telegram' ? '<i class="fa-brands fa-telegram"></i>' : '<i class="fas fa-rss"></i>');
 
             html +=
                 '<div class="channel-card ' + (isSelected ? 'selected' : '') + ' ' + (isHidden ? 'hidden-source' : '') + '" style="cursor:pointer; transition:all 0.3s ease; border:1px solid ' + (isHidden ? 'transparent' : 'var(--accent-dim)') + '; background:' + (isHidden ? 'rgba(255,255,255,0.02)' : 'rgba(255,106,0,0.05)') + ';" onclick="BreakingNewsWidget.toggleVisibility(\'' + s.handle + '\')">' +
@@ -588,8 +588,8 @@ var BreakingNewsWidget = (function () {
             var avatar = item.customAvatar || AVATARS[handle] || AVATARS[handle.toLowerCase()] || '/public/logos/default.png';
             
             // Platform Badge
-            const badgeIcon = source === 'twitter' ? '𝕏' : (source === 'telegram' ? 'T' : '🌐');
-            const badgeColor = source === 'twitter' ? '#fff' : (source === 'telegram' ? '#0088cc' : '#f1c40f');
+            const badgeIcon = source === 'twitter' ? '<i class="fa-brands fa-x-twitter" style="font-size:8px;"></i>' : (source === 'telegram' ? '<i class="fa-brands fa-telegram" style="font-size:10px;"></i>' : '<i class="fas fa-rss" style="font-size:8px;"></i>');
+            const badgeColor = source === 'twitter' ? '#fff' : (source === 'telegram' ? '#0088cc' : '#e67e22');
 
             var timeStr = item.time || new Date(item.pubDate).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
             var relativeTime = getArabicRelativeTime(item.pubDate);

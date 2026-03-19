@@ -199,6 +199,15 @@
     border-radius: 3px;
     font-weight: 600;
     margin-top: 2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.news-source-badge i {
+    font-size: 0.65rem;
+    line-height: 1;
 }
 
 .source-telegram {

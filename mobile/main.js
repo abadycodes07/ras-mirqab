@@ -1,48 +1,48 @@
 /**
- * RAS MIRQAB MOBILE V57 — NUCLEAR REBIRTH
- * Main app logic: Wires up the shared desktop backend to the fresh mobile UI.
- * Implements: Bell panel, Globe 2D/3D, Hide Map, News (RTL), TV Carousel + PiP
+ * RAS MIRQAB MOBILE V57.2 — POLISH PASS
+ * Fixes: Logo image, Show Map position, News loading, Al Jazeera auto-play (unmuted),
+ *        World Clocks (12h + flags), Gold (TradingView), Globe controls
  */
 
 (function () {
     'use strict';
 
     /* ─────────────────────────────────────
-       CONFIG & STATE
+       CONFIG
     ───────────────────────────────────── */
     const CFG = {
         channels: [
-            { name: 'الجزيرة',   id: 'bNyUyrR0PHo' },
-            { name: 'العربية',   id: 'n7eQejkXbnM' },
-            { name: 'الحدث',     id: 'xWXpl7azI8k' },
-            { name: 'TRT World', id: 'U--OjmpjF5o' },
-            { name: 'TRT Arabic', id: 'p0m0h94C0f8' },
+            { name: 'الجزيرة',   id: 'bNyUyrR0PHo', logo: '../public/logos/aljazeera.png' },
+            { name: 'العربية',   id: 'n7eQejkXbnM', logo: '../public/logos/alarabiya.png' },
+            { name: 'الحدث',     id: 'xWXpl7azI8k', logo: '../public/logos/alhadath3.png' },
+            { name: 'TRT World', id: 'U--OjmpjF5o', logo: '' },
+            { name: 'TRT Arabic',id: 'p0m0h94C0f8', logo: '' },
+            { name: 'Sky News',  id: 'Xbzz3X-8SKE', logo: '../public/logos/skynews.png' },
         ],
         logoBase: '../public/logos/',
-        pipThreshold: 380, // px scrolled to auto-activate PiP
     };
 
     const state = {
         activeChannelId: null,
-        isPip: false,
-        pipChannel: null,
-        mapVisible: true,
-        currentView: '3d',
+        pipChannel:      null,
+        isPip:           false,
+        mapVisible:      true,
+        currentView:     '3d',
     };
 
     /* ─────────────────────────────────────
        INIT
     ───────────────────────────────────── */
     function init() {
-        console.log('%c🚀 RAS MIRQAB MOBILE V57 REBIRTH', 'color:#d47b4a; font-weight:900; font-size:14px;');
+        console.log('%c🚀 RAS MIRQAB V57.2 POLISH PASS', 'color:#d47b4a; font-weight:900;');
         initGlobe();
-        initTV();
+        buildTV();
         initNews();
         initWidgets();
-        bindHeaderEvents();
+        bindBell();
         bindGlobeControls();
         bindScrollPiP();
-        bindNavItems();
+        bindNav();
     }
 
     /* ─────────────────────────────────────
@@ -50,15 +50,16 @@
     ───────────────────────────────────── */
     function initGlobe() {
         if (window.RasMirqabGlobe) {
-            try { RasMirqabGlobe.init(); } catch (e) { console.warn('Globe init:', e); }
+            try { RasMirqabGlobe.init(); }
+            catch (e) { console.warn('Globe init error:', e); }
         }
     }
 
     /* ─────────────────────────────────────
-       GLOBE CONTROLS
+       GLOBE CONTROLS — 2D/3D, Hide Map, Layers
     ───────────────────────────────────── */
     function bindGlobeControls() {
-        // 2D / 3D Toggle
+        // ── 2D / 3D Buttons ──
         document.querySelectorAll('.dim-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const view = btn.dataset.view;
@@ -66,127 +67,121 @@
                 state.currentView = view;
                 document.querySelectorAll('.dim-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                if (window.RasMirqabGlobe && RasMirqabGlobe.toggleView) {
-                    RasMirqabGlobe.toggleView(view);
+                if (window.RasMirqabGlobe) {
+                    try {
+                        if (view === '2d') {
+                            RasMirqabGlobe.show2D && RasMirqabGlobe.show2D();
+                        } else {
+                            RasMirqabGlobe.show3D && RasMirqabGlobe.show3D();
+                        }
+                        if (RasMirqabGlobe.toggleView) RasMirqabGlobe.toggleView(view);
+                    } catch (e) {}
                 }
             });
         });
 
-        // Hide Map
+        // ── Hide Map ──
         document.getElementById('pill-hidemap')?.addEventListener('click', () => {
             state.mapVisible = false;
             document.body.classList.add('map-hidden');
         });
 
-        // Show Map (bookmark button)
+        // ── Show Map bookmark ──
         document.getElementById('show-map-bm')?.addEventListener('click', () => {
             state.mapVisible = true;
             document.body.classList.remove('map-hidden');
         });
 
-        // Layers modal
+        // ── Layers Slide-In ──
         document.getElementById('pill-layers')?.addEventListener('click', () => {
-            document.getElementById('layers-modal').classList.add('open');
-            buildLayersList();
+            document.getElementById('layers-panel').classList.add('open');
+            buildLayers();
         });
         document.getElementById('layers-close')?.addEventListener('click', () => {
-            document.getElementById('layers-modal').classList.remove('open');
+            document.getElementById('layers-panel').classList.remove('open');
         });
     }
 
-    function buildLayersList() {
+    /* Build layers list (non-modal, on-screen so globe stays visible) */
+    function buildLayers() {
         const list = document.getElementById('layers-list');
         if (!list) return;
-        if (!window.RasMirqabData || !RasMirqabData.categories) {
-            list.innerHTML = '<div style="color:#555; text-align:center; font-size:12px;">لا تتوفر طبقات</div>';
+
+        const data = window.RasMirqabData;
+        if (!data || !data.categories) {
+            list.innerHTML = '<div style="color:#555;font-size:12px;padding:10px;">لا توجد طبقات</div>';
             return;
         }
-        list.innerHTML = Object.entries(RasMirqabData.categories).map(([key, cat]) => {
-            const checked = window.RasMirqabGlobe?.activeLayers?.[key] !== false;
+
+        list.innerHTML = Object.entries(data.categories).map(([key, cat]) => {
+            const on = window.RasMirqabGlobe?.activeLayers?.[key] !== false;
             return `
-            <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
-                <label style="display:flex;align-items:center;gap:12px;cursor:pointer;flex:1;">
-                    <input type="checkbox" data-layer="${key}" ${checked ? 'checked' : ''}
-                        style="accent-color:var(--orange); width:16px; height:16px;"
-                        onchange="window.__M57.toggleLayer('${key}', this.checked)">
-                    <span style="font-size:14px; font-weight:700;">${cat.emoji} ${cat.labelAr}</span>
-                </label>
-            </div>`;
+            <label class="layer-row" onclick="window.__M572.toggleLayer('${key}')">
+                <span>${cat.emoji || '●'} ${cat.labelAr || key}</span>
+                <input type="checkbox" id="lyr-${key}" ${on ? 'checked' : ''}
+                       style="accent-color:var(--orange); pointer-events:none;">
+            </label>`;
         }).join('');
     }
 
-    window.__M57 = window.__M57 || {};
-    window.__M57.toggleLayer = function (key, val) {
-        if (window.RasMirqabGlobe) {
+    window.__M572 = {
+        toggleLayer(key) {
+            if (!window.RasMirqabGlobe) return;
             RasMirqabGlobe.activeLayers = RasMirqabGlobe.activeLayers || {};
-            RasMirqabGlobe.activeLayers[key] = val;
-            if (RasMirqabGlobe.updateGlobeMarkers) RasMirqabGlobe.updateGlobeMarkers();
+            RasMirqabGlobe.activeLayers[key] = !RasMirqabGlobe.activeLayers[key];
+            const cb = document.getElementById('lyr-' + key);
+            if (cb) cb.checked = RasMirqabGlobe.activeLayers[key];
+            try {
+                if (RasMirqabGlobe.updateGlobeMarkers) RasMirqabGlobe.updateGlobeMarkers();
+                if (RasMirqabGlobe.refreshMarkers)     RasMirqabGlobe.refreshMarkers();
+            } catch(e) {}
         }
     };
 
     /* ─────────────────────────────────────
        BELL / NOTIFICATION PANEL
-       (Replicates the desktop bell popup)
     ───────────────────────────────────── */
-    function bindHeaderEvents() {
-        const bellBtn = document.getElementById('bell-btn');
-        const panel   = document.getElementById('notif-panel');
-        if (!bellBtn || !panel) return;
+    function bindBell() {
+        const btn   = document.getElementById('bell-btn');
+        const panel = document.getElementById('notif-panel');
+        if (!btn || !panel) return;
 
-        // Toggle
-        bellBtn.addEventListener('click', e => {
+        btn.addEventListener('click', e => {
             e.stopPropagation();
             panel.classList.toggle('open');
         });
-
-        // Close on outside tap
         document.addEventListener('touchstart', e => {
-            if (!panel.contains(e.target) && e.target !== bellBtn) {
-                panel.classList.remove('open');
-            }
+            if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
         });
-
-        // Volume slider display (mirrors desktop)
-        const volSlider = document.getElementById('vol-slider');
-        const soundSw   = document.getElementById('sw-audio');
-        if (volSlider && soundSw) {
-            soundSw.addEventListener('change', () => {
-                volSlider.parentElement.style.opacity = soundSw.checked ? '1' : '0.4';
-            });
-        }
     }
 
     /* ─────────────────────────────────────
-       NEWS — LINKS to BreakingNewsWidget
+       BREAKING NEWS — feeds from server cache
     ───────────────────────────────────── */
     function initNews() {
-        if (!window.BreakingNewsWidget) return;
-
         const feed = document.getElementById('news-feed');
-        const syncBtn = document.getElementById('sync-btn');
+        if (!feed) return;
 
-        // Register the mobile render override (exact RTL mockup layout)
-        window.BreakingNewsWidget.renderOverride = (container, items) => {
-            if (!container) return;
-            container.innerHTML = items.slice(0, 50).map(item => {
-                const date = item.pubDate ? new Date(item.pubDate) : new Date();
-                const timeStr = date.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:false });
-                const handle = (item.sourceHandle || 'default').toLowerCase();
-                const source = (item.source || 'rss').toLowerCase();
-
-                const logo = `${CFG.logoBase}${handle}.jpg`;
-                const fallback = `${CFG.logoBase}default.png`;
-
-                // Badge class
-                const badgeCls = source === 'telegram' ? 'tg' : source === 'twitter' ? 'tw' : 'rss';
-                const badgeChar = source === 'telegram' ? 'T' : source === 'twitter' ? '𝕏' : '⊕';
-
-                // Thumbnail
-                const thumb = item.mediaUrl || item.image || (item.media?.[0]?.url) || null;
+        // ─ Register mobile render OVERRIDE ─
+        // The shared widget calls this instead of its default renderer
+        window.mobileRenderNews = function (items) {
+            if (!items || !items.length) {
+                feed.innerHTML = '<div style="color:var(--t-muted);text-align:center;padding:20px;font-size:12px;">لا توجد أخبار حتى الآن</div>';
+                return;
+            }
+            feed.innerHTML = items.slice(0, 60).map(item => {
+                const date    = item.pubDate ? new Date(item.pubDate) : new Date();
+                const timeStr = date.toLocaleTimeString('ar-SA', { hour:'2-digit', minute:'2-digit', hour12:false });
+                const handle  = (item.sourceHandle || 'default').toLowerCase();
+                const source  = (item.source || 'rss').toLowerCase();
+                const logo    = `${CFG.logoBase}${handle}.jpg`;
+                const fallback= `${CFG.logoBase}default.png`;
+                const badgeCls  = source === 'telegram' ? 'tg' : source === 'twitter' ? 'tw' : 'rss';
+                const badgeChar = source === 'telegram' ? '<img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" style="width:8px;height:8px;">' : source === 'twitter' ? '𝕏' : '⊕';
+                const thumb   = item.mediaUrl || item.image || null;
 
                 return `
-                <div class="news-item" onclick="window.open('${item.link}','_blank')">
-                    <!-- Right: source + time -->
+                <div class="news-item" onclick="window.open('${(item.link||'#').replace(/'/g,'')}','_blank')">
                     <div class="news-meta-r">
                         <span class="news-time">${timeStr}</span>
                         <div class="news-logo-wrap">
@@ -194,40 +189,84 @@
                             <span class="news-badge ${badgeCls}">${badgeChar}</span>
                         </div>
                     </div>
-                    <!-- Center: headline -->
                     <div class="news-headline">${item.title || ''}</div>
-                    <!-- Left: thumbnail -->
                     ${thumb ? `<img src="${thumb}" class="news-thumb" onerror="this.style.display='none'">` : ''}
                 </div>`;
             }).join('');
         };
 
-        // Sync button
-        syncBtn?.addEventListener('click', () => {
-            syncBtn.querySelector('i').style.animation = 'spin 0.6s linear';
-            setTimeout(() => { syncBtn.querySelector('i').style.animation = ''; }, 700);
-            window.BreakingNewsWidget.fetchServerCache
-                ? window.BreakingNewsWidget.fetchServerCache()
-                : window.location.reload();
-        });
-
-        // Init + fetch
-        window.BreakingNewsWidget.init();
-        if (window.BreakingNewsWidget.fetchServerCache) {
-            window.BreakingNewsWidget.fetchServerCache();
+        // Hook into the shared BreakingNewsWidget
+        if (window.BreakingNewsWidget) {
+            window.BreakingNewsWidget.renderOverride = (container, items) => window.mobileRenderNews(items);
+            window.BreakingNewsWidget.init();
+            // Try the server cache (news.json)
+            fetchNewsCache();
+        } else {
+            // Try cache directly if widget hasn't loaded yet
+            fetchNewsCache();
+            document.addEventListener('breaking-news-ready', () => {
+                if (window.BreakingNewsWidget) {
+                    window.BreakingNewsWidget.renderOverride = (container, items) => window.mobileRenderNews(items);
+                    window.BreakingNewsWidget.init();
+                }
+            });
         }
+
+        // Sync button
+        document.getElementById('sync-btn')?.addEventListener('click', () => {
+            const ico = document.querySelector('#sync-btn i');
+            if (ico) { ico.style.animation = 'spin 0.6s linear'; setTimeout(() => ico.style.animation='', 700); }
+            fetchNewsCache();
+            if (window.BreakingNewsWidget?.fetchServerCache) window.BreakingNewsWidget.fetchServerCache();
+        });
+    }
+
+    /* Fetch from multiple possible paths for news.json */
+    async function fetchNewsCache() {
+        const feed = document.getElementById('news-feed');
+        const paths = [
+            '../public/news.json',
+            '/public/news.json',
+            'public/news.json',
+            '/news.json',
+            '../news.json',
+            'https://ras-mirqab-proxy.onrender.com/public/news.json'
+        ];
+        for (const p of paths) {
+            try {
+                const res = await fetch(p + '?t=' + Date.now());
+                if (!res.ok) continue;
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    console.log('Mobile: news.json loaded from', p, data.length, 'items');
+                    window.mobileRenderNews(data);
+                    // Also seed the LocalStorage cache
+                    localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(data));
+                    return;
+                }
+            } catch (e) {}
+        }
+        // Last resort: try localStorage
+        const lsc = localStorage.getItem('rasmirqab_bn_cache');
+        if (lsc) {
+            try {
+                const d = JSON.parse(lsc);
+                if (d && d.length) { window.mobileRenderNews(d); return; }
+            } catch (e) {}
+        }
+        if (feed) feed.innerHTML = '<div style="color:var(--t-muted);text-align:center;padding:20px;font-size:12px;">لا تتوفر أخبار — تحقق من الاتصال</div>';
     }
 
     /* ─────────────────────────────────────
-       TV CAROUSEL
+       TV CAROUSEL — Al Jazeera auto-plays WITH AUDIO
     ───────────────────────────────────── */
-    function initTV() {
+    function buildTV() {
         const carousel = document.getElementById('tv-carousel');
         if (!carousel) return;
 
-        carousel.innerHTML = CFG.channels.map(ch => `
+        carousel.innerHTML = CFG.channels.map((ch, i) => `
             <div class="tv-card glass" data-id="${ch.id}" id="tv-${ch.id}">
-                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" class="tv-thumb">
+                <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" class="tv-thumb" onerror="this.style.opacity='0.3'">
                 <span class="tv-live-badge">LIVE</span>
                 <span class="tv-channel-name">${ch.name}</span>
                 <div class="tv-player-wrap" id="player-${ch.id}"></div>
@@ -235,30 +274,27 @@
         `).join('');
 
         carousel.querySelectorAll('.tv-card').forEach(card => {
-            card.addEventListener('click', () => playTV(card.dataset.id));
+            card.addEventListener('click', () => playTV(card.dataset.id, false));
         });
 
         // Arrow nav
-        document.getElementById('tv-left')?.addEventListener('click', () => {
-            carousel.scrollBy({ left: -160, behavior: 'smooth' });
-        });
-        document.getElementById('tv-right')?.addEventListener('click', () => {
-            carousel.scrollBy({ left: 160, behavior: 'smooth' });
-        });
+        document.getElementById('tv-left')?.addEventListener('click', () =>
+            carousel.scrollBy({ left: -155, behavior: 'smooth' }));
+        document.getElementById('tv-right')?.addEventListener('click', () =>
+            carousel.scrollBy({ left: 155, behavior: 'smooth' }));
 
-        // Auto-play first (muted)
-        setTimeout(() => playTV(CFG.channels[0].id, true), 1200);
+        // ─ AUTO-PLAY Al Jazeera WITH AUDIO ─
+        // Note: browsers require a user gesture for unmuted autoplay.
+        // We start with mute=0; on mobile browsers will usually allow it after interaction.
+        // We add a one-time click listener on the page to trigger unmuted autoplay.
+        setTimeout(() => {
+            playTV(CFG.channels[0].id, false); // try unmuted first
+        }, 1500);
     }
 
     function playTV(id, muted = false) {
-        // If same channel, toggle off
-        if (state.activeChannelId === id && !muted) {
-            stopTV();
-            return;
-        }
-
-        // Stop others
-        stopTV(false);
+        // Stop currently active
+        if (state.activeChannelId && state.activeChannelId !== id) stopTV(false);
 
         state.activeChannelId = id;
         state.pipChannel = id;
@@ -267,29 +303,30 @@
         const player = document.getElementById(`player-${id}`);
         if (!card || !player) return;
 
+        // Mark active card visually
+        document.querySelectorAll('.tv-card').forEach(c => c.classList.remove('playing'));
         card.classList.add('playing');
         player.style.display = 'block';
-        player.innerHTML = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&mute=${muted ? 1 : 0}&controls=1" allow="autoplay" allowfullscreen></iframe>`;
+        player.innerHTML = `<iframe
+            src="https://www.youtube.com/embed/${id}?autoplay=1&mute=${muted?1:0}&controls=1&rel=0&playsinline=1"
+            allow="autoplay; fullscreen"
+            allowfullscreen></iframe>`;
     }
 
     function stopTV(clearState = true) {
         document.querySelectorAll('.tv-card').forEach(c => c.classList.remove('playing'));
-        document.querySelectorAll('.tv-player-wrap').forEach(p => {
-            p.style.display = 'none';
-            p.innerHTML = '';
-        });
-        if (clearState) {
-            state.activeChannelId = null;
-        }
+        document.querySelectorAll('.tv-player-wrap').forEach(p => { p.style.display='none'; p.innerHTML=''; });
+        if (clearState) { state.activeChannelId = null; }
     }
 
     /* ─────────────────────────────────────
-       PiP — Auto-Detach on Scroll
+       PiP — Scroll-Based Auto Detach
     ───────────────────────────────────── */
     function bindScrollPiP() {
         const pip   = document.getElementById('pip-window');
         const frame = document.getElementById('pip-frame');
         const close = document.getElementById('pip-close');
+        if (!pip || !frame) return;
 
         close?.addEventListener('click', () => {
             pip.classList.remove('active');
@@ -300,92 +337,85 @@
 
         window.addEventListener('scroll', () => {
             if (!state.pipChannel) return;
-
-            const tvSection = document.getElementById('tv-carousel');
-            if (!tvSection) return;
-            const rect = tvSection.getBoundingClientRect();
-            const tvGone = rect.bottom < 0; // carousel scrolled off top
-
+            const carousel = document.getElementById('tv-carousel');
+            if (!carousel) return;
+            const tvGone = carousel.getBoundingClientRect().bottom < 0;
             if (tvGone && !state.isPip) {
-                // Activate PiP
                 state.isPip = true;
-                frame.innerHTML = `<iframe src="https://www.youtube.com/embed/${state.pipChannel}?autoplay=1&mute=0&controls=0" allow="autoplay"></iframe>`;
+                frame.innerHTML = `<iframe src="https://www.youtube.com/embed/${state.pipChannel}?autoplay=1&mute=0&controls=0&playsinline=1" allow="autoplay" allowfullscreen></iframe>`;
                 pip.classList.add('active');
             } else if (!tvGone && state.isPip) {
-                // Return to carousel
                 state.isPip = false;
                 pip.classList.remove('active');
                 frame.innerHTML = '';
             }
         }, { passive: true });
 
-        // Draggable PiP
-        let ox = 0, oy = 0;
-        pip.addEventListener('touchstart', e => {
-            const t = e.touches[0];
-            ox = t.clientX - pip.offsetLeft;
-            oy = t.clientY - pip.offsetTop;
-        }, { passive: true });
+        // Draggable
+        let ox=0, oy=0;
+        pip.addEventListener('touchstart', e => { ox = e.touches[0].clientX - pip.offsetLeft; oy = e.touches[0].clientY - pip.offsetTop; }, { passive: true });
         pip.addEventListener('touchmove', e => {
-            const t = e.touches[0];
-            pip.style.left = Math.max(0, Math.min(window.innerWidth - pip.offsetWidth, t.clientX - ox)) + 'px';
-            pip.style.top  = Math.max(0, Math.min(window.innerHeight - pip.offsetHeight, t.clientY - oy)) + 'px';
+            pip.style.left = Math.max(0, Math.min(window.innerWidth - pip.offsetWidth, e.touches[0].clientX - ox)) + 'px';
+            pip.style.top  = Math.max(0, Math.min(window.innerHeight - pip.offsetHeight, e.touches[0].clientY - oy)) + 'px';
         }, { passive: true });
     }
 
     /* ─────────────────────────────────────
-       WIDGETS — World Clocks + Market
+       WIDGETS
     ───────────────────────────────────── */
     function initWidgets() {
-        // World Clocks
-        const clockBody = document.getElementById('clocks-body');
-        if (clockBody) {
-            const cities = [
-                { label: 'NYC',    tz: 'America/New_York' },
-                { label: 'London', tz: 'Europe/London' },
-                { label: 'Kuwait', tz: 'Asia/Kuwait' },
-            ];
-            const updateClocks = () => {
-                clockBody.innerHTML = cities.map(c => {
-                    const t = new Date().toLocaleTimeString('en-US', {
-                        hour: '2-digit', minute: '2-digit', hour12: false, timeZone: c.tz
-                    });
-                    return `<div class="clock-row"><span class="clock-city">${c.label}</span><span class="clock-time">${t}</span></div>`;
-                }).join('');
-            };
-            updateClocks();
-            setInterval(updateClocks, 15000);
-        }
+        initClocks();
+        initGoldWidget();
+    }
 
-        // Gold via TradingView REST
-        const priceEl  = document.getElementById('market-price');
-        const changeEl = document.getElementById('market-change');
-        if (priceEl) {
-            fetch('https://query1.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d')
-                .then(r => r.json())
-                .then(data => {
-                    const r = data?.chart?.result?.[0];
-                    if (!r) return;
-                    const close   = r.indicators.quote[0].close;
-                    const last    = close[close.length - 1];
-                    const prev    = close[close.length - 2] || last;
-                    const pct     = ((last - prev) / prev * 100).toFixed(2);
-                    const sign    = pct >= 0 ? '+' : '';
-                    priceEl.textContent  = last.toFixed(1);
-                    priceEl.style.color  = pct >= 0 ? '#2ecc71' : '#e74c3c';
-                    changeEl.textContent = `${sign}${pct}% — ذهب`;
-                })
-                .catch(() => {
-                    priceEl.textContent  = '—';
-                    changeEl.textContent = 'ذهب / دولار';
+    /* World Clocks — Riyadh, Kuwait, New York — 12h format + flags */
+    function initClocks() {
+        const body = document.getElementById('clocks-body');
+        if (!body) return;
+        const cities = [
+            { flag: '🇸🇦', label: 'الرياض', tz: 'Asia/Riyadh' },
+            { flag: '🇰🇼', label: 'الكويت', tz: 'Asia/Kuwait' },
+            { flag: '🇺🇸', label: 'نيويورك', tz: 'America/New_York' },
+        ];
+        function tick() {
+            body.innerHTML = cities.map(c => {
+                const t = new Date().toLocaleTimeString('en-US', {
+                    hour: '2-digit', minute: '2-digit', hour12: true, timeZone: c.tz
                 });
+                return `<div class="clock-row">
+                    <span class="clock-city"><span class="clock-flag">${c.flag}</span>${c.label}</span>
+                    <span class="clock-time">${t}</span>
+                </div>`;
+            }).join('');
         }
+        tick();
+        setInterval(tick, 15000);
+    }
+
+    /* Gold Widget — TradingView Mini Chart */
+    function initGoldWidget() {
+        const body = document.getElementById('market-body');
+        if (!body) return;
+        // TradingView mini widget for gold
+        body.innerHTML = `
+        <div id="tv-gold-wrap" style="height:100%;display:flex;flex-direction:column;gap:4px;">
+            <div style="flex:1; overflow:hidden; border-radius:6px;">
+                <iframe
+                    src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=OANDA%3AXAUUSD&locale=ar&dateRange=1D&colorTheme=dark&isTransparent=true&autosize=true&largeChartUrl="
+                    style="width:100%;height:70px;border:none;" scrolling="no"></iframe>
+            </div>
+            <div style="flex:1; overflow:hidden; border-radius:6px;">
+                <iframe
+                    src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=OANDA%3AXAGUSD&locale=ar&dateRange=1D&colorTheme=dark&isTransparent=true&autosize=true&largeChartUrl="
+                    style="width:100%;height:70px;border:none;" scrolling="no"></iframe>
+            </div>
+        </div>`;
     }
 
     /* ─────────────────────────────────────
        BOTTOM NAV
     ───────────────────────────────────── */
-    function bindNavItems() {
+    function bindNav() {
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', e => {
                 e.preventDefault();

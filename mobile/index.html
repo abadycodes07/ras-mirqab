@@ -3,37 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>راس مرقاب — Mobile</title>
+    <title>راس مرقاب</title>
     <meta name="description" content="راس مرقاب — Mobile Dashboard">
 
-    <!-- Redirect desktop users back -->
+    <!-- Redirect desktop -->
     <script>
-        if (!/Mobi|Android|iPhone|iPad|iPod|Touch/i.test(navigator.userAgent) && window.innerWidth >= 1024 && !location.search.includes('mobile=true')) {
+        if (!/Mobi|Android|iPhone|iPad|iPod|Touch/i.test(navigator.userAgent) && window.innerWidth >= 1024 && !location.search.includes('mobile=true'))
             location.replace('../' + location.hash);
-        }
     </script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Our Styles -->
-    <link rel="stylesheet" href="style.css?v=57">
-    <link rel="icon" type="image/png" href="../public/logo.png">
+    <link rel="stylesheet" href="style.css?v=572">
+    <link rel="icon" href="../public/favicon.ico">
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════
-     HEADER (Logo + Bell)
-═══════════════════════════════════════════ -->
+<!-- ═══ HEADER ═══ -->
 <header class="site-header">
-    <!-- Right: Logo -->
-    <div>
-        <span class="logo-word">راس مرقاب</span>
+    <!-- Right: Logo IMAGE (not text) -->
+    <div class="header-logo-wrap" id="logo-and-bm">
+        <img src="../public/logo.png" alt="راس مرقاب" class="site-logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block'">
+        <span id="logo-fallback" style="display:none; font-size:22px; font-weight:900; color:var(--copper);">راس مرقاب</span>
+        
+        <!-- "Show Map" bookmark — only visible when map is hidden — appears RIGHT UNDER the logo -->
+        <div class="show-map-bm glass" id="show-map-bm">
+            <i class="fas fa-bookmark"></i>
+            <span>عرض الخريطة</span>
+        </div>
     </div>
 
-    <!-- Left: Bell + dropdown -->
+    <!-- Left: Bell -->
     <div class="bell-wrap">
         <button class="bell-btn glass" id="bell-btn" title="الإشعارات">
             <i class="fas fa-bell"></i>
@@ -54,7 +56,7 @@
                     <div class="sw-track"></div>
                 </label>
             </div>
-            <div class="notif-row" style="flex-direction:column; align-items:flex-end; gap:8px;">
+            <div class="notif-row" style="flex-direction:column; align-items:flex-end; gap:6px;">
                 <label style="font-size:11px;">مستوى الصوت</label>
                 <input type="range" class="vol-slider" id="vol-slider" min="0" max="100" value="70">
             </div>
@@ -62,69 +64,64 @@
     </div>
 </header>
 
-<!-- ─── "Show Map" bookmark (appears when map is hidden) ─── -->
-<div class="show-map-bm glass" id="show-map-bm">
-    <i class="fas fa-bookmark"></i>
-    عرض الخريطة
-</div>
-
-<!-- ═══════════════════════════════════════════
-     GLOBE SECTION
-═══════════════════════════════════════════ -->
+<!-- ═══ GLOBE SECTION ═══ -->
 <section class="globe-wrap" id="globe-wrap">
     <div id="globe-container"></div>
 
-    <!-- Floating Controls -->
+    <!-- Globe Controls — exact layout from mockup -->
     <div class="globe-controls">
-        <button class="pill glass" id="pill-layers">
-            <i class="fas fa-layer-group"></i>
-            <span>الطبقات</span>
-        </button>
-        <div class="dim-toggle glass">
-            <button class="dim-btn active" id="btn-3d" data-view="3d">3D</button>
-            <button class="dim-btn" id="btn-2d" data-view="2d">2D</button>
+        <div class="globe-ctrl-row top-row">
+            <button class="pill glass" id="pill-layers">
+                <i class="fas fa-layer-group"></i> الطبقات
+            </button>
+            <div class="dim-toggle">
+                <button class="dim-btn" id="btn-2d" data-view="2d">2D</button>
+                <button class="dim-btn active" id="btn-3d" data-view="3d">3D</button>
+            </div>
         </div>
-        <button class="pill glass" id="pill-hidemap">
-            <span>إخفاء الخريطة</span>
-            <i class="fas fa-chevron-up"></i>
-        </button>
+        <div class="globe-ctrl-row">
+            <button class="pill glass hide-map-pill" id="pill-hidemap">
+                إخفاء الخريطة <i class="fas fa-chevron-up"></i>
+            </button>
+        </div>
     </div>
 </section>
 
-<!-- ═══════════════════════════════════════════
-     CONTENT AREA
-═══════════════════════════════════════════ -->
+<!-- ═══ LAYERS SLIDE PANEL (overlay on right, globe stays visible) ═══ -->
+<div class="layers-panel" id="layers-panel">
+    <div class="layers-panel-inner glass">
+        <div class="layers-header">
+            <span>الطبقات</span>
+            <span class="layers-close" id="layers-close"><i class="fas fa-times"></i></span>
+        </div>
+        <div id="layers-list" class="layers-list-body"></div>
+    </div>
+</div>
+
+<!-- ═══ CONTENT AREA ═══ -->
 <div class="content-area">
 
     <!-- ─── BREAKING NEWS ─── -->
     <section class="card-aajal glass">
-        <!-- Top row -->
         <div class="aajal-top">
             <button class="sync-btn" id="sync-btn">
-                <i class="fas fa-sync-alt"></i>
-                hard sync
-                <span style="opacity:0.4; font-size:8px;">v57</span>
+                <i class="fas fa-sync-alt"></i> hard sync
+                <span style="opacity:.4;font-size:8px;">v57</span>
             </button>
             <div class="aajal-heading-r">
                 <span>الأخبار العاجلة</span>
                 <i class="fas fa-search"></i>
             </div>
         </div>
-
-        <!-- Title -->
         <div class="urgent-title">عاجل</div>
-
-        <!-- News Feed (scrollable, shows 3 rows then scroll) -->
         <div class="news-list-wrap" id="news-feed">
-            <!-- Populated by main.js -->
-            <div style="color:var(--t-muted); text-align:center; padding:20px; font-size:12px;">
-                <i class="fas fa-circle-notch fa-spin" style="margin-left:6px;"></i>
-                جاري التحميل...
+            <div class="loading-row">
+                <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
             </div>
         </div>
     </section>
 
-    <!-- ─── LIVE STREAMS ─── -->
+    <!-- ─── LIVE TV ─── -->
     <section class="tv-section">
         <div class="tv-section-head">
             <div class="tv-nav-arrows">
@@ -133,21 +130,17 @@
             </div>
             <span class="tv-section-title">البث المباشر</span>
         </div>
-        <div class="tv-carousel" id="tv-carousel">
-            <!-- Cards injected by main.js -->
-        </div>
+        <div class="tv-carousel" id="tv-carousel"></div>
     </section>
 
     <!-- ─── WIDGETS GRID ─── -->
     <div class="widgets-grid">
-
-        <!-- Gold & Currencies -->
+        <!-- Gold & Silver -->
         <div class="w-card glass" id="w-market">
             <span class="w-badge">T7</span>
             <span class="w-title">الذهب والعملات</span>
             <div class="w-body" id="market-body">
-                <div class="market-price" id="market-price">—</div>
-                <div class="market-change" id="market-change">ذهب / دولار أمريكي</div>
+                <div class="loading-row" style="font-size:11px;"><i class="fas fa-circle-notch fa-spin"></i></div>
             </div>
         </div>
 
@@ -158,97 +151,52 @@
             <div class="w-body" id="clocks-body"></div>
         </div>
 
-        <!-- Movement Tracker (placeholder) -->
+        <!-- Movement Tracker -->
         <div class="w-card glass">
             <span class="w-badge">T7</span>
             <span class="w-title">تتبع التحركات</span>
-            <div class="w-body" style="background:rgba(255,112,26,0.04); border-radius:8px; align-items:center; justify-content:center;">
-                <i class="fas fa-fighter-jet" style="font-size:28px; color:var(--orange); opacity:0.3;"></i>
+            <div class="w-body" style="background:rgba(255,112,26,0.05);border-radius:8px;align-items:center;justify-content:center;">
+                <i class="fas fa-fighter-jet" style="font-size:26px;color:var(--orange);opacity:0.3;"></i>
             </div>
         </div>
 
-        <!-- Cyber Intelligence (placeholder) -->
+        <!-- Cyber Intelligence -->
         <div class="w-card glass">
             <span class="w-badge">T7</span>
             <span class="w-title">الاستخبارات السيبرانية</span>
-            <div class="w-body" style="background:rgba(200,0,0,0.05); border-radius:8px; align-items:center; justify-content:center;">
-                <i class="fas fa-shield-halved" style="font-size:28px; color:#c00; opacity:0.35;"></i>
+            <div class="w-body" style="background:rgba(200,0,0,0.05);border-radius:8px;align-items:center;justify-content:center;">
+                <i class="fas fa-shield-halved" style="font-size:26px;color:#c00;opacity:0.35;"></i>
             </div>
         </div>
-
     </div>
-    <!-- end widgets-grid -->
-
 </div>
-<!-- end content-area -->
 
-<!-- ═══════════════════════════════════════════
-     PiP WINDOW
-═══════════════════════════════════════════ -->
+<!-- ═══ PiP WINDOW ═══ -->
 <div class="pip-window glass" id="pip-window">
     <div class="pip-close" id="pip-close">✕</div>
     <div id="pip-frame"></div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     LAYERS MODAL
-═══════════════════════════════════════════ -->
-<div class="layers-modal" id="layers-modal">
-    <div class="layers-inner glass">
-        <span class="layers-close" id="layers-close">
-            <i class="fas fa-times"></i>
-        </span>
-        <h3 style="font-size:16px; font-weight:800; color:var(--copper); margin-bottom:16px;">الطبقات</h3>
-        <div id="layers-list">
-            <!-- Populated by main.js -->
-        </div>
-    </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     BOTTOM NAV
-═══════════════════════════════════════════ -->
+<!-- ═══ BOTTOM NAV ═══ -->
 <nav class="bottom-nav">
-    <a href="#" class="nav-item">
-        <i class="fas fa-cog"></i>
-        <span>الإعدادات</span>
-    </a>
-    <a href="#" class="nav-item">
-        <i class="fas fa-file-lines"></i>
-        <span>التقارير</span>
-    </a>
-    <a href="#" class="nav-item">
-        <i class="fas fa-chart-line"></i>
-        <span>المخططات</span>
-    </a>
-    <a href="#" class="nav-item">
-        <i class="fas fa-coins"></i>
-        <span>الأصول</span>
-    </a>
-    <a href="#" class="nav-item">
-        <i class="fas fa-newspaper"></i>
-        <span>الأخبار</span>
-    </a>
-    <a href="#" class="nav-item active">
-        <i class="fas fa-house"></i>
-        <span>الرئيسية</span>
-    </a>
+    <a href="#" class="nav-item"><i class="fas fa-cog"></i><span>الإعدادات</span></a>
+    <a href="#" class="nav-item"><i class="fas fa-file-lines"></i><span>التقارير</span></a>
+    <a href="#" class="nav-item"><i class="fas fa-chart-line"></i><span>المخططات</span></a>
+    <a href="#" class="nav-item"><i class="fas fa-coins"></i><span>الأصول</span></a>
+    <a href="#" class="nav-item"><i class="fas fa-newspaper"></i><span>الأخبار</span></a>
+    <a href="#" class="nav-item active"><i class="fas fa-house"></i><span>الرئيسية</span></a>
 </nav>
 
-<!-- ═══════════════════════════════════════════
-     SHARED DEPENDENCIES (Desktop Backend)
-═══════════════════════════════════════════ -->
+<!-- ═══ SHARED BACKEND ═══ -->
 <script src="../src/assets/three.min.js"></script>
 <script src="../src/assets/globe.gl.min.js"></script>
-<script src="../src/data/feeds.js?v=57"></script>
-<script src="../src/data/conflicts.js?v=57"></script>
-<script src="../src/data/intelligence.js?v=57"></script>
-<script src="../src/data/timezones.js?v=57"></script>
-<script src="../src/globe.js?v=57"></script>
-<script src="../src/widgets/breaking-news.js?v=57"></script>
-
-<!-- Mobile App Brain -->
-<script src="main.js?v=57"></script>
+<script src="../src/data/feeds.js?v=572"></script>
+<script src="../src/data/conflicts.js?v=572"></script>
+<script src="../src/data/intelligence.js?v=572"></script>
+<script src="../src/data/timezones.js?v=572"></script>
+<script src="../src/globe.js?v=572"></script>
+<script src="../src/widgets/breaking-news.js?v=572"></script>
+<script src="main.js?v=572"></script>
 
 </body>
 </html>

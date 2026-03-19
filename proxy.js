@@ -293,11 +293,172 @@ async function updateTwitter() {
     }
 }
 
-// Optimization: Separated Loops for Speed
+// ═══════════════════════════════════════════
+// TWITTER — Active scraper using TwitterAPI.io
+// ═══════════════════════════════════════════
+const TWITTER_API_KEY = 'new1_9a59c3ffc7e04c0bb5032b97c2d06ef5';
+const LIST_ID_TW = '2031445708524421549';
+
+async function fetchTwitterAPI() {
+    try {
+        const https = require('https');
+        return await new Promise((resolve, reject) => {
+            const options = {
+                hostname: 'api.twitterapi.io',
+                path: `/twitter/list/tweets_timeline?listId=${LIST_ID_TW}`,
+                method: 'GET',
+                headers: { 'X-API-Key': TWITTER_API_KEY }
+            };
+            const req = https.request(options, res => {
+                let data = '';
+                res.on('data', d => data += d);
+                res.on('end', () => {
+                    try { resolve(JSON.parse(data)); }
+                    catch(e) { reject(e); }
+                });
+            });
+            req.on('error', reject);
+            req.setTimeout(10000, () => req.destroy());
+            req.end();
+        });
+    } catch(e) {
+        console.log('❌ TwitterAPI.io failed:', e.message);
+        return null;
+    }
+}
+
+async function updateTwitterActive() {
+    console.log('📡 [Active] Twitter cycle start...');
+    let localItems = [];
+
+    // Layer 1: TwitterAPI.io (paid key)
+    try {
+        const data = await fetchTwitterAPI();
+        if (data && data.tweets && data.tweets.length > 0) {
+            localItems = data.tweets.map(tw => {
+                const media = tw.extended_entities?.media?.[0]?.media_url_https
+                           || tw.entities?.media?.[0]?.media_url_https || null;
+                const handle = tw.author?.userName || 'twitter';
+                return {
+                    title: (tw.text || tw.full_text || '').replace(/https?:\/\/\S+/g, '').trim(),
+                    link: `https://x.com/${handle}/status/${tw.id || tw.id_str}`,
+                    pubDate: new Date(tw.created_at || tw.createdAt).toISOString(),
+                    source: 'twitter', sourceHandle: handle, sourceName: handle,
+                    mediaUrl: media || null,
+                    customAvatar: AVATAR_MAP[handle] || 'public/logos/default.png'
+                };
+            }).filter(t => t.title && t.title.length > 5);
+            console.log(`✅ [TwitterAPI.io] ${localItems.length} tweets fetched`);
+        }
+    } catch(e) {}
+
+    // Layer 2: Nitter RSS mirrors (if API fails or low count)
+    if (localItems.length < 5) {
+        const nitterMirrors = [
+            `https://nitter.privacydev.net/i/lists/${LIST_ID_TW}/rss`,
+            `https://nitter.dafrary.com/i/lists/${LIST_ID_TW}/rss`,
+            `https://nitter.it/i/lists/${LIST_ID_TW}/rss`,
+        ];
+        for (const url of nitterMirrors) {
+            try {
+                const xml = stealthFetch(url, false);
+                if (xml && xml.length > 500 && xml.includes('<item>')) {
+                    const matches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+                    if (matches.length > 0) {
+                        for (const m of matches) {
+                            const c = m[1];
+                            const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                            const l = c.match(/<link>([\s\S]*?)<\/link>/);
+                            const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+                            const auth = c.match(/<dc:creator><!\[CDATA\[([\s\S]*?)\]\]><\/dc:creator>/);
+                            if (t && t[1].trim().length > 5) {
+                                localItems.push({
+                                    title: t[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').trim(),
+                                    link: (l?.[1] || '').replace('nitter.privacydev.net','x.com').replace('nitter.dafrary.com','x.com').replace('nitter.it','x.com'),
+                                    pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
+                                    source: 'twitter', sourceHandle: auth?.[1] || 'List', sourceName: auth?.[1] || 'Twitter List',
+                                    customAvatar: 'public/logos/default.png'
+                                });
+                            }
+                        }
+                        console.log(`✅ [Nitter] ${matches.length} tweets from ${url}`);
+                        break;
+                    }
+                }
+            } catch(e) {}
+        }
+    }
+
+    // Layer 3: RSSHub (last resort)
+    if (localItems.length < 5) {
+        const rssHubs = [
+            `https://rsshub.app/twitter/list/${LIST_ID_TW}`,
+            `https://rsshub.rssforever.com/twitter/list/${LIST_ID_TW}`,
+        ];
+        for (const url of rssHubs) {
+            try {
+                const xml = stealthFetch(url, false);
+                if (xml && xml.length > 500 && xml.includes('<item>')) {
+                    const matches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+                    for (const m of matches) {
+                        const c = m[1];
+                        const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                        const l = c.match(/<link>([\s\S]*?)<\/link>/);
+                        const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+                        if (t && t[1].trim().length > 5) {
+                            localItems.push({
+                                title: t[1].replace(/<[^>]+>/g,'&').replace(/&amp;/g,'&').trim(),
+                                link: l?.[1] || '#',
+                                pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
+                                source: 'twitter', sourceHandle: 'List', sourceName: 'Twitter List',
+                                customAvatar: 'public/logos/default.png'
+                            });
+                        }
+                    }
+                    if (matches.length > 0) { console.log(`✅ [RSSHub] ${matches.length} from ${url}`); break; }
+                }
+            } catch(e) {}
+        }
+    }
+
+    if (localItems.length > 0) {
+        twitterCache = mergeCache(twitterCache, localItems, 300);
+        saveCache();
+        writeNewsJson(); // push to public/news.json
+        console.log(`✅ Twitter cache: ${twitterCache.length} total`);
+    }
+}
+
+// Write combined cache to public/news.json for frontend consumption
+function writeNewsJson() {
+    try {
+        const combined = [...telegramCache, ...twitterCache]
+            .sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate))
+            .slice(0, 200);
+        const jsonPath = path.join(__dirname, 'public', 'news.json');
+        fs.writeFileSync(jsonPath, JSON.stringify(combined, null, 2));
+        console.log(`💾 news.json updated: ${combined.length} items`);
+    } catch(e) { console.log('❌ news.json write error:', e.message); }
+}
+
 async function startScrapers() {
-    console.log("🛡️ [V17.2] SECURE-SYNC MODE: Waiting for Local Sentinel...");
-    // Internal scrapers disabled to avoid IP blocks and noise.
-    // Relying 100% on Local Sentinel pushes.
+    console.log("🚀 [V17.3] ACTIVE SCRAPING MODE: Telegram 10s + Twitter 60s");
+    
+    // Immediate first run
+    await updateTelegram();
+    writeNewsJson();
+    await updateTwitterActive();
+
+    // Telegram every 10 seconds
+    setInterval(async () => {
+        await updateTelegram();
+        writeNewsJson();
+    }, 10000);
+
+    // Twitter every 60 seconds
+    setInterval(async () => {
+        await updateTwitterActive();
+    }, 60000);
 }
 
 app.get('/api/news/telegram', (req, res) => res.json({ items: telegramCache }));

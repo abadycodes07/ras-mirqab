@@ -7,149 +7,113 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=574">
-    <link rel="icon" href="../public/favicon.ico">
+    <link rel="stylesheet" href="style.css?v=575">
 </head>
 <body>
 
-<!-- ═══ HEADER ═══ -->
-<header class="site-header">
-    <div class="header-logo-wrap">
-        <img src="../public/logo.png" alt="راس مرقاب" class="site-logo"
-             onerror="this.style.display='none'; document.getElementById('logo-fb').style.display='block'">
-        <span id="logo-fb" style="display:none;font-size:24px;font-weight:900;color:var(--copper);">راس مرقاب</span>
-        <!-- Show-map — appears UNDER logo only when map is hidden -->
-        <button class="show-map-bm" id="show-map-bm">
-            <i class="fas fa-bookmark"></i> عرض الخريطة
-        </button>
-    </div>
+<!-- ═══ FLOATING TRANSPARENT HEADER ═══ -->
+<header class="site-header" id="site-header">
     <div class="bell-wrap">
-        <button class="bell-btn glass" id="bell-btn"><i class="fas fa-bell"></i></button>
+        <button class="bell-btn" id="bell-btn"><i class="fas fa-bell"></i></button>
         <div class="notif-dropdown glass" id="notif-panel">
             <h4>إعدادات الإشعارات</h4>
             <div class="notif-row"><label>المرئية</label><label class="sw"><input type="checkbox" checked id="sw-visual"><div class="sw-track"></div></label></div>
             <div class="notif-row"><label>الصوتية</label><label class="sw"><input type="checkbox" checked id="sw-audio"><div class="sw-track"></div></label></div>
-            <div class="notif-row" style="flex-direction:column;gap:6px;">
-                <label style="font-size:11px;">الصوت</label>
-                <input type="range" class="vol-slider" min="0" max="100" value="70">
-            </div>
         </div>
+    </div>
+    <div class="header-right">
+        <img src="../public/logo.png" alt="راس مرقاب" class="site-logo"
+             onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
+        <span id="logo-fallback" style="display:none;font-size:22px;font-weight:900;color:var(--copper);">راس مرقاب</span>
     </div>
 </header>
 
-<!-- ═══ SECTION 1 — GLOBE (1/3 viewport) ═══ -->
-<section class="globe-wrap" id="globe-wrap">
+<!-- ═══ GLOBE SECTION ═══ -->
+<section class="globe-section" id="globe-section">
     <div id="globe-container"></div>
     <div id="map-container" class="hidden"></div>
-    <!-- Controls: .dimension-toggle + data-dim is what globe.js expects -->
+    <!-- Show-map bookmark — hides when globe visible, shows when map hidden via CSS -->
+    <div class="show-map-tag hidden" id="show-map-tag">
+        <button id="show-map-btn"><i class="fas fa-bookmark"></i> عرض الخريطة</button>
+    </div>
+    <!-- Controls -->
     <div class="globe-controls">
-        <div class="globe-ctrl-row">
-            <button class="pill glass" id="pill-layers">
-                <i class="fas fa-layer-group"></i> الطبقات
-            </button>
-            <div class="dimension-toggle dim-toggle">
-                <button class="dim-btn" data-dim="2d">2D</button>
+        <div class="g-row">
+            <button class="gpill" id="pill-layers"><i class="fas fa-layer-group"></i> الطبقات</button>
+            <!-- .dimension-toggle + data-dim = globe.js initDimensionToggle() API -->
+            <div class="dimension-toggle gpill-grp">
                 <button class="dim-btn active" data-dim="3d">3D</button>
+                <button class="dim-btn" data-dim="2d">2D</button>
             </div>
         </div>
-        <div class="globe-ctrl-row">
-            <button class="pill glass hide-map-pill" id="pill-hidemap">
-                إخفاء الخريطة <i class="fas fa-chevron-up"></i>
-            </button>
+        <div class="g-row">
+            <button class="gpill gpill-wide" id="pill-hidemap">إخفاء الخريطة <i class="fas fa-chevron-up"></i></button>
         </div>
     </div>
 </section>
 
-<!-- ═══ LAYERS SIDE PANEL ═══ -->
+<!-- ═══ LAYERS PANEL ═══ -->
 <div class="layers-panel" id="layers-panel">
     <div class="layers-inner glass">
-        <div class="layers-header">
-            <button class="layers-close" id="layers-close"><i class="fas fa-times"></i></button>
+        <div class="layers-hdr">
             <span>الطبقات</span>
+            <button class="layers-close" id="layers-close"><i class="fas fa-times"></i></button>
         </div>
-        <div id="layers-list" class="layers-list"></div>
+        <div id="layers-list"></div>
     </div>
 </div>
 <div class="layers-backdrop" id="layers-backdrop"></div>
 
-<!-- ═══ SECTION 2 — BREAKING NEWS (1/3 viewport) ═══ -->
-<section class="card-aajal glass">
-    <div class="aajal-top">
-        <button class="sync-btn" id="sync-btn">
-            <i class="fas fa-sync-alt"></i> hard sync
-        </button>
-        <div class="aajal-heading-r">
-            <span>الأخبار العاجلة</span>
-            <i class="fas fa-search"></i>
-        </div>
+<!-- ═══ BREAKING NEWS ═══ -->
+<section class="news-card glass">
+    <div class="news-card-top">
+        <button class="sync-btn" id="sync-btn"><i class="fas fa-sync-alt"></i> hard sync</button>
+        <div class="news-card-title"><i class="fas fa-search"></i> الأخبار العاجلة ▾</div>
     </div>
-    <div class="urgent-title">عاجل</div>
-    <div class="news-list-wrap" id="news-feed">
+    <div class="urgent">عاجل</div>
+    <div class="news-scroll" id="news-feed">
         <div class="loading-row"><i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...</div>
     </div>
 </section>
 
-<!-- ═══ SECTION 3 — TV + WIDGETS (1/3 viewport) ═══ -->
-<section class="bottom-section">
-    <!-- Live TV Carousel -->
-    <div class="tv-section">
-        <div class="tv-section-head">
-            <div class="tv-nav-arrows">
-                <div class="tv-arrow glass" id="tv-left"><i class="fas fa-chevron-right"></i></div>
-                <div class="tv-arrow glass" id="tv-right"><i class="fas fa-chevron-left"></i></div>
-            </div>
-            <span class="tv-section-title">البث المباشر</span>
+<!-- ═══ LIVE TV ═══ -->
+<section class="tv-section">
+    <div class="tv-hdr">
+        <div class="tv-arrows">
+            <button class="tv-arrow glass" id="tv-left"><i class="fas fa-chevron-right"></i></button>
+            <button class="tv-arrow glass" id="tv-right"><i class="fas fa-chevron-left"></i></button>
         </div>
-        <div class="tv-carousel" id="tv-carousel"></div>
+        <span class="tv-title">البث المباشر</span>
     </div>
-
-    <!-- Widgets 2×2 -->
-    <div class="widgets-grid">
-        <div class="w-card glass">
-            <span class="w-badge">T7</span>
-            <span class="w-title">الذهب والعملات</span>
-            <div class="w-body" id="market-body"><div class="loading-row" style="font-size:10px;"><i class="fas fa-circle-notch fa-spin"></i></div></div>
-        </div>
-        <div class="w-card glass">
-            <span class="w-badge">T7</span>
-            <span class="w-title">توقيت العالم</span>
-            <div class="w-body" id="clocks-body"></div>
-        </div>
-        <div class="w-card glass">
-            <span class="w-badge">T7</span>
-            <span class="w-title">تتبع التحركات</span>
-            <div class="w-body" style="align-items:center;justify-content:center;">
-                <i class="fas fa-fighter-jet" style="font-size:22px;color:var(--orange);opacity:.3;"></i>
-            </div>
-        </div>
-        <div class="w-card glass">
-            <span class="w-badge">T7</span>
-            <span class="w-title">الاستخبارات السيبرانية</span>
-            <div class="w-body" style="align-items:center;justify-content:center;">
-                <i class="fas fa-shield-halved" style="font-size:22px;color:#c00;opacity:.35;"></i>
-            </div>
-        </div>
-    </div>
+    <div class="tv-row" id="tv-carousel"></div>
 </section>
 
-<!-- ═══ PiP WINDOW ═══ -->
+<!-- ═══ WIDGETS ═══ -->
+<div class="widgets-grid">
+    <div class="w-card glass"><span class="w-badge">T7</span><span class="w-title">الذهب والعملات</span><div class="w-body" id="market-body"><div class="loading-row" style="font-size:10px;"><i class="fas fa-circle-notch fa-spin"></i></div></div></div>
+    <div class="w-card glass"><span class="w-badge">T7</span><span class="w-title">توقيت العالم</span><div class="w-body" id="clocks-body"></div></div>
+    <div class="w-card glass"><span class="w-badge">T7</span><span class="w-title">تتبع التحركات</span><div class="w-body" style="align-items:center;justify-content:center;"><i class="fas fa-fighter-jet" style="font-size:24px;color:var(--orange);opacity:.25;"></i></div></div>
+    <div class="w-card glass"><span class="w-badge">T7</span><span class="w-title">الاستخبارات السيبرانية</span><div class="w-body" style="align-items:center;justify-content:center;"><i class="fas fa-shield-halved" style="font-size:24px;color:#c00;opacity:.3;"></i></div></div>
+</div>
+
+<!-- ═══ PiP ═══ -->
 <div class="pip-window glass" id="pip-window">
     <div class="pip-close" id="pip-close">✕</div>
     <div id="pip-frame"></div>
 </div>
 
-<!-- ═══ NEWS POPUP MODAL ═══ -->
+<!-- ═══ NEWS POPUP ═══ -->
 <div class="news-modal" id="news-modal">
     <div class="news-modal-inner glass">
-        <button class="news-modal-close" id="news-modal-close">✕</button>
-        <img id="nm-media" class="nm-media" src="" alt="">
-        <div class="nm-source-row">
-            <img id="nm-logo" class="nm-logo" src="" alt="">
-            <span id="nm-source" class="nm-source-lbl"></span>
-            <span id="nm-time" class="nm-time-lbl"></span>
+        <button class="nm-close" id="news-modal-close">✕</button>
+        <img id="nm-media" class="nm-img" src="" alt="">
+        <div class="nm-meta">
+            <img id="nm-logo" class="nm-logo-img" src="" alt="">
+            <span id="nm-source"></span>
+            <span id="nm-time" style="margin-right:auto;color:var(--orange);font-size:10px;"></span>
         </div>
-        <div id="nm-title" class="nm-title"></div>
-        <a id="nm-link" class="nm-link" target="_blank" rel="noopener">قراءة المزيد ←</a>
+        <div id="nm-title" class="nm-title-text"></div>
+        <a id="nm-link" class="nm-link-btn" target="_blank" rel="noopener">قراءة المزيد ←</a>
     </div>
 </div>
 
@@ -163,16 +127,15 @@
     <a href="#" class="nav-item active"><i class="fas fa-house"></i><span>الرئيسية</span></a>
 </nav>
 
-<!-- ═══ SHARED BACKEND ═══ -->
+<!-- ═══ SCRIPTS ═══ -->
 <script src="../src/assets/three.min.js"></script>
 <script src="../src/assets/globe.gl.min.js"></script>
-<script src="../src/data/feeds.js?v=574"></script>
-<script src="../src/data/conflicts.js?v=574"></script>
-<script src="../src/data/intelligence.js?v=574"></script>
-<script src="../src/data/timezones.js?v=574"></script>
-<script src="../src/globe.js?v=574"></script>
-<script src="../src/widgets/breaking-news.js?v=574"></script>
-<script src="main.js?v=574"></script>
-
+<script src="../src/data/feeds.js?v=575"></script>
+<script src="../src/data/conflicts.js?v=575"></script>
+<script src="../src/data/intelligence.js?v=575"></script>
+<script src="../src/data/timezones.js?v=575"></script>
+<script src="../src/globe.js?v=575"></script>
+<script src="../src/widgets/breaking-news.js?v=575"></script>
+<script src="main.js?v=575"></script>
 </body>
 </html>

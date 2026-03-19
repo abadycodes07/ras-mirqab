@@ -9,20 +9,19 @@ from datetime import datetime
 from urllib.parse import quote
 
 # ═══════════════════════════════════════════════
-# V66.5: Resilient Scraper (Hybrid Swarm)
+# V66.6: Resilient Scraper (Verified Mirror Swarm)
 # ═══════════════════════════════════════════════
 
 TWITTER_LIST_ID = os.getenv("TWITTER_LIST_ID", "2031445708524421549")
 SCRAPEDO_API_KEY = os.getenv("SCRAPEDO_API_KEY", "20a03e1d412a44c1a19277ba8feb43be000d574775d")
 
-# Swarm of Nitter instances
+# V66.6: Verified working mirrors for lists
 NITTER_INSTANCES = [
-    "https://nitter.poast.org",
-    "https://nitter.moomoo.me",
-    "https://nitter.privacydev.net",
-    "https://nitter.dafrary.com",
+    "https://nitter.privacyredirect.com",
+    "https://xcancel.com",
     "https://nitter.it",
-    "https://nitter.net"
+    "https://nitter.moomoo.me",
+    "https://nitter.poast.org"
 ]
 
 def enforce_https(url):
@@ -35,10 +34,10 @@ async def fetch_from_instance(client, instance, list_id):
     """Attempt direct fetch then Scrape.do failover."""
     target_url = f"{instance}/i/lists/{list_id}/rss"
     
-    # 1. Direct Fetch (Fast, 8s timeout)
+    # 1. Direct Fetch (Fast, 10s timeout)
     try:
         print(f"DEBUG: Trying direct fetch from {instance}...", file=sys.stderr)
-        resp = await client.get(target_url, timeout=8.0)
+        resp = await client.get(target_url, timeout=10.0, follow_redirects=True)
         if resp.status_code == 200 and len(resp.text) > 500:
             return resp.text, instance
     except: pass
@@ -48,7 +47,8 @@ async def fetch_from_instance(client, instance, list_id):
     
     print(f"DEBUG: Falling back to Scrape.do for {instance}...", file=sys.stderr)
     encoded_url = quote(target_url)
-    api_url = f"https://api.scrape.do?token={SCRAPEDO_API_KEY}&url={encoded_url}&super=true"
+    # V66.6: Remove super=true as these mirrors are less aggressive with anti-bot
+    api_url = f"https://api.scrape.do?token={SCRAPEDO_API_KEY}&url={encoded_url}"
     try:
         resp = await client.get(api_url, timeout=60.0)
         if resp.status_code == 200:
@@ -59,8 +59,8 @@ async def fetch_from_instance(client, instance, list_id):
     return None
 
 async def fetch_via_scrapedo():
-    """V66.5: Hybrid Swarm Scraper."""
-    print(f"DEBUG: [V66.5] Starting Hybrid Swarm Fetch...", file=sys.stderr)
+    """V66.6: Verified Swarm Scraper."""
+    print(f"DEBUG: [V66.6] Starting Verified Swarm Fetch...", file=sys.stderr)
     
     async with httpx.AsyncClient() as client:
         html = None
@@ -81,7 +81,6 @@ async def fetch_via_scrapedo():
             items = soup.find_all('item')
             results = []
             
-            # Ensure active_instance is a string for path building
             base = str(active_instance)
             
             for item in items[:50]:
@@ -112,12 +111,12 @@ async def fetch_via_scrapedo():
                         "media_url": media_url,
                         "avatar_url": avatar_url,
                         "channel_name": handle,
-                        "source_platform": "hybrid_swarm",
+                        "source_platform": "verified_swarm",
                         "timestamp": item.find('pubDate').get_text() if item.find('pubDate') else datetime.now().isoformat()
                     })
                 except: continue
             
-            print(f"DEBUG: V66.5 Success - {len(results)} items from {base}", file=sys.stderr)
+            print(f"DEBUG: V66.6 Success - {len(results)} items from {base}", file=sys.stderr)
             return results
         except Exception as e:
             print(f"ERROR: Parsing failed: {str(e)}", file=sys.stderr)

@@ -10,5 +10,8 @@ cmds = [
     "npx playwright install chromium --with-deps"
 ]
 
+[env]
+LD_LIBRARY_PATH = "/usr/lib:/usr/local/lib:/nix/var/nix/profiles/default/lib:$LD_LIBRARY_PATH"
+
 [start]
 cmd = "node proxy.js"

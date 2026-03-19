@@ -7,14 +7,22 @@ import httpx
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-# V58.0: Robust 2-Layer "GraphQL + Apify" Scraper
+# V61.0: Universal 4-Layer "Stealth + Professional" Scraper
 # Targeted List: https://x.com/i/lists/2031445708524421549
 TWITTER_LIST_ID = int(os.getenv("TWITTER_LIST_ID", "2031445708524421549"))
-# Nitter instances for fallback (prioritizing RSS-enabled ones)
+SOCIALDATA_API_KEY = os.getenv("SOCIALDATA_API_KEY")
+
+# Expanded Nitter instances for fallback (prioritizing RSS-enabled ones)
 NITTER_INSTANCES = [
     "https://nitter.perennialte.ch",
     "https://nitter.cz",
     "https://nitter.it",
+    "https://nitter.privacydev.net",
+    "https://nitter.unixfox.eu",
+    "https://nitter.moomoo.me",
+    "https://nitter.d420.me",
+    "https://nitter.rawbit.ninja",
+    "https://nitter.tiekoetter.com",
     "https://nitter.net"
 ]
 
@@ -207,9 +215,43 @@ async def layer3_playwright_nitter():
         print(f"DEBUG: Layer 3 (Playwright) failed: {e}", file=sys.stderr)
         return []
 
+async def layer4_socialdata():
+    """Layer 4: Professional-Grade API (SocialData.tools)"""
+    if not SOCIALDATA_API_KEY:
+        print("DEBUG: Layer 4 skipped (SOCIALDATA_API_KEY missing).", file=sys.stderr)
+        return []
+        
+    print(f"DEBUG: Initiating Layer 4 (SocialData API)...", file=sys.stderr)
+    url = f"https://api.socialdata.tools/twitter/list/{TWITTER_LIST_ID}/tweets"
+    headers = {"Authorization": f"Bearer {SOCIALDATA_API_KEY}", "Accept": "application/json"}
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, headers=headers, timeout=20.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                tweets = data.get("tweets", [])
+                results = []
+                for t in tweets[:20]:
+                    results.append({
+                        "headline_text": t.get("full_text", ""),
+                        "media_url": t.get("entities", {}).get("media", [{}])[0].get("media_url_https"),
+                        "channel_name": t.get("user", {}).get("name", "News"),
+                        "source_platform": "socialdata",
+                        "timestamp": t.get("created_at")
+                    })
+                print(f"DEBUG: Layer 4 found {len(results)} items.", file=sys.stderr)
+                return results
+            else:
+                print(f"DEBUG: Layer 4 (SocialData) status {resp.status_code}", file=sys.stderr)
+    except Exception as e:
+        print(f"DEBUG: Layer 4 (SocialData) failed: {e}", file=sys.stderr)
+        
+    return []
+
 async def fetch_breaking_news():
     # Attempt Layer 1 (X/Twitter official GraphQL)
-    print("DEBUG: Attempting Layer 1 (X/twscrape)...", file=sys.stderr)
+    print("DEBUG: [V61.0] Attempting Layer 1 (X/twscrape)...", file=sys.stderr)
     data = await layer1_twscrape()
     
     # Fallback to Layer 2 (Nitter RSS)
@@ -221,6 +263,11 @@ async def fetch_breaking_news():
     if not data:
         print("DEBUG: Layer 2 failed. Falling back to Layer 3 (Playwright Browser).", file=sys.stderr)
         data = await layer3_playwright_nitter()
+        
+    # Fallback to Layer 4 (SocialData.tools)
+    if not data:
+        print("DEBUG: Layer 3 failed. Falling back to Layer 4 (SocialData API).", file=sys.stderr)
+        data = await layer4_socialdata()
         
     return data
 

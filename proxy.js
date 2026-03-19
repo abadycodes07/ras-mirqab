@@ -440,7 +440,7 @@ async function fetchTwitterAPI() {
 
 async function updateTwitterActive() {
     console.log('📡 [Active] Twitter cycle start (V58.0 — 2-Layer Python)...');
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const pythonCmd = '/app/venv/bin/python3.11';
     
     exec(`${pythonCmd} scripts/twitter_scraper.py`, (error, stdout, stderr) => {
         if (stderr) {

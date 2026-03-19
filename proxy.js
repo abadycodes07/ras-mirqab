@@ -561,7 +561,7 @@ app.get('/api/debug/env', (req, res) => {
 
 app.get('/api/debug/twitter', (req, res) => {
     console.log('🔍 [Debug] Manually triggering Twitter Scraper...');
-    const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
+    const pythonCmd = 'python3.11';
     exec(`${pythonCmd} scripts/twitter_scraper.py`, (error, stdout, stderr) => {
         res.header("Content-Type", "application/json");
         res.send({

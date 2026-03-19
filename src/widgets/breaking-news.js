@@ -517,8 +517,11 @@ var BreakingNewsWidget = (function () {
                         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));
                         var container = document.getElementById('news-list') || document.getElementById('breaking-news-body');
                         if (container) {
-                             if (window.MobileApp && MobileApp.renderMobileNewsItems) {
-                                 MobileApp.renderMobileNewsItems(container, localCache);
+                             // V57.3: Support mobile renderOverride
+                             if (window.BreakingNewsWidget && window.BreakingNewsWidget.renderOverride) {
+                                 window.BreakingNewsWidget.renderOverride(container, localCache);
+                             } else if (window.mobileRenderNews) {
+                                 window.mobileRenderNews(localCache);
                              } else {
                                  renderItems(container, localCache);
                              }
@@ -548,26 +551,33 @@ var BreakingNewsWidget = (function () {
     function renderItems(container, items) {
         container.innerHTML = '';
         var AVATARS = {
-            'alrougui': 'public/logos/alrougui.jpg',
-            'alekhbariyaNews': 'public/logos/alekhbariyanews.jpg',
-            'alekhbariyabrk': 'public/logos/alekhbariyabrk.jpg',
-            'alekhbariyaBRK': 'public/logos/alekhbariyabrk.jpg',
-            'NewsNow4USA': 'public/logos/newsnow.jpg',
-            'modgovksa': 'public/logos/modgovksa2.png',
-            'AsharqNewsBrk': 'public/logos/asharq2.jpg',
-            'AlHadath': 'public/logos/hadath.png',
-            'AlArabiya_Brk': 'public/logos/alarabiya.png',
-            'SkyNewsArabia_B': 'public/logos/skynews.png',
-            'RTonline_ar': 'public/logos/rt.png',
-            'araReuters': 'https://www.reuters.com/pf/resources/images/reuters/favicon.ico',
-            'SABQ_NEWS': 'public/logos/sabq.png',
-            'AjelNews24': 'public/logos/ajelnews.jpg',
-            'SkyNewsArabia_Breaking': 'public/logos/skynews.png',
-            'RT_Arabic': 'public/logos/rt.png',
-            'ajanews': 'public/logos/ajanews_new.png',
-            'alhadath_brk': 'public/logos/hadath.png',
-            'i24news-ar': 'public/logos/i24news.png',
-            'sabq-org': 'public/logos/sabq.png'
+            // ─ Telegram sources ─
+            'alrougui':              'public/logos/alrougui.jpg',
+            'alekhbariyanews':       'public/logos/alekhbariyanews.jpg',
+            'alekhbariyabrk':        'public/logos/alekhbariyabrk.jpg',
+            'alekhbariyaBRK':        'public/logos/alekhbariyabrk.jpg',
+            'newsnow4usa':           'public/logos/newsnow.jpg',
+            'modgovksa':             'public/logos/modgovksa2.png',
+            'asharqnewsbrk':         'public/logos/asharq2.jpg',
+            'alhadath':              'public/logos/hadath.png',
+            'alhadath_brk':          'public/logos/hadath.png',
+            'alarabiya_brk':         'public/logos/alarabiya.png',
+            'alarabiya':             'public/logos/alarabiya.png',
+            'skynewsarabia_b':       'public/logos/skynews.png',
+            'skynewsarabia_breaking':'public/logos/skynews.png',
+            'skynews_ar':            'public/logos/skynews.png',
+            'rt_arabic':             'public/logos/rt.png',
+            'rtonline_ar':           'public/logos/rt.png',
+            'arareuters':            'https://www.reuters.com/pf/resources/images/reuters/favicon.ico',
+            'sabq_news':             'public/logos/kbsalsaud.png',
+            'ajelnews24':            'public/logos/ajelnews.jpg',
+            'ajanews':               'public/logos/ajanews_new.png',
+            // ─ Twitter/X sources — show Twitter bird or channel logo ─
+            'rss-app':               'public/logos/aljazeera.png', // RSS.app aggregates Arabic news
+            'twitter-list':          'public/logos/alarabiya.png',
+            // ─ RSS fallbacks ─
+            'alhadath2':             'public/logos/alhadath3.png',
+            'aljazeera':             'public/logos/aljazeera.png',
         };
 
         items.forEach(function (item) {

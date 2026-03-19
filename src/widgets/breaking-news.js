@@ -135,9 +135,8 @@ var BreakingNewsWidget = (function () {
         renderSourceList();
         loadNews();
         if (refreshTimer) clearInterval(refreshTimer);
-        refreshTimer = setInterval(function() {
-            loadNews();
-        }, 7000); // 7 seconds for "Instant" feel
+        // V66.0: Turbo 30s Polling (Zero-Lag)
+        refreshTimer = setInterval(fetchServerCache, 30000); 
 
         // Initialize Hover Popup
         if (!document.querySelector('.bn-hover-popup')) {
@@ -292,24 +291,6 @@ var BreakingNewsWidget = (function () {
             fetchServerCache();
         }
 
-        var newItems = await fetchAllFeeds();
-        
-        // 2. Persistence Guard: Merge new items with local cache instead of replacing
-        // This stops news from "vanishing" if a fetch fails
-        if (newItems && newItems.length > 0) {
-            var combined = [...newItems, ...localCache];
-            var seen = new Set();
-            var merged = combined.filter(function(item) {
-                var key = (item.title || '') + (item.sourceHandle || '');
-                if (seen.has(key)) return false;
-                seen.add(key);
-                return true;
-            }).sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); }).slice(0, 150);
-
-            localCache = merged;
-            localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));
-        }
-
         if (localCache.length === 0 && isFirstLoad) {
             container.innerHTML = 
                 '<div class="loading-state-v12" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:50px; color:#e67e22;">' +
@@ -319,73 +300,14 @@ var BreakingNewsWidget = (function () {
             return;
         }
 
-        // 3. New News Notification
-        var newCount = 0;
-        localCache.forEach(function (item) {
-            var id = (item.link || '') + (item.title ? item.title.substring(0, 20) : item.pubDate);
-            if (!seenIds.has(id)) {
-                if (!isFirstLoad) { 
-                    newCount++; 
-                    item.isNew = true; 
-                }
-                seenIds.add(id);
-            }
-        });
-
-        if (newCount > 0 && window.RasMirqabNotification) {
-            RasMirqabNotification.show('تحديث عاجل', 'تم رصد ' + newCount + ' أخبار جديدة');
-        }
-
-        isFirstLoad = false;
-        
-        // Limit for mobile display
-        var displayItems = (window.innerWidth <= 768) ? localCache.slice(0, 30) : localCache;
-        
-        // V51: External Render Hook Support
-        if (BreakingNewsWidget.renderOverride) {
-            BreakingNewsWidget.renderOverride(container, displayItems);
-        } else {
-            renderItems(container, displayItems);
-        }
+        // V66.0 Zero-Lag Strategy: We no longer trigger scrapes from the browser.
+        // We rely 100% on the server-side news.json cache which is updated every 60s.
+        await fetchServerCache();
         
         checkProxyStatus();
     }
 
-    async function fetchAllFeeds() {
-        var fetchResults = [];
-
-        // ═══════════════════════════════════════════════════════════
-        // V57.9: 3-LAYER TWITTER PIPELINE
-        // ═══════════════════════════════════════════════════════════
-        
-
-        async function tryLayer3() {
-            try {
-                const res = await fetch(BACKEND_URL + '/api/twitter-scraper-fallback');
-                const data = await res.json();
-                if (data && !data.error) return data;
-            } catch(e) { console.warn('Layer 3 (Python Scraper) failed'); }
-            return [];
-        }
-
-        // Execute Chain
-        let twitterItems = await tryLayer3();
-
-        if (twitterItems) fetchResults = fetchResults.concat(twitterItems);
-
-        // Map to internal fields for backward compatibility with renderItems
-        return fetchResults.map(it => ({
-            id: (it.timestamp + it.headline_text).substring(0, 32),
-            title: it.headline_text,
-            mediaUrl: it.media_url,
-            avatarUrl: it.avatar_url, // V61.4: Capture from backend
-            sourceName: it.channel_name,
-            sourceHandle: it.channel_name,
-            source: it.source_platform.includes('python') || it.source_platform === 'twitter' || it.source_platform === 'socialdata' ? 'twitter' : 'rss',
-            pubDate: it.timestamp,
-            source_platform: it.source_platform
-        }));
-    }
+    // V66.0: fetchAllFeeds is deprecated in favor of server-side background scraping
 
     async function fetchServerCache() {
         console.log('--- NEWS-ENGINE: ATTEMPTING CACHE SYNC ---');
@@ -409,17 +331,29 @@ var BreakingNewsWidget = (function () {
                     const data = await res.json();
                     if (data && data.length > 0) {
                         console.log('--- NEWS-ENGINE: SYNC SUCCESS FROM:', path, 'ITEMS:', data.length);
+                        // V66.0: Handle de-duplication and notifications inside cache sync
+                        const newItems = data.filter(it => !seenIds.has((it.link || '') + (it.title || '').substring(0,20)));
+                        if (!isFirstLoad && newItems.length > 0) {
+                            newItems.forEach(it => it.isNew = true);
+                            if (window.RasMirqabNotification) {
+                                RasMirqabNotification.show('تحديث عاجل', `تم رصد ${newItems.length} أخبار جديدة`);
+                            }
+                        }
+                        newItems.forEach(it => seenIds.add((it.link || '') + (it.title || '').substring(0,20)));
+                        isFirstLoad = false;
+
                         localCache = data;
                         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));
+                        
                         var container = document.getElementById('news-list') || document.getElementById('breaking-news-body');
                         if (container) {
-                             // V57.3: Support mobile renderOverride
+                             const displayItems = (window.innerWidth <= 768) ? localCache.slice(0, 30) : localCache;
                              if (window.BreakingNewsWidget && window.BreakingNewsWidget.renderOverride) {
-                                 window.BreakingNewsWidget.renderOverride(container, localCache);
+                                 window.BreakingNewsWidget.renderOverride(container, displayItems);
                              } else if (window.mobileRenderNews) {
-                                 window.mobileRenderNews(localCache);
+                                 window.mobileRenderNews(displayItems);
                              } else {
-                                 renderItems(container, localCache);
+                                 renderItems(container, displayItems);
                              }
                         }
                         return;

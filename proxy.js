@@ -439,7 +439,7 @@ async function fetchTwitterAPI() {
 }
 
 async function updateTwitterActive() {
-    console.log('📡 [Active] Twitter cycle start (V62.0 — Scrape.do)...');
+    console.log('📡 [Active] Twitter cycle start (V66.0 — Scrape.do)...');
     const pythonCmd = '/app/venv/bin/python3.11';
     
     exec(`${pythonCmd} scripts/twitter_scraper.py`, (error, stdout, stderr) => {
@@ -503,10 +503,10 @@ async function startScrapers() {
         writeNewsJson();
     }, 5000);
 
-    // Twitter every 2 minutes (V62.0)
+    // Twitter every 60 seconds (V66.0 Zero-Lag)
     setInterval(async () => {
         await updateTwitterActive();
-    }, 120000); 
+    }, 60000); 
 }
 
 app.get('/api/news/telegram', (req, res) => res.json({ items: telegramCache }));
@@ -579,4 +579,4 @@ app.get('/health', (req, res) => res.json({ status: "ok", mode: "sentinel-sync" 
 startScrapers().catch(console.error);
 setInterval(refreshProxyPool, 600000);
 
-app.listen(PORT, () => console.log(`🚀 V14 ENGINE LIVE - Priority Telegram Active`));
+app.listen(PORT, () => console.log(`🚀 V66.0 ENGINE LIVE - Zero-Lag News Active`));

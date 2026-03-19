@@ -5,7 +5,6 @@ import os
 from twscrape import API, AccountsPool, gather
 import httpx
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
 from datetime import datetime
 
 # V58.0: Robust 2-Layer "GraphQL + Apify" Scraper
@@ -139,6 +138,12 @@ async def layer3_playwright_nitter():
     """Layer 3: Browser-based scraping (The "Nuclear" Fallback)"""
     print("DEBUG: Initiating Layer 3 (Playwright Browser Fallback)...", file=sys.stderr)
     
+    try:
+        from playwright.async_api import async_playwright
+    except ImportError as e:
+        print(f"DEBUG: Playwright library not available: {e}", file=sys.stderr)
+        return []
+        
     # Instance that worked for the subagent's browser
     instance = "https://nitter.tiekoetter.com"
     url = f"{instance}/i/lists/{TWITTER_LIST_ID}"

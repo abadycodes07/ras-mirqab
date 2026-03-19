@@ -45,7 +45,9 @@
     function cleanText(s) {
         if (!s) return '';
         return s.replace(/&rlm;/gi,'').replace(/&lrm;/gi,'').replace(/[\u200E\u200F\u202A-\u202E]/g,'')
-                .replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>').trim();
+                .replace(/&amp;/gi,'&').replace(/&lt;/gi,'<').replace(/&gt;/gi,'>')
+                .replace(/https?:\/\/\S+/g, '')  // strip bare URLs from tweet text
+                .replace(/\s{2,}/g, ' ').trim();
     }
 
     function relTime(d) {
@@ -90,11 +92,9 @@
         // 2D/3D: globe.js handles via .dimension-toggle + data-dim
         document.getElementById('pill-hidemap')?.addEventListener('click', () => {
             document.body.classList.add('map-hidden');
-            document.getElementById('show-map-tag')?.classList.remove('hidden');
         });
         document.getElementById('show-map-btn')?.addEventListener('click', () => {
             document.body.classList.remove('map-hidden');
-            document.getElementById('show-map-tag')?.classList.add('hidden');
         });
 
         const panel    = document.getElementById('layers-panel');
@@ -202,10 +202,17 @@
 
     /* ─ News Init ─ */
     function initNews() {
+        // CACHE-FIRST: load localStorage immediately (synchronous, instant paint)
+        try {
+            const lsc = JSON.parse(localStorage.getItem('rasmirqab_bn_cache') || 'null');
+            if (lsc && lsc.length) window.mobileRenderNews(lsc);
+        } catch(e) {}
+
         if (window.BreakingNewsWidget) {
             window.BreakingNewsWidget.renderOverride = (_, items) => window.mobileRenderNews(items);
             window.BreakingNewsWidget.init();
         }
+        // Then fetch fresh data from server
         fetchNewsCache();
         setInterval(fetchNewsCache, 10000);
         document.getElementById('sync-btn')?.addEventListener('click', () => {
@@ -258,11 +265,15 @@
                 <img src="https://img.youtube.com/vi/${ch.id}/mqdefault.jpg" class="tv-thumb" onerror="this.style.opacity='.15'">
                 <span class="tv-badge">LIVE</span>
                 <span class="tv-name">${ch.name}</span>
+                <div class="tv-play-overlay"><div class="tv-play-icon"><i class="fas fa-play"></i></div></div>
                 <div class="tv-player" id="player-${ch.id}"></div>
             </div>`).join('');
 
+        // Clicks on overlay trigger playback (NOT on card itself to avoid iframe tap-through)
+        carousel.querySelectorAll('.tv-play-overlay').forEach(ov =>
+            ov.addEventListener('click', e => { e.stopPropagation(); playTV(ov.closest('.tv-card').dataset.id); }));
         carousel.querySelectorAll('.tv-card').forEach(c =>
-            c.addEventListener('click', () => playTV(c.dataset.id)));
+            c.addEventListener('click', e => { if (!c.classList.contains('playing')) playTV(c.dataset.id); }));
 
         document.getElementById('tv-left')?.addEventListener('click', () =>
             carousel.scrollBy({ left:-150, behavior:'smooth' }));
@@ -282,19 +293,25 @@
     }
 
     function playTV(id, muted=false) {
-        if (state.activeChannelId && state.activeChannelId!==id) {
-            document.getElementById('player-'+state.activeChannelId)?.let(p => { p.style.display='none'; p.innerHTML=''; });
-            document.getElementById('tv-'+state.activeChannelId)?.classList.remove('playing');
+        // Stop previously playing channel
+        if (state.activeChannelId && state.activeChannelId !== id) {
+            const prevPlayer = document.getElementById('player-' + state.activeChannelId);
+            const prevCard   = document.getElementById('tv-' + state.activeChannelId);
+            if (prevPlayer) { prevPlayer.style.display='none'; prevPlayer.innerHTML=''; }
+            if (prevCard)   { prevCard.classList.remove('playing'); }
         }
-        state.activeChannelId = id; state.pipChannel = id;
-        const card   = document.getElementById('tv-'+id);
-        const player = document.getElementById('player-'+id);
+        state.activeChannelId = id;
+        state.pipChannel = id;
+        const card   = document.getElementById('tv-' + id);
+        const player = document.getElementById('player-' + id);
         if (!card || !player) return;
-        document.querySelectorAll('.tv-card').forEach(c => c.classList.remove('playing'));
-        card.classList.add('playing'); player.style.display='block';
+        card.classList.add('playing');
+        player.style.display = 'block';
+        const origin = encodeURIComponent(window.location.origin || 'https://abadycodes07.github.io');
         player.innerHTML = `<iframe
-            src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${muted?1:0}&controls=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1"
-            allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>`;
+            src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=${muted?1:0}&controls=1&rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&origin=${origin}"
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+            allowfullscreen></iframe>`;
     }
 
     /* ─ PiP ─ */

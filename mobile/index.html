@@ -25,6 +25,10 @@
         <img src="../public/logo.png" alt="راس مرقاب" class="site-logo"
              onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block'">
         <span id="logo-fallback" style="display:none;font-size:22px;font-weight:900;color:var(--copper);">راس مرقاب</span>
+        <!-- Show-map button — lives under logo, hidden by default, shown via body.map-hidden CSS -->
+        <button class="show-map-hdr" id="show-map-btn">
+            <i class="fas fa-bookmark"></i> عرض الخريطة
+        </button>
     </div>
 </header>
 
@@ -32,10 +36,6 @@
 <section class="globe-section" id="globe-section">
     <div id="globe-container"></div>
     <div id="map-container" class="hidden"></div>
-    <!-- Show-map bookmark — hides when globe visible, shows when map hidden via CSS -->
-    <div class="show-map-tag hidden" id="show-map-tag">
-        <button id="show-map-btn"><i class="fas fa-bookmark"></i> عرض الخريطة</button>
-    </div>
     <!-- Controls -->
     <div class="globe-controls">
         <div class="g-row">

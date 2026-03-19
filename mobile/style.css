@@ -49,7 +49,19 @@ body {
 
 /* Logo */
 .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.site-logo { height: 40px; width: auto; max-width: 140px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(212,123,74,.4)); }
+.site-logo { height: 38px; width: auto; max-width: 130px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(212,123,74,.4)); }
+
+/* Show-map button — inside header, under logo */
+.show-map-hdr {
+    display: none; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 0 0 12px 12px;
+    font-size: 11px; font-weight: 700; color: var(--orange);
+    border: 1px solid var(--orange); border-top: none;
+    background: rgba(255,112,26,.12); backdrop-filter: var(--blur);
+    box-shadow: 0 4px 18px rgba(255,112,26,.35), 0 0 12px rgba(255,112,26,.2);
+    cursor: pointer; white-space: nowrap;
+}
+body.map-hidden .show-map-hdr { display: flex; }
 
 /* Notification panel */
 .notif-dropdown {
@@ -142,8 +154,8 @@ body.map-hidden .news-card { margin-top: calc(var(--safe-top) + 68px); }
 .sync-btn { display:flex; align-items:center; gap:5px; font-size:11px; font-family:monospace; color:var(--t3); cursor:pointer; background:none; border:none; }
 .sync-btn:hover { color:var(--orange); }
 .news-card-title { font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px; }
-.urgent { font-size:34px; font-weight:950; font-style:italic; color:var(--copper); line-height:1; margin-bottom:8px; }
-.news-scroll { max-height: 190px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--orange-dim) transparent; }
+.urgent { font-size: 28px; font-weight: 950; font-style: italic; color: var(--copper); line-height: 1; margin-bottom: 6px; }
+.news-scroll { max-height: 155px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--orange-dim) transparent; }
 .loading-row { color:var(--t3); text-align:center; padding:18px; font-size:12px; display:flex; align-items:center; justify-content:center; gap:8px; }
 
 /* News items */
@@ -183,14 +195,18 @@ body.map-hidden .news-card { margin-top: calc(var(--safe-top) + 68px); }
 .tv-arrow:active { background:var(--orange-dim); color:var(--orange); }
 .tv-row { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; -webkit-overflow-scrolling:touch; }
 .tv-row::-webkit-scrollbar { display:none; }
-.tv-card { position:relative; min-width:120px; width:120px; height:72px; border-radius:12px; overflow:hidden; cursor:pointer; flex-shrink:0; transition:transform .2s, box-shadow .2s; border:1px solid transparent; }
+.tv-card { position:relative; min-width:120px; width:120px; height:72px; border-radius:12px; overflow:hidden; cursor:pointer; flex-shrink:0; transition:transform .2s, box-shadow .2s; border:1px solid transparent; user-select:none; }
 .tv-card:active { transform:scale(.96); }
 .tv-card.playing { min-width:185px; width:185px; box-shadow:0 0 20px var(--orange-dim); border-color:var(--orange); }
-.tv-thumb { width:100%; height:100%; object-fit:cover; opacity:.7; display:block; }
-.tv-badge { position:absolute; top:5px; right:5px; background:#e50000; color:#fff; font-size:8px; font-weight:900; padding:2px 6px; border-radius:4px; }
-.tv-name { position:absolute; bottom:6px; right:6px; font-size:9px; font-weight:800; text-shadow:0 1px 4px rgba(0,0,0,.9); }
-.tv-player { position:absolute; inset:0; display:none; }
-.tv-player iframe { width:100%; height:100%; border:none; }
+.tv-thumb { width:100%; height:100%; object-fit:cover; opacity:.7; display:block; pointer-events:none; }
+.tv-badge { position:absolute; top:5px; right:5px; background:#e50000; color:#fff; font-size:8px; font-weight:900; padding:2px 6px; border-radius:4px; pointer-events:none; }
+.tv-name { position:absolute; bottom:6px; right:6px; font-size:9px; font-weight:800; text-shadow:0 1px 4px rgba(0,0,0,.9); pointer-events:none; }
+/* Play button overlay — captures tap, prevents iframe stealing navigation */
+.tv-play-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:5; cursor:pointer; }
+.tv-card.playing .tv-play-overlay { display:none; }
+.tv-play-icon { width:34px; height:34px; background:rgba(0,0,0,.55); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; color:#fff; border:2px solid rgba(255,255,255,.3); }
+.tv-player { position:absolute; inset:0; display:none; z-index:4; }
+.tv-player iframe { width:100%; height:100%; border:none; pointer-events:auto; }
 
 /* ═══ WIDGETS ═══ */
 .widgets-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 10px; }

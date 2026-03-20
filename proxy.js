@@ -148,9 +148,9 @@ async function startScrapers() {
     await updateTelegram();
     updateTwitter();
 
-    // V71: Optimized Intervals
-    setInterval(updateTelegram, 1 * 60 * 1000); // 1 minute (Direct - Save credits)
-    setInterval(updateTwitter, 5 * 60 * 1000);  // 5 minutes (Scrape-do)
+    // V71.1: High-Frequency Cycles
+    setInterval(updateTelegram, 20 * 1000);    // 20 seconds (Direct)
+    setInterval(updateTwitter, 5 * 60 * 1000); // 5 minutes (Scrape-do)
 }
 
 app.listen(PORT, () => {

@@ -31,7 +31,7 @@ function parseTelegramItems(html, channel) {
     const results = [];
     
     $('.tgme_widget_message_wrap').each((i, el) => {
-        if (i >= 10) return; // Limit to 10 latest
+        if (i >= 30) return; // Deeper look at the web view
         const $msg = $(el);
         
         const title = $msg.find('.tgme_widget_message_text').text().trim();

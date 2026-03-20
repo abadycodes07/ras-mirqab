@@ -68,7 +68,7 @@ function parseTwitterRSS(xml) {
     const results = [];
     
     $('item').each((i, el) => {
-        if (i >= 40) return;
+        if (i >= 100) return; // Increased depth for completeness
         const $item = $(el);
         const title = $item.find('title').text().trim();
         const link = $item.find('link').text().trim();

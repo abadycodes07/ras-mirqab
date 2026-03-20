@@ -79,21 +79,22 @@ async function updateTwitter() {
 }
 
 async function updateTelegram() {
-    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.5)...\n`);
+    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.6)...\n`);
     const result = await runWorker('telegram_shield');
     if (result) {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
+                // V75.6: Iron Merge (Never discard older news)
                 const newItems = data.map(it => ({ ...it, source: "telegram" }));
                 const combined = [...newItems, ...telegramCache];
                 const seen = new Set();
                 telegramCache = combined.filter(it => {
-                    const key = it.link || it.title;
-                    if (seen.has(key)) return false;
+                    const key = (it.link || it.title || "").substring(0, 100);
+                    if (!key || seen.has(key)) return false;
                     seen.add(key);
                     return true;
-                }).slice(0, 100);
+                }).slice(0, 200); // Increased to 200
 
                 console.log(`✅ [Telegram] Direct Shield Success. Cache: ${telegramCache.length}`);
                 writeNewsJson();

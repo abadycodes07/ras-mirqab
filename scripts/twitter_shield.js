@@ -9,32 +9,66 @@ const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "76445d6feeb2455f80f40a3e27
 const LIST_ID = "2031445708524421549";
 const NITTER_MIRRORS = []; // DISABLED FOR CREDIT SHIELD
 
+let lastPremiumWall = 0;
+const PREMIUM_COOLDOWN = 60 * 60 * 1000; // 1 HOUR
+
 async function fetchTwitterBruteForce() {
     let results = [];
+    const now = Date.now();
 
-    // 1. PRIMARY: Premium Scrape.do (List API)
-    // V76.0: RESTORED PREMIUM STATUS PER USER REQUEST
-    try {
-        process.stderr.write(`📡 [Twitter] V76.0: Premium List Scrape (List: ${LIST_ID})...\n`);
-        const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
-        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
-        
-        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(90000) });
-        if (resp.ok) {
-            const html = await resp.text();
-            results = parseTwitterSyndication(html);
-            if (results && results.length > 3) {
-                process.stderr.write(`✅ [Twitter] Premium Success (${results.length} items)\n`);
-                return results;
+    // 1. PRIMARY: Premium Scrape.do (with Credit Lock)
+    if (now - lastPremiumWall > PREMIUM_COOLDOWN) {
+        try {
+            process.stderr.write(`📡 [Twitter] V76.1: Premium Attempt (List: ${LIST_ID})...\n`);
+            const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
+            const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
+            
+            const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(90000) });
+            if (resp.ok) {
+                const html = await resp.text();
+                // Wall Detection
+                if (html.includes("login-form") || html.includes("Sign in") || html.includes("auth_token")) {
+                    process.stderr.write(`⚠️ [Twitter] Premium hit Wall. LOCKING for 1 hour.\n`);
+                    lastPremiumWall = now;
+                } else {
+                    results = parseTwitterSyndication(html);
+                    if (results && results.length > 3) {
+                        process.stderr.write(`✅ [Twitter] Premium Success (${results.length} items)\n`);
+                        return results;
+                    }
+                }
             }
-        }
-    } catch (e) { process.stderr.write(`⚠️ [Twitter] Premium Scrape Failed: ${e.message}\n`); }
+        } catch (e) { process.stderr.write(`⚠️ [Twitter] Premium Failed: ${e.message}\n`); }
+    } else {
+        process.stderr.write(`🛡️ [Twitter] Premium locked (Cooldown). Skipping to Mirrors.\n`);
+    }
 
-    // 2. SECONDARY: High-Reliability RSS Recovery (Zero Credits)
+    // 2. SECONDARY: Nitter Swarm Fallback (Zero Credits)
+    const MIRRORS = [
+        `https://nitter.poast.org/i/lists/${LIST_ID}`,
+        `https://nitter.privacydev.net/i/lists/${LIST_ID}`,
+        `https://nitter.dafrary.com/i/lists/${LIST_ID}`
+    ];
+    for (const mirror of MIRRORS) {
+        try {
+            process.stderr.write(`📡 [Twitter] V76.1: Mirror Fallback (${new URL(mirror).hostname})...\n`);
+            const resp = await fetch(mirror, { signal: AbortSignal.timeout(20000) });
+            if (resp.ok) {
+                const html = await resp.text();
+                results = parseTwitterWebUI(html); // Nitter uses same structure as old Web UI
+                if (results && results.length > 2) {
+                    process.stderr.write(`✅ [Twitter] Mirror Success (${results.length} items)\n`);
+                    return results;
+                }
+            }
+        } catch (e) {}
+    }
+
+    // 3. TERTIARY: RSS High-Reliability (Zero Credits)
     try {
-        process.stderr.write(`📡 [Twitter] V76.0: RSS Fallback...\n`);
+        process.stderr.write(`📡 [Twitter] V76.1: RSS Recovery...\n`);
         const rssUrl = `https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json`; 
-        const resp = await fetch(rssUrl, { signal: AbortSignal.timeout(30000) });
+        const resp = await fetch(rssUrl, { signal: AbortSignal.timeout(20000) });
         if (resp.ok) {
             const data = await resp.json();
             const fallback = (data.items || []).filter(it => {
@@ -49,12 +83,9 @@ async function fetchTwitterBruteForce() {
                 sourceName: "تويتر",
                 mediaUrl: it.image || it.thumbnail || null
             }));
-            if (fallback && fallback.length > 0) {
-                process.stderr.write(`✅ [Twitter] RSS Fallback Success (${fallback.length} items)\n`);
-                return fallback;
-            }
+            if (fallback && fallback.length > 0) return fallback;
         }
-    } catch (e) { process.stderr.write(`⚠️ [Twitter] RSS Fallback Failed: ${e.message}\n`); }
+    } catch (e) {}
 
     return [];
 }

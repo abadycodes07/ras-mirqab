@@ -12,12 +12,21 @@ var BreakingNewsWidget = (function () {
                           ? 'http://localhost:3001' 
                           : 'https://ras-mirqab-production.up.railway.app';
 
-    var VERSION = "V76.0";
-    // V76.0: Ultimate Reset
+    var VERSION = "V76.1";
+    // V76.1: Credit Shield Refresh
     if (localStorage.getItem('rasmirqab_bn_v') !== VERSION) {
         localStorage.removeItem('rasmirqab_bn_cache');
         localStorage.setItem('rasmirqab_bn_v', VERSION);
-        console.log("🧨 V76.0: Ultimate Cache Purged");
+        console.log("🧨 V76.1: Shield Reset active");
+    }
+
+    function cleanTitle(text) {
+        if (!text) return "";
+        // Remove pic.twitter.com, pic.x.com, t.co links, and generic http links from titles
+        return text.replace(/https?:\/\/\S+/gi, '')
+                   .replace(/pic\.twitter\.com\/\S+/gi, '')
+                   .replace(/pic\.x\.com\/\S+/gi, '')
+                   .trim();
     }
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
@@ -387,8 +396,8 @@ var BreakingNewsWidget = (function () {
             'ajanews':               'public/logos/ajanews_new.png',
             'ajmubasher':            'public/logos/ajmubasher.jpg',
             // ─ Twitter/X sources — show Twitter bird or channel logo ─
-            'rss-app':               'public/logos/aljazeera.png', 
-            'twitter-list':          'public/logos/alarabiya.png',
+            'rss-app':               'public/logos/default.png', 
+            'twitter-list':          'https://abs.twimg.com/favicons/twitter.2.ico',
             'alekhbariyaNews':       'public/logos/alekhbariyanews.jpg',
             'skyNewsArabia_B':       'public/logos/skynewsarabia_b.jpg',
             'AJELNEWS2475':          'public/logos/ajelnews2475.jpg',

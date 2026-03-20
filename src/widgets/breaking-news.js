@@ -329,10 +329,11 @@ var BreakingNewsWidget = (function () {
                 const res = await fetch(path + '?nocache=' + Date.now());
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.length > 0) {
-                        console.log('--- NEWS-ENGINE: SYNC SUCCESS FROM:', path, 'ITEMS:', data.length);
+                    const items = Array.isArray(data) ? data : (data.items || []);
+                    if (items && items.length > 0) {
+                        console.log('--- NEWS-ENGINE: SYNC SUCCESS FROM:', path, 'ITEMS:', items.length);
                         // V66.0: Handle de-duplication and notifications inside cache sync
-                        const newItems = data.filter(it => !seenIds.has((it.link || '') + (it.title || '').substring(0,20)));
+                        const newItems = items.filter(it => !seenIds.has((it.link || '') + (it.title || '').substring(0,20)));
                         if (!isFirstLoad && newItems.length > 0) {
                             newItems.forEach(it => it.isNew = true);
                             if (window.RasMirqabNotification) {
@@ -342,7 +343,7 @@ var BreakingNewsWidget = (function () {
                         newItems.forEach(it => seenIds.add((it.link || '') + (it.title || '').substring(0,20)));
                         isFirstLoad = false;
 
-                        localCache = data;
+                        localCache = items;
                         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));
                         
                         var container = document.getElementById('news-list') || document.getElementById('breaking-news-body');

@@ -105,8 +105,10 @@ async function updateTwitter() {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
                 twitterCache = data.map(it => ({ ...it, source: "twitter" }));
-                console.log(`✅ [Twitter] Synced ${twitterCache.length} items`);
+                console.log(`✅ [Twitter] Synced ${twitterCache.length} items. Latest: ${twitterCache[0].link}`);
                 writeNewsJson();
+            } else {
+                console.warn(`⚠️ [Twitter] Scraper returned 0 items.`);
             }
         } catch(e) { console.error(`❌ [Twitter] Parse failed: ${e.message}`); }
     }

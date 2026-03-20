@@ -274,103 +274,65 @@ var BreakingNewsWidget = (function () {
         grid.innerHTML = html;
     }
 
-    async function loadNews(force) {
+    async function loadNews() {
         var container = document.getElementById('breaking-news-body') || document.getElementById('news-list');
         if (!container) return;
 
-        // 1. Initial Load from LocalStorage (Instant UI)
-        if (isFirstLoad) {
-            var cached = localStorage.getItem('rasmirqab_bn_cache');
-            if (cached) {
-                try {
-                    var items = JSON.parse(cached);
-                    localCache = items;
-                    renderItems(container, items);
-                } catch(e) {}
-            }
-            // Try server-side cache
-            fetchServerCache();
+        console.log("📡 [V74.0] Initializing News Vault...");
+
+        // 1. Initial Load from LocalStorage (Instant)
+        var cached = localStorage.getItem('rasmirqab_bn_cache');
+        if (cached && isFirstLoad) {
+            try {
+                localCache = JSON.parse(cached);
+                console.log("📦 Vault: " + localCache.length + " items.");
+                renderItems(container, localCache);
+            } catch(e) { console.warn("Vault recovery failed"); }
         }
 
-        if (localCache.length === 0 && isFirstLoad) {
-            container.innerHTML = 
-                '<div class="loading-state-v12" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:50px; color:#e67e22;">' +
-                '  <i class="fas fa-circle-notch fa-spin" style="font-size:32px; margin-bottom:15px;"></i>' +
-                '  <div style="font-family:var(--font-ar); font-size:14px; font-weight:700;">جاري تحديث الأخبار العالمية...</div>' +
-                '</div>';
-            return;
-        }
-
+        // 2. Fetch from Production Server
         await fetchServerCache();
-        checkProxyStatus();
     }
 
-    async function fetchServerCache(force) {
-        if (force) {
-            var container = document.getElementById('news-list') || document.getElementById('breaking-news-body');
-            if (container) {
-                container.innerHTML = 
-                    '<div class="loading-state-v12" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:50px; color:#e67e22;">' +
-                    '  <i class="fas fa-circle-notch fa-spin" style="font-size:32px; margin-bottom:15px;"></i>' +
-                    '  <div style="font-family:var(--font-ar); font-size:14px; font-weight:700;">جاري جلب آخر الأخبار...</div>' +
-                    '</div>';
-            }
-        }
-        console.log('--- NEWS-ENGINE: ATTEMPTING CACHE SYNC ---');
-        // V71.4: Multi-Source Sync with API Fallback
-        const origin = window.location.origin || '';
+    async function fetchServerCache() {
+        console.log('--- NEWS-ENGINE: SYNCING WITH PRODUCTION ---');
         const paths = [
+            BACKEND_URL + '/api/news',
             'https://ras-mirqab-production.up.railway.app/api/news',
-            'https://ras-mirqab-production.up.railway.app/news.json',
-            origin + '/news.json',
-            'news.json'
+            '/news.json'
         ];
+        
         for (let path of paths) {
             try {
-                const res = await fetch(path + '?nocache=' + Date.now(), { cache: 'no-store' });
-                console.log(`--- [${VERSION}] FETCH ${path} -> STATUS: ${res.status}`);
+                const res = await fetch(path + '?v=' + Date.now(), { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
-                    const items = Array.isArray(data) ? data : (data.items || []);
-                    console.log(`--- [${VERSION}] DATA RECV:`, data.engine || 'NO-ENGINE', 'ITEMS:', items.length);
-                    if (items && items.length > 0) {
-                        console.log('--- NEWS-ENGINE: SYNC SUCCESS FROM:', path, 'ITEMS:', items.length);
-                        
-                        // Only update if the content has changed or we are forced
-                        const firstItemLink = items[0].link + items[0].title;
-                        const cachedFirstItemLink = localCache[0] ? (localCache[0].link + localCache[0].title) : '';
-                        
-                        if (!force && firstItemLink === cachedFirstItemLink && localCache.length > 0) {
-                            console.log('--- NEWS-ENGINE: NO NEW DATA, SKIPPING RENDER ---');
-                            return;
-                        }
+                    const incoming = Array.isArray(data) ? data : (data.items || []);
+                    if (incoming.length > 0) {
+                        // V74.0: IRONG RIP MERGE
+                        // Prepend incoming to localCache, then deduplicate
+                        var combined = incoming.concat(localCache);
+                        var seen = new Set();
+                        var unique = combined.filter(function(it) {
+                            var key = (it.link || it.title || "").substring(0, 100);
+                            if (!key || seen.has(key)) return false;
+                            seen.add(key);
+                            return true;
+                        }).slice(0, 150);
 
-                        const newItems = items.filter(it => !seenIds.has((it.link || '') + (it.title || '').substring(0,20)));
-                        if (!isFirstLoad && newItems.length > 0) {
-                            newItems.forEach(it => it.isNew = true);
-                        }
-                        items.forEach(it => seenIds.add((it.link || '') + (it.title || '').substring(0,20)));
-                        isFirstLoad = false;
-                        localCache = items;
+                        localCache = unique;
                         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));
                         
                         var container = document.getElementById('news-list') || document.getElementById('breaking-news-body');
                         if (container) {
-                             const displayItems = (window.innerWidth <= 768) ? localCache.slice(0, 30) : localCache;
-                             if (window.BreakingNewsWidget && window.BreakingNewsWidget.renderOverride) {
-                                 window.BreakingNewsWidget.renderOverride(container, displayItems);
-                             } else if (window.mobileRenderNews) {
-                                 window.mobileRenderNews(displayItems);
-                             } else {
-                                 renderItems(container, displayItems);
-                             }
+                            renderItems(container, localCache);
                         }
-                        return;
+                        isFirstLoad = false;
+                        console.log("✅ Sync Success: " + path + " | Total: " + localCache.length);
+                        return; // Stop after first success
                     }
                 }
-            } catch(e) {
-                console.warn('--- NEWS-ENGINE: PATH FAILED:', path);
-            }
+            } catch(e) { console.warn("Path failed:", path); }
         }
     }
 

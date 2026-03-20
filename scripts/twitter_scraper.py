@@ -13,7 +13,7 @@ from urllib.parse import quote
 # ═══════════════════════════════════════════════
 
 TWITTER_LIST_ID = os.getenv("TWITTER_LIST_ID", "2031445708524421549")
-SCRAPEDO_API_KEY = os.getenv("SCRAPEDO_API_KEY", "20a03e1d412a44c1a19277ba8feb43be000d574775d")
+SCRAPEDO_API_KEY = os.getenv("SCRAPEDO_API_KEY", "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf")
 
 # V66.7: Re-ordered swarm and added more diagnostic targets
 NITTER_INSTANCES = [

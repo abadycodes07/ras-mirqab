@@ -104,7 +104,7 @@ async function scrape() {
     if (allResults.length < 10) {
         const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
         try {
-            console.log(`📡 [Bridge] Trying ${bridge}...`);
+            console.log(`📡 [Bridge] Trying Twitter List via ${bridge}...`);
             const xml = stealthFetch(`${bridge}/twitter/list/${LIST_ID}`);
             const entries = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
             for (const m of entries) {
@@ -118,6 +118,31 @@ async function scrape() {
                         link: 'https://x.com/i/lists/' + LIST_ID,
                         pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
                         source: 'twitter', sourceHandle: h ? h[1] : 'News', sourceName: h ? h[1] : 'News'
+                    });
+                }
+            }
+        } catch (e) {}
+    }
+
+    // Protocol 4: Telegram Scraper
+    const tgChannels = ['ajanews', 'alhadath_brk', 'alarabiya_brk', 'SkyNewsArabia_Breaking', 'RT_Arabic', 'SABQ_NEWS', 'AjelNews24'];
+    for (const ch of tgChannels) {
+        const bridge = RSSHUB_BRIDGES[Math.floor(Math.random() * RSSHUB_BRIDGES.length)];
+        try {
+            const xml = stealthFetch(`${bridge}/telegram/channel/${ch}`);
+            const entries = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
+            for (const m of entries) {
+                const c = m[1];
+                const t = c.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || c.match(/<title>([\s\S]*?)<\/title>/);
+                const d = c.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+                const img = c.match(/<img src="([^"]+)"/);
+                if (t) {
+                    allResults.push({
+                        title: t[1].replace(/<[^>]+>/g, '').trim(),
+                        link: `https://t.me/${ch}`,
+                        pubDate: d ? new Date(d[1]).toISOString() : new Date().toISOString(),
+                        source: 'telegram', sourceHandle: ch, sourceName: ch,
+                        image: img ? img[1] : null
                     });
                 }
             }

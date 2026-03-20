@@ -71,65 +71,65 @@ app.get('/api/debug/twitter', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════
-// CORE SCRAPER ENGINE
+// COLD WORKER ENGINE (Node.js Logic Only)
 // ═══════════════════════════════════════════════
 
-function runScraper() {
+function runWorker(workerName) {
     return new Promise((resolve) => {
-        exec('python3 scripts/twitter_scraper.py', { 
-            timeout: 300000, // 5 min max
-            env: { ...process.env, PYTHONUNBUFFERED: "1" }
+        exec(`node scripts/${workerName}.js`, { 
+            timeout: 60000, // 1 min max
+            env: { ...process.env, SCRAPEDO_API_KEY: "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf" }
         }, (error, stdout, stderr) => {
-            resolve({ stdout, stderr });
+            if (stderr) console.error(`⚠️ [${workerName}] stderr: ${stderr}`);
+            resolve(stdout ? stdout.trim() : null);
         });
     });
 }
 
 async function updateTwitter() {
-    console.log(`📡 [Active] Twitter cycle start (V66.7)...`);
-    const { stdout, stderr } = await runScraper();
-    
-    if (stderr) console.error(`🐍 [Twitter Scraper] Stderr: ${stderr}`);
-    
-    try {
-        const fresh = JSON.parse(stdout);
-        if (Array.isArray(fresh) && fresh.length > 0) {
-            twitterCache = fresh.map(item => ({
-                ...item,
-                pubDate: item.timestamp || new Date().toISOString(),
-                source: "Twitter"
-            }));
-            console.log(`✅ [Twitter] Synced ${twitterCache.length} items (V66.7)`);
-            writeNewsJson();
-        } else {
-            console.warn(`⚠️ [Twitter] Scrape returned zero items or failed.`);
-        }
-    } catch (e) {
-        console.error(`❌ [Twitter] Parse Error: ${e.message}`);
+    console.log(`📡 [Twitter] Starting scraper cycle...`);
+    const result = await runWorker('twitter_worker');
+    if (result) {
+        try {
+            const data = JSON.parse(result);
+            if (data && data.length > 0) {
+                twitterCache = data.map(it => ({ ...it, source: "twitter" }));
+                console.log(`✅ [Twitter] Synced ${twitterCache.length} items`);
+                writeNewsJson();
+            }
+        } catch(e) { console.error(`❌ [Twitter] Parse failed: ${e.message}`); }
     }
 }
 
 async function updateTelegram() {
-    console.log(`📡 [Active] Telegram cycle start...`);
+    console.log(`📡 [Telegram] Starting direct t.me cycle...`);
+    const result = await runWorker('telegram_worker');
+    if (result) {
+        try {
+            const data = JSON.parse(result);
+            if (data && data.length > 0) {
+                telegramCache = data.map(it => ({ ...it, source: "telegram" }));
+                console.log(`✅ [Telegram] Synced ${telegramCache.length} items (Instant)`);
+                writeNewsJson();
+            }
+        } catch(e) { console.error(`❌ [Telegram] Parse failed: ${e.message}`); }
+    }
 }
 
 function writeNewsJson() {
     try {
-        // PERSISTENCE GUARD
-        if (telegramCache.length === 0 && twitterCache.length === 0) {
-            console.warn("🛡️ [Guard] Both caches empty. Skipping news.json update.");
-            return;
-        }
-
         const combined = [...telegramCache, ...twitterCache]
+            .filter(it => it.title && it.title.length > 5)
             .sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate))
             .slice(0, 200);
 
+        if (combined.length === 0) return;
+
         const targetPath = path.join(__dirname, 'public', 'news.json');
         fs.writeFileSync(targetPath, JSON.stringify(combined, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V66.7)`);
+        console.log(`💾 news.json updated: ${combined.length} items`);
     } catch (err) {
-        console.error(`❌ [FileIO] Write failed: ${err.message}`);
+        console.error(`❌ [IO] Write failed: ${err.message}`);
     }
 }
 
@@ -138,11 +138,17 @@ function writeNewsJson() {
 // ═══════════════════════════════════════════════
 
 async function startScrapers() {
+    // Initial burst
     await updateTwitter();
-    setInterval(updateTwitter, 120000); // 2 mins
+    await updateTelegram();
+    
+    // Interval cycles
+    setInterval(updateTwitter, 300000); // 5 mins
+    setInterval(updateTelegram, 120000); // 2 mins (almost instant)
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 V66.7 ENGINE LIVE — Deep Diagnostic Swarm`);
+    console.log(`🚀 RAS MIRQAB ENGINE V70 (Railway Ready)`);
+    console.log(`📍 Port: ${PORT} | Scrapers Active`);
     startScrapers();
 });

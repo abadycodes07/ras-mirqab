@@ -54,7 +54,7 @@ function runWorker(workerName) {
 }
 
 async function updateTwitter() {
-    process.stderr.write(`📡 [Twitter] Starting PREMIUM Shield Cycle (V75.3)...\n`);
+    process.stderr.write(`📡 [Twitter] Starting PREMIUM Shield Cycle (V75.5)...\n`);
     const result = await runWorker('twitter_shield');
     if (result) {
         try {
@@ -79,7 +79,7 @@ async function updateTwitter() {
 }
 
 async function updateTelegram() {
-    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.3)...\n`);
+    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.5)...\n`);
     const result = await runWorker('telegram_shield');
     if (result) {
         try {

@@ -14,7 +14,7 @@ async function fetchTwitterBruteForce() {
 
     // 1. PRIMARY: Syndication LIST API (The Specific List requested)
     try {
-        process.stderr.write(`📡 [Twitter] V75.4: Syndication LIST Premium Scrape (List: ${LIST_ID})...\n`);
+        process.stderr.write(`📡 [Twitter] V75.5: Syndication LIST Premium Scrape (List: ${LIST_ID})...\n`);
         const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
         
@@ -31,7 +31,7 @@ async function fetchTwitterBruteForce() {
 
     // 2. SECONDARY: Direct Web UI List (Premium Headless)
     try {
-        process.stderr.write(`📡 [Twitter] V75.4: Direct List Scrape...\n`);
+        process.stderr.write(`📡 [Twitter] V75.5: Direct List Scrape...\n`);
         const listUrl = `https://twitter.com/i/lists/${LIST_ID}`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(listUrl)}&render=true&super=true&wait=8000`;
         
@@ -59,8 +59,7 @@ async function fetchTwitterBruteForce() {
         }
     } catch (e) {}
 
-    // 3. TERTIARY: DISABLED (Credit Shield)
-    process.stderr.write(`📡 [Twitter] V75.3: Nitter Swarm DISABLED.\n`);
+    process.stderr.write(`📡 [Twitter] V75.5: Nitter Swarm DISABLED.\n`);
 
     return [];
 }

@@ -126,8 +126,13 @@ function writeNewsJson() {
         if (combined.length === 0) return;
 
         const targetPath = path.join(__dirname, 'public', 'news.json');
-        fs.writeFileSync(targetPath, JSON.stringify(combined, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items`);
+        const output = {
+            items: combined,
+            lastUpdated: new Date().toISOString(),
+            engine: "V70"
+        };
+        fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
+        console.log(`💾 news.json updated: ${combined.length} items (V70)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }

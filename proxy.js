@@ -130,7 +130,13 @@ function writeNewsJson() {
         if (combined.length === 0) return;
 
         const targetPath = path.join(__dirname, 'public', 'news.json');
-        console.log(`💾 news.json updated: ${combined.length} items (V75.9 SHIELD)`);
+        const output = {
+            items: combined,
+            lastUpdated: new Date().toISOString(),
+            engine: "V76.0"
+        };
+        fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
+        console.log(`💾 news.json updated: ${combined.length} items (V76.0 ULTIMATE)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -150,7 +156,7 @@ function loadExistingCache() {
             // V75.6: Case-insensitive source check + default source fallback
             telegramCache = items.filter(it => (it.source || "").toLowerCase() === 'telegram').slice(0, 500);
             twitterCache  = items.filter(it => (it.source || "").toLowerCase() === 'twitter').slice(0, 500);
-            console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW. (V75.8)`);
+            console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW. (V76.0)`);
         }
     } catch (e) { console.error("Cache load failed:", e.message); }
 }

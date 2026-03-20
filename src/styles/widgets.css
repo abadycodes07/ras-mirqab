@@ -271,7 +271,7 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
-    order: 1; /* Keep logo on the right in RTL, or handle it via display:flex */
+    order: 3; /* Logo on the left in RTL */
 }
 
 .v12-col-center {
@@ -287,7 +287,7 @@
     flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
-    order: 3;
+    order: 1; /* Thumb on the right in RTL */
 }
 
 .v12-thumbnail {

@@ -7,22 +7,21 @@ const cheerio = require('cheerio');
 
 const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf";
 const LIST_ID = "2031445708524421549";
-const RSSHUB_BRIDGES = [
-    'https://rsshub.app',
-    'https://rsshub.rssforever.com', 
-    'https://rsshub.moeyy.cn',
-    'https://rss.shab.fun',
-    'https://rss.owo.nz',
-    'https://rsshub.izit.io'
+const NITTER_MIRRORS = [
+    'https://nitter.net',
+    'https://nitter.cz',
+    'https://nitter.it',
+    'https://nitter.privacydev.net',
+    'https://nitter.dafrary.com'
 ];
 const RSS_APP_FEED = 'https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json';
 
 async function fetchTwitterBruteForce() {
     let results = [];
     
-    // 1. Primary: RSS.app Managed Feed (Most reliable, no credits needed)
+    // 1. Primary: RSS.app Managed Feed (Zero-Credit Check)
     try {
-        process.stderr.write(`📡 [Twitter] Checking RSS.app Primary...\n`);
+        process.stderr.write(`📡 [Twitter] Checking RSS.app...\n`);
         const resp = await fetch(RSS_APP_FEED, { signal: AbortSignal.timeout(5000) });
         if (resp.ok) {
             const data = await resp.json();
@@ -40,31 +39,30 @@ async function fetchTwitterBruteForce() {
             }
         }
     } catch (e) {
-        process.stderr.write(`⚠️ [Twitter] RSS.app primary check failed: ${e.message}\n`);
+        process.stderr.write(`⚠️ [Twitter] RSS.app skipped: ${e.message}\n`);
     }
 
-    // 2. Secondary: RSSHub Swarm with Scrape.do
-    process.stderr.write(`📡 [Twitter] Falling back to Scrape.do Swarm...\n`);
-    for (const bridge of RSSHUB_BRIDGES) {
-        if (bridge.includes('rsshub_instance_1')) continue; 
-        const targetUrl = `${bridge}/twitter/list/${LIST_ID}`;
+    // 2. Hybrid: Nitter RSS Swarm via Scrape.do Proxy
+    process.stderr.write(`📡 [Twitter] Starting Nitter/Scrape.do Swarm...\n`);
+    for (const mirror of NITTER_MIRRORS) {
+        const targetUrl = `${mirror}/i/lists/${LIST_ID}/rss`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(targetUrl)}&follow_redirect=true`;
         
         try {
-            const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(10000) });
+            const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(12000) });
             if (resp.status === 401 || resp.status === 403) {
-                process.stderr.write(`❌ [Twitter] Scrape.do Token Invalid/Expired (Error ${resp.status})\n`);
-                break; // Don't keep trying if the token is dead
+                process.stderr.write(`❌ [Twitter] Scrape.do Auth Failed (Use Proxy Fallback)\n`);
+                break;
             }
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const xml = await resp.text();
             results = parseTwitterRSS(xml);
-            if (results && results.length > 3) {
-                process.stderr.write(`✅ [Twitter] Success via ${bridge}\n`);
+            if (results && results.length > 2) {
+                process.stderr.write(`✅ [Twitter] Success via Nitter (${mirror})\n`);
                 return results;
             }
         } catch (e) {
-            process.stderr.write(`⚠️ [Twitter] Bridge ${bridge} failed: ${e.message}\n`);
+            process.stderr.write(`⚠️ [Twitter] Mirror ${mirror} failed: ${e.message}\n`);
         }
     }
 

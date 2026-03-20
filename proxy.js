@@ -133,10 +133,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V75.7"
+            engine: "V75.8"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V75.7 NINE-HOUR)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V75.8 CREDIT-SHIELD)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -151,17 +151,18 @@ function loadExistingCache() {
         const targetPath = path.join(__dirname, 'public', 'news.json');
         if (fs.existsSync(targetPath)) {
             const data = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
-            const items = data.items || Array.isArray(data) ? data : [];
+            // V75.8 FIX: Robust array detection
+            const items = Array.isArray(data) ? data : (data.items || []);
             // V75.6: Case-insensitive source check + default source fallback
-            telegramCache = items.filter(it => (it.source || "").toLowerCase() === 'telegram').slice(0, 200);
-            twitterCache  = items.filter(it => (it.source || "").toLowerCase() === 'twitter').slice(0, 200);
-            console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW. (V75.6 IRON)`);
+            telegramCache = items.filter(it => (it.source || "").toLowerCase() === 'telegram').slice(0, 500);
+            twitterCache  = items.filter(it => (it.source || "").toLowerCase() === 'twitter').slice(0, 500);
+            console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW. (V75.8)`);
         }
     } catch (e) { console.error("Cache load failed:", e.message); }
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V75.7 NINE-HOUR Engine...");
+    console.log("🚀 Powering up V75.8 CREDIT-SHIELD Engine...");
     loadExistingCache();
     
     // Initial Sync
@@ -170,11 +171,11 @@ async function startScrapers() {
 
     // High-Frequency Intervals
     setInterval(updateTelegram, 60 * 1000);    // 1 minute (Solid)
-    setInterval(updateTwitter, 5 * 60 * 1000); // 5 minutes (Turbo)
+    setInterval(updateTwitter, 15 * 60 * 1000); // 15 minutes (CREDIT-SHIELD)
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.7 NINE-HOUR`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.8`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

@@ -20,7 +20,10 @@ async function fetchTwitterBruteForce() {
         const resp = await fetch(rssUrl, { signal: AbortSignal.timeout(30000) });
         if (resp.ok) {
             const data = await resp.json();
-            const fallback = (data.items || []).filter(it => it.url?.includes('twitter.com') || it.url?.includes('x.com')).map(it => ({
+            const fallback = (data.items || []).filter(it => {
+                const link = it.url || it.link || "";
+                return link.includes('twitter.com') || link.includes('x.com');
+            }).map(it => ({
                 title: it.title || it.description || "",
                 link: it.url || it.link,
                 pubDate: it.date_published || new Date().toISOString(),

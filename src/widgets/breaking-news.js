@@ -402,6 +402,10 @@ var BreakingNewsWidget = (function () {
             'news':                  'public/logos/alarabiya.png',
         };
 
+        var tgCount = items.filter(it => it.source === 'telegram').length;
+        var twCount = items.filter(it => it.source === 'twitter').length;
+        console.log("🎨 Rendering: " + items.length + " total (" + tgCount + " Telegram, " + twCount + " Twitter)");
+
         items.forEach(function (item) {
             var handle = item.sourceHandle || '';
             var source = item.source || 'rss';

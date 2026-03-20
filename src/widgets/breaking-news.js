@@ -12,6 +12,7 @@ var BreakingNewsWidget = (function () {
                           ? 'http://localhost:3001' 
                           : 'https://ras-mirqab-production.up.railway.app';
 
+    var VERSION = "V71.4-FIX";
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;
@@ -80,7 +81,7 @@ var BreakingNewsWidget = (function () {
                 '    </div>' +
                 '    <div class="breaking-title-right">' +
                 '      <span class="breaking-badge-new">NEW</span>' +
-                '      <span class="breaking-text-ar">عاجل</span>' +
+                '      <span class="breaking-text-ar">عاجل <small style="font-size:8px; opacity:0.5;">' + VERSION + '</small></span>' +
                 '      <div class="breaking-status-dot"></div>' +
                 '    </div>' +
                 '  </div>' +

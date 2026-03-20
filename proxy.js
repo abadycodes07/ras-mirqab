@@ -98,17 +98,25 @@ function runWorker(workerName) {
 }
 
 async function updateTwitter() {
-    console.log(`📡 [Twitter] Starting scraper cycle...`);
+    console.log(`📡 [Twitter] Starting scraper cycle (V73.1)...`);
     const result = await runWorker('twitter_worker');
     if (result) {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
-                twitterCache = data.map(it => ({ ...it, source: "twitter" }));
-                console.log(`✅ [Twitter] Synced ${twitterCache.length} items. Latest: ${twitterCache[0].link}`);
+                // Incremental Merge + Deduplicate
+                const newItems = data.map(it => ({ ...it, source: "twitter" }));
+                const combined = [...newItems, ...twitterCache];
+                const seen = new Set();
+                twitterCache = combined.filter(it => {
+                    const key = it.link || it.title;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                }).slice(0, 100);
+
+                console.log(`✅ [Twitter] Synced. Cache size: ${twitterCache.length}. Latest: ${twitterCache[0].link}`);
                 writeNewsJson();
-            } else {
-                console.warn(`⚠️ [Twitter] Scraper returned 0 items.`);
             }
         } catch(e) { console.error(`❌ [Twitter] Parse failed: ${e.message}`); }
     }
@@ -121,8 +129,17 @@ async function updateTelegram() {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
-                telegramCache = data.map(it => ({ ...it, source: "telegram" }));
-                console.log(`✅ [Telegram] Synced ${telegramCache.length} items (Instant)`);
+                const newItems = data.map(it => ({ ...it, source: "telegram" }));
+                const combined = [...newItems, ...telegramCache];
+                const seen = new Set();
+                telegramCache = combined.filter(it => {
+                    const key = it.link || it.title;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                }).slice(0, 100);
+
+                console.log(`✅ [Telegram] Synced. Cache size: ${telegramCache.length}`);
                 writeNewsJson();
             }
         } catch(e) { console.error(`❌ [Telegram] Parse failed: ${e.message}`); }
@@ -164,13 +181,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V73.0"
+            engine: "V73.1"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V73.0)`);
-        if (twitterCache.length > 0) {
-            console.log(`--- [Twitter] Latest: ${twitterCache[0].title.substring(0, 50)}... (${twitterCache[0].sourceHandle})`);
-        }
+        console.log(`💾 news.json updated: ${combined.length} items (V73.1)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -184,11 +198,10 @@ async function startScrapers() {
     // Initial burst
     await updateTwitter();
     await updateTelegram();
-    updateTwitter();
 
-    // V71.1: High-Frequency Cycles
-    setInterval(updateTelegram, 20 * 1000);    // 20 seconds (Direct)
-    setInterval(updateTwitter, 5 * 60 * 1000); // 5 minutes (Scrape-do)
+    // V73.1: High-Frequency Cycles
+    setInterval(updateTelegram, 20 * 1000);    // 20 seconds
+    setInterval(updateTwitter, 120 * 1000);   // 2 minutes (Scrape-do)
 }
 
 app.listen(PORT, () => {

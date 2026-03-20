@@ -100,7 +100,7 @@ var BreakingNewsWidget = (function () {
 
         var refreshBtn = document.getElementById('bn-refresh-btn-ref');
         if (refreshBtn) refreshBtn.addEventListener('click', function () {
-            loadNews(true);
+            fetchServerCache(true);
         });
 
         var modalAddBtn = document.getElementById('bn-modal-btn-add');
@@ -300,29 +300,28 @@ var BreakingNewsWidget = (function () {
             return;
         }
 
-        // V66.0 Zero-Lag Strategy: We no longer trigger scrapes from the browser.
-        // We rely 100% on the server-side news.json cache which is updated every 60s.
         await fetchServerCache();
-        
         checkProxyStatus();
     }
 
-    // V66.0: fetchAllFeeds is deprecated in favor of server-side background scraping
-
-    async function fetchServerCache() {
+    async function fetchServerCache(force) {
+        if (force) {
+            var container = document.getElementById('news-list') || document.getElementById('breaking-news-body');
+            if (container) {
+                container.innerHTML = 
+                    '<div class="loading-state-v12" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:50px; color:#e67e22;">' +
+                    '  <i class="fas fa-circle-notch fa-spin" style="font-size:32px; margin-bottom:15px;"></i>' +
+                    '  <div style="font-family:var(--font-ar); font-size:14px; font-weight:700;">جاري جلب آخر الأخبار...</div>' +
+                    '</div>';
+            }
+        }
         console.log('--- NEWS-ENGINE: ATTEMPTING CACHE SYNC ---');
-        // V28: Use Absolute Origin to ensure desktop cache is found
+        // V71.2: Unified Source Sync
         const origin = window.location.origin || '';
         const paths = [
-            'news.json', 
-            '../public/news.json', // V36: Fixed for mobile/ branch
-            'public/news.json',
             origin + '/news.json',
-            origin + '/public/news.json',
-            origin + '/ras-mirqab/news.json', 
-            '../news.json', 
-            '/news.json', 
-            'https://ras-mirqab-production.up.railway.app/public/news.json'
+            'news.json', 
+            'https://ras-mirqab-production.up.railway.app/news.json'
         ];
         for (let path of paths) {
             try {
@@ -332,17 +331,12 @@ var BreakingNewsWidget = (function () {
                     const items = Array.isArray(data) ? data : (data.items || []);
                     if (items && items.length > 0) {
                         console.log('--- NEWS-ENGINE: SYNC SUCCESS FROM:', path, 'ITEMS:', items.length);
-                        // V66.0: Handle de-duplication and notifications inside cache sync
                         const newItems = items.filter(it => !seenIds.has((it.link || '') + (it.title || '').substring(0,20)));
                         if (!isFirstLoad && newItems.length > 0) {
                             newItems.forEach(it => it.isNew = true);
-                            if (window.RasMirqabNotification) {
-                                RasMirqabNotification.show('تحديث عاجل', `تم رصد ${newItems.length} أخبار جديدة`);
-                            }
                         }
-                        newItems.forEach(it => seenIds.add((it.link || '') + (it.title || '').substring(0,20)));
+                        items.forEach(it => seenIds.add((it.link || '') + (it.title || '').substring(0,20)));
                         isFirstLoad = false;
-
                         localCache = items;
                         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));
                         
@@ -364,7 +358,6 @@ var BreakingNewsWidget = (function () {
                 console.warn('--- NEWS-ENGINE: PATH FAILED:', path);
             }
         }
-        console.error('--- NEWS-ENGINE: ALL CACHE PATHS FAILED ---');
     }
 
     function rotateMirror() {

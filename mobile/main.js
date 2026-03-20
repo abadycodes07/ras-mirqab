@@ -184,8 +184,8 @@
             const lSrc    = logoSrc(handle);
             const badgeCls= source==='telegram'?'tg':source==='twitter'?'tw':'rss';
             const badge   = source==='telegram'
-                ? '<i class="fab fa-telegram-plane"></i>'
-                : source==='twitter' ? '<i class="fab fa-x-twitter" style="font-size:7px;"></i>' : '⊕';
+                ? '<i class="fa-brands fa-telegram"></i>'
+                : source==='twitter' ? '<i class="fa-brands fa-x-twitter" style="font-size:7px;"></i>' : '⊕';
             const thumb   = item.mediaUrl || item.image || null;
             const title   = cleanText(item.title || '');
             return `<div class="news-item" onclick="__M575.openNews(${idx})">
@@ -250,10 +250,9 @@
 
     async function fetchNewsCache() {
         const paths = [
-            CFG.serverBase + '/api/news-v4-list',           // live from Render server
-            '../public/news.json',                           // local / GitHub Pages
-            '/public/news.json',
-            'https://abadycodes07.github.io/ras-mirqab/public/news.json',
+            'https://ras-mirqab-production.up.railway.app/news.json', // Railway Master Source
+            '../public/news.json',
+            '/news.json'
         ];
         for (const p of paths) {
             try {

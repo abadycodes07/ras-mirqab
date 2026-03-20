@@ -1329,7 +1329,11 @@
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-.v12-platform-overlap.telegram { background: #229ED9; }
+.v12-platform-overlap.telegram { 
+    background: #fff; 
+    color: #229ED9;
+    border: 1px solid rgba(0,0,0,0.1);
+}
 .v12-platform-overlap.twitter { background: #000; }
 .v12-platform-overlap.rss { background: #e67e22; }
 

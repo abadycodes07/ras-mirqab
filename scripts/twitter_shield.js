@@ -7,10 +7,7 @@ const cheerio = require('cheerio');
 
 const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf";
 const LIST_ID = "2031445708524421549";
-const NITTER_MIRRORS = [
-    'https://nitter.net', 'https://nitter.cz', 'https://nitter.it',
-    'https://nitter.privacydev.net', 'https://nitter.dafrary.com'
-];
+const NITTER_MIRRORS = []; // DISABLED FOR CREDIT SHIELD
 
 async function fetchTwitterBruteForce() {
     let results = [];
@@ -49,20 +46,8 @@ async function fetchTwitterBruteForce() {
         }
     } catch (e) { process.stderr.write(`⚠️ [Twitter] Direct UI Failed: ${e.message}\n`); }
 
-    // 3. TERTIARY: Nitter Swarm
-    process.stderr.write(`📡 [Twitter] V75.1: Nitter Swarm...\n`);
-    for (const mirror of NITTER_MIRRORS) {
-        try {
-            const rssUrl = `${mirror}/i/lists/${LIST_ID}/rss`;
-            const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(rssUrl)}&follow_redirect=true`;
-            const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(15000) });
-            if (resp.ok) {
-                const xml = await resp.text();
-                results = parseTwitterRSS(xml);
-                if (results && results.length > 5) return results;
-            }
-        } catch (e) {}
-    }
+    // 3. TERTIARY: DISABLED (Credit Shield)
+    process.stderr.write(`📡 [Twitter] V75.3: Nitter Swarm DISABLED.\n`);
 
     return [];
 }

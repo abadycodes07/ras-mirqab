@@ -54,13 +54,13 @@ function runWorker(workerName) {
 }
 
 async function updateTwitter() {
-    process.stderr.write(`📡 [Twitter] Starting PREMIUM Scraping Cycle (V75.2)...\n`);
-    const result = await runWorker('twitter_worker');
+    process.stderr.write(`📡 [Twitter] Starting PREMIUM Shield Cycle (V75.3)...\n`);
+    const result = await runWorker('twitter_shield');
     if (result) {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
-                // V75.2: Deduplicate and Prepend
+                // V75.3: Deduplicate and Prepend
                 const newItems = data.map(it => ({ ...it, source: "twitter" }));
                 const combined = [...newItems, ...twitterCache];
                 const seen = new Set();
@@ -71,7 +71,7 @@ async function updateTwitter() {
                     return true;
                 }).slice(0, 100);
 
-                console.log(`✅ [Twitter] Premium Sync Success. Cache: ${twitterCache.length}`);
+                console.log(`✅ [Twitter] Shield Sync Success. Cache: ${twitterCache.length}`);
                 writeNewsJson();
             }
         } catch(e) { console.error(`❌ [Twitter] Parse failed: ${e.message}`); }
@@ -79,8 +79,8 @@ async function updateTwitter() {
 }
 
 async function updateTelegram() {
-    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.2)...\n`);
-    const result = await runWorker('telegram_worker');
+    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.3)...\n`);
+    const result = await runWorker('telegram_shield');
     if (result) {
         try {
             const data = JSON.parse(result);
@@ -95,7 +95,7 @@ async function updateTelegram() {
                     return true;
                 }).slice(0, 100);
 
-                console.log(`✅ [Telegram] Direct Sync Success. Cache: ${telegramCache.length}`);
+                console.log(`✅ [Telegram] Direct Shield Success. Cache: ${telegramCache.length}`);
                 writeNewsJson();
             }
         } catch(e) { console.error(`❌ [Telegram] Parse failed: ${e.message}`); }
@@ -132,10 +132,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V75.2"
+            engine: "V75.3"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V75.2)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V75.3 SHIELD)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -159,7 +159,7 @@ function loadExistingCache() {
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V75.2 Engine...");
+    console.log("🚀 Powering up V75.3 Shield Engine...");
     loadExistingCache();
     
     // Initial Sync
@@ -172,7 +172,7 @@ async function startScrapers() {
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.2`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.3 SHIELD`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

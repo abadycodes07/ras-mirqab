@@ -140,10 +140,13 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V71.3"
+            engine: "V71.8"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V70)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V71.8)`);
+        if (twitterCache.length > 0) {
+            console.log(`--- [Twitter] Latest Cache Item: ${twitterCache[0].title.substring(0, 50)}...`);
+        }
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }

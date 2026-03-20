@@ -12,7 +12,7 @@ var BreakingNewsWidget = (function () {
                           ? 'http://localhost:3001' 
                           : 'https://ras-mirqab-production.up.railway.app';
 
-    var VERSION = "V72.0";
+    var VERSION = "V72.1";
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;
@@ -445,7 +445,6 @@ var BreakingNewsWidget = (function () {
 
             var itemEl = document.createElement('div');
             itemEl.className = 'news-item' + (item.isNew ? ' news-item-new' : '') + (isFresh ? ' v12-pulse-glow' : '');
-            itemEl.style = 'padding:0; margin-bottom:12px; cursor:pointer; display:flex; transition: transform 0.2s;';
             itemEl.onclick = function () { window.open(item.link, '_blank'); };
 
             var media = item.mediaUrl || item.image || (item.media && item.media[0] ? item.media[0].url : null);

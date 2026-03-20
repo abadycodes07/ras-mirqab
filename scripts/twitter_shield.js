@@ -12,10 +12,27 @@ const NITTER_MIRRORS = []; // DISABLED FOR CREDIT SHIELD
 async function fetchTwitterBruteForce() {
     let results = [];
 
-    // 1. PRIMARY: RSS Recovery (ZERO CREDITS)
-    // Promoted to primary for V75.9 to stop credit burn while we investigate walls
+    // 1. PRIMARY: Premium Scrape.do (List API)
+    // V76.0: RESTORED PREMIUM STATUS PER USER REQUEST
     try {
-        process.stderr.write(`📡 [Twitter] V75.9: RSS Shield Primary (List Recovery)...\n`);
+        process.stderr.write(`📡 [Twitter] V76.0: Premium List Scrape (List: ${LIST_ID})...\n`);
+        const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
+        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
+        
+        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(90000) });
+        if (resp.ok) {
+            const html = await resp.text();
+            results = parseTwitterSyndication(html);
+            if (results && results.length > 3) {
+                process.stderr.write(`✅ [Twitter] Premium Success (${results.length} items)\n`);
+                return results;
+            }
+        }
+    } catch (e) { process.stderr.write(`⚠️ [Twitter] Premium Scrape Failed: ${e.message}\n`); }
+
+    // 2. SECONDARY: High-Reliability RSS Recovery (Zero Credits)
+    try {
+        process.stderr.write(`📡 [Twitter] V76.0: RSS Fallback...\n`);
         const rssUrl = `https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json`; 
         const resp = await fetch(rssUrl, { signal: AbortSignal.timeout(30000) });
         if (resp.ok) {
@@ -33,29 +50,11 @@ async function fetchTwitterBruteForce() {
                 mediaUrl: it.image || it.thumbnail || null
             }));
             if (fallback && fallback.length > 0) {
-                process.stderr.write(`✅ [Twitter] RSS Primary Success (${fallback.length} items)\n`);
+                process.stderr.write(`✅ [Twitter] RSS Fallback Success (${fallback.length} items)\n`);
                 return fallback;
             }
         }
-    } catch (e) { process.stderr.write(`⚠️ [Twitter] RSS Primary Failed: ${e.message}\n`); }
-
-    // 2. SECONDARY: Syndication LIST API (Reduced Frequency)
-    try {
-        process.stderr.write(`📡 [Twitter] V75.9: Syndication LIST Fallback...\n`);
-        const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
-        // V75.9: DON'T USE SUPER/RENDER FOR FALLBACK (SAVE CREDITS)
-        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}`;
-        
-        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(60000) });
-        if (resp.ok) {
-            const html = await resp.text();
-            results = parseTwitterSyndication(html);
-            if (results && results.length > 3) {
-                process.stderr.write(`✅ [Twitter] Success via Syndication (${results.length} items)\n`);
-                return results;
-            }
-        }
-    } catch (e) {}
+    } catch (e) { process.stderr.write(`⚠️ [Twitter] RSS Fallback Failed: ${e.message}\n`); }
 
     return [];
 }

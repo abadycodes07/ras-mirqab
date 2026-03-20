@@ -156,20 +156,20 @@ function loadExistingCache() {
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V75.9 SHIELD Engine...");
+    console.log("🚀 Powering up V76.0 ULTIMATE Engine...");
     loadExistingCache();
     
     // Initial Sync
     updateTelegram();
     updateTwitter();
 
-    // High-Frequency Intervals
-    setInterval(updateTelegram, 60 * 1000);    // 1 minute (Solid)
-    setInterval(updateTwitter, 15 * 60 * 1000); // 15 minutes (CREDIT-SHIELD)
+    // V76.0 ULTIMATE INTERVALS
+    setInterval(updateTelegram, 30 * 1000);   // 30 SECONDS (TURBO DIRECT)
+    setInterval(updateTwitter, 5 * 60 * 1000); // 5 MINUTES (PREMIUM SCAPE.DO)
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.9`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V76.0`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

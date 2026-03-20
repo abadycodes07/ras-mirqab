@@ -9,7 +9,7 @@ const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "adb11bc4e66248e186ac5316a1
 const CHANNELS = ["ajanews", "alhadath_brk", "alarabiyaBr"];
 
 async function fetchTelegram(channel) {
-    process.stderr.write(`📡 [Telegram] V75.7: Multi-Fetch Recovery (${channel})...\n`);
+    process.stderr.write(`📡 [Telegram] V76.0: Turbo Direct (Zero Credits) - ${channel}...\n`);
     const results = [];
     
     // 1. Primary: Direct t.me/s/ (Web Preview)

@@ -17,11 +17,11 @@ async function fetchTwitterBruteForce() {
 
     // 1. PRIMARY: Syndication API (Premium Headless + Super Proxy)
     try {
-        process.stderr.write(`📡 [Twitter] V75.1: Syndication Premium Scrape...\n`);
+        process.stderr.write(`📡 [Twitter] V75.2: Syndication Premium Scrape...\n`);
         const synUrl = `https://syndication.twitter.com/srv/timeline-profile/screen-name/AlArabiya_Brk`;
-        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=3000`;
+        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
         
-        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(35000) });
+        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(90000) });
         if (resp.ok) {
             const html = await resp.text();
             results = parseTwitterSyndication(html);
@@ -34,11 +34,11 @@ async function fetchTwitterBruteForce() {
 
     // 2. SECONDARY: Direct List (Premium Headless)
     try {
-        process.stderr.write(`📡 [Twitter] V75.1: Direct List Scrape...\n`);
+        process.stderr.write(`📡 [Twitter] V75.2: Direct List Scrape...\n`);
         const listUrl = `https://twitter.com/i/lists/${LIST_ID}`;
-        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(listUrl)}&render=true&super=true&wait=5000`;
+        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(listUrl)}&render=true&super=true&wait=8000`;
         
-        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(45000) });
+        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(120000) });
         if (resp.ok) {
             const html = await resp.text();
             results = parseTwitterWebUI(html);

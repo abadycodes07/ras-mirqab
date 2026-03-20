@@ -43,9 +43,10 @@ app.get('/api/news', (req, res) => {
 function runWorker(workerName) {
     return new Promise((resolve) => {
         exec(`node scripts/${workerName}.js`, { 
-            timeout: 90000, // 1.5 min max for premium headless
+            timeout: 240000, // 4 mins max for premium headless
             env: { ...process.env, SCRAPEDO_API_KEY: "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf" }
         }, (error, stdout, stderr) => {
+            if (error && error.killed) console.error(`⚠️ [${workerName}] Timeout killed.`);
             if (stderr) console.error(`⚠️ [${workerName}] stderr: ${stderr}`);
             resolve(stdout ? stdout.trim() : null);
         });
@@ -53,13 +54,13 @@ function runWorker(workerName) {
 }
 
 async function updateTwitter() {
-    console.log(`📡 [Twitter] Starting PREMIUM Scraping Cycle (V75.0)...`);
+    process.stderr.write(`📡 [Twitter] Starting PREMIUM Scraping Cycle (V75.2)...\n`);
     const result = await runWorker('twitter_worker');
     if (result) {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
-                // V75.0: Deduplicate and Prepend
+                // V75.2: Deduplicate and Prepend
                 const newItems = data.map(it => ({ ...it, source: "twitter" }));
                 const combined = [...newItems, ...twitterCache];
                 const seen = new Set();
@@ -78,7 +79,7 @@ async function updateTwitter() {
 }
 
 async function updateTelegram() {
-    console.log(`📡 [Telegram] Starting direct t.me cycle...`);
+    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.2)...\n`);
     const result = await runWorker('telegram_worker');
     if (result) {
         try {
@@ -103,11 +104,12 @@ async function updateTelegram() {
 
 const AR_NAMES = {
     "AlArabiya": "العربية", "AlArabiya_Brk": "العربية - عاجل",
+    "alarabiyabr": "العربية - عاجل", "alhadath_brk": "الحدث",
     "AlHadath": "الحدث", "SkyNewsArabia_B": "سكاي نيوز",
     "alekhbariyaNews": "الإخبارية", "AsharqNewsBrk": "الشرق",
     "ajmubasher": "الجزيرة مباشر", "RTonline_ar": "RT العربية",
     "NewsNow4USA": "نيوز ناو", "modgovksa": "وزارة الدفاع",
-    "SABQ_NEWS": "سبق", "AjelNews24": "عاجل"
+    "SABQ_NEWS": "سبق", "AjelNews24": "عاجل", "ajanews": "الجزيرة"
 };
 
 function writeNewsJson() {
@@ -115,10 +117,10 @@ function writeNewsJson() {
         const combined = [...telegramCache, ...twitterCache]
             .filter(it => it.title && it.title.length > 5)
             .map(it => {
-                const handle = it.sourceHandle || "";
+                const handle = (it.sourceHandle || "").toLowerCase();
                 return {
                     ...it,
-                    sourceName: AR_NAMES[handle] || AR_NAMES[handle.toLowerCase()] || it.sourceName || handle
+                    sourceName: AR_NAMES[it.sourceHandle] || AR_NAMES[handle] || it.sourceName || it.sourceHandle
                 };
             })
             .sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate))
@@ -130,10 +132,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V75.0"
+            engine: "V75.2"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V75.0)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V75.2)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -149,15 +151,15 @@ function loadExistingCache() {
         if (fs.existsSync(targetPath)) {
             const data = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
             const items = data.items || [];
-            telegramCache = items.filter(it => it.source === 'telegram');
-            twitterCache  = items.filter(it => it.source === 'twitter');
+            telegramCache = items.filter(it => it.source === 'telegram').slice(0, 100);
+            twitterCache  = items.filter(it => it.source === 'twitter').slice(0, 100);
             console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW.`);
         }
     } catch (e) { console.error("Cache load failed:", e.message); }
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V75.1 Engine...");
+    console.log("🚀 Powering up V75.2 Engine...");
     loadExistingCache();
     
     // Initial Sync
@@ -166,11 +168,11 @@ async function startScrapers() {
 
     // High-Frequency Intervals
     setInterval(updateTelegram, 60 * 1000);    // 1 minute (Solid)
-    setInterval(updateTwitter, 10 * 60 * 1000); // 10 minutes (Premium)
+    setInterval(updateTwitter, 15 * 60 * 1000); // 15 minutes (Premium)
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.1`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.2`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

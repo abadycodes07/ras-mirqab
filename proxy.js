@@ -129,10 +129,32 @@ async function updateTelegram() {
     }
 }
 
+const AR_NAMES = {
+    "AlArabiya": "العربية",
+    "AlArabiya_Brk": "العربية - عاجل",
+    "AlHadath": "الحدث",
+    "SkyNewsArabia_B": "سكاي نيوز",
+    "alekhbariyaNews": "الإخبارية",
+    "AsharqNewsBrk": "الشرق",
+    "ajmubasher": "الجزيرة مباشر",
+    "RTonline_ar": "RT العربية",
+    "NewsNow4USA": "نيوز ناو",
+    "modgovksa": "وزارة الدفاع",
+    "SABQ_NEWS": "سبق",
+    "AjelNews24": "عاجل"
+};
+
 function writeNewsJson() {
     try {
         const combined = [...telegramCache, ...twitterCache]
             .filter(it => it.title && it.title.length > 5)
+            .map(it => {
+                const handle = it.sourceHandle || "";
+                return {
+                    ...it,
+                    sourceName: AR_NAMES[handle] || AR_NAMES[handle.toLowerCase()] || it.sourceName || handle
+                };
+            })
             .sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate))
             .slice(0, 200);
 
@@ -142,12 +164,12 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V71.8"
+            engine: "V73.0"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V71.8)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V73.0)`);
         if (twitterCache.length > 0) {
-            console.log(`--- [Twitter] Latest Cache Item: ${twitterCache[0].title.substring(0, 50)}...`);
+            console.log(`--- [Twitter] Latest: ${twitterCache[0].title.substring(0, 50)}... (${twitterCache[0].sourceHandle})`);
         }
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);

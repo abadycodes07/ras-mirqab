@@ -54,13 +54,13 @@ function runWorker(workerName) {
 }
 
 async function updateTwitter() {
-    process.stderr.write(`📡 [Twitter] Starting PREMIUM Shield Cycle (V75.6)...\n`);
+    process.stderr.write(`📡 [Twitter] Starting PREMIUM Shield Cycle (V75.7)...\n`);
     const result = await runWorker('twitter_shield');
     if (result) {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
-                // V75.6: Non-Destructive Merge (Prepend)
+                // V75.7: Non-Destructive Merge (Prepend)
                 const newItems = data.map(it => ({ ...it, source: "twitter" }));
                 const combined = [...newItems, ...twitterCache];
                 const seen = new Set();
@@ -69,7 +69,7 @@ async function updateTwitter() {
                     if (!key || seen.has(key)) return false;
                     seen.add(key);
                     return true;
-                }).slice(0, 200); // Increased to 200
+                }).slice(0, 500); // 9-Hour Shield: 500 items
 
                 console.log(`✅ [Twitter] Shield Sync Success. Cache: ${twitterCache.length}`);
                 writeNewsJson();
@@ -85,7 +85,7 @@ async function updateTelegram() {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
-                // V75.6: Iron Merge (Never discard older news)
+                // V75.7: Iron Merge (Never discard older news)
                 const newItems = data.map(it => ({ ...it, source: "telegram" }));
                 const combined = [...newItems, ...telegramCache];
                 const seen = new Set();
@@ -94,7 +94,7 @@ async function updateTelegram() {
                     if (!key || seen.has(key)) return false;
                     seen.add(key);
                     return true;
-                }).slice(0, 200); // Increased to 200
+                }).slice(0, 500); // 9-Hour Shield: 500 items
 
                 console.log(`✅ [Telegram] Direct Shield Success. Cache: ${telegramCache.length}`);
                 writeNewsJson();

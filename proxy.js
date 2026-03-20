@@ -20,75 +20,13 @@ let telegramCache = [];
 let twitterCache  = [];
 
 // ═══════════════════════════════════════════════
-// TG_CHANNELS for avatar recovery
-// ═══════════════════════════════════════════════
-const TG_CHANNELS = {
-    "ajanews": { name: "الجزيرة", avatar: "AJ.png" },
-    "alhadath_brk": { name: "الحدث", avatar: "ALHADATH.png" },
-    "R_K_A_N_2": { name: "ركن", avatar: "RKAN.png" },
-    "rtarabic_brk": { name: "RT", avatar: "RT.png" },
-    "Sama_TV_Official": { name: "سما", avatar: "SAMA.png" }
-};
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// CORS
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    next();
-});
-
-// Direct News API
-app.get('/api/news', (req, res) => {
-    const targetPath = path.join(__dirname, 'public', 'news.json');
-    if (fs.existsSync(targetPath)) {
-        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-        res.json(JSON.parse(fs.readFileSync(targetPath, 'utf8')));
-    } else {
-        res.status(404).json({ error: "No news cached yet" });
-    }
-});
-
-// ═══════════════════════════════════════════════
-// DIAGNOSTIC ENDPOINTS
-// ═══════════════════════════════════════════════
-
-app.get('/api/debug/env', (req, res) => {
-    try {
-        res.json({
-            version: "V66.7",
-            time: new Date().toISOString(),
-            python: execSync('python3 --version').toString().trim(),
-            pip: execSync('pip3 --version').toString().trim()
-        });
-    } catch (e) {
-        res.json({ error: e.message });
-    }
-});
-
-app.get('/api/debug/twitter', async (req, res) => {
-    try {
-        const { stdout, stderr } = await runScraper();
-        res.json({
-            timestamp: new Date().toISOString(),
-            stdout: stdout,
-            stderr: stderr
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// ═══════════════════════════════════════════════
-// COLD WORKER ENGINE (Node.js Logic Only)
+// BACKGROUND WORKERS (The "One Cache" Rule)
 // ═══════════════════════════════════════════════
 
 function runWorker(workerName) {
     return new Promise((resolve) => {
         exec(`node scripts/${workerName}.js`, { 
-            timeout: 60000, // 1 min max
+            timeout: 90000, // 1.5 min max for premium headless
             env: { ...process.env, SCRAPEDO_API_KEY: "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf" }
         }, (error, stdout, stderr) => {
             if (stderr) console.error(`⚠️ [${workerName}] stderr: ${stderr}`);
@@ -98,13 +36,13 @@ function runWorker(workerName) {
 }
 
 async function updateTwitter() {
-    console.log(`📡 [Twitter] Starting scraper cycle (V73.1)...`);
+    console.log(`📡 [Twitter] Starting PREMIUM Scraping Cycle (V75.0)...`);
     const result = await runWorker('twitter_worker');
     if (result) {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
-                // Incremental Merge + Deduplicate
+                // V75.0: Deduplicate and Prepend
                 const newItems = data.map(it => ({ ...it, source: "twitter" }));
                 const combined = [...newItems, ...twitterCache];
                 const seen = new Set();
@@ -115,7 +53,7 @@ async function updateTwitter() {
                     return true;
                 }).slice(0, 100);
 
-                console.log(`✅ [Twitter] Synced. Cache size: ${twitterCache.length}. Latest: ${twitterCache[0].link}`);
+                console.log(`✅ [Twitter] Premium Sync Success. Cache: ${twitterCache.length}`);
                 writeNewsJson();
             }
         } catch(e) { console.error(`❌ [Twitter] Parse failed: ${e.message}`); }
@@ -139,7 +77,7 @@ async function updateTelegram() {
                     return true;
                 }).slice(0, 100);
 
-                console.log(`✅ [Telegram] Synced. Cache size: ${telegramCache.length}`);
+                console.log(`✅ [Telegram] Direct Sync Success. Cache: ${telegramCache.length}`);
                 writeNewsJson();
             }
         } catch(e) { console.error(`❌ [Telegram] Parse failed: ${e.message}`); }
@@ -147,18 +85,12 @@ async function updateTelegram() {
 }
 
 const AR_NAMES = {
-    "AlArabiya": "العربية",
-    "AlArabiya_Brk": "العربية - عاجل",
-    "AlHadath": "الحدث",
-    "SkyNewsArabia_B": "سكاي نيوز",
-    "alekhbariyaNews": "الإخبارية",
-    "AsharqNewsBrk": "الشرق",
-    "ajmubasher": "الجزيرة مباشر",
-    "RTonline_ar": "RT العربية",
-    "NewsNow4USA": "نيوز ناو",
-    "modgovksa": "وزارة الدفاع",
-    "SABQ_NEWS": "سبق",
-    "AjelNews24": "عاجل"
+    "AlArabiya": "العربية", "AlArabiya_Brk": "العربية - عاجل",
+    "AlHadath": "الحدث", "SkyNewsArabia_B": "سكاي نيوز",
+    "alekhbariyaNews": "الإخبارية", "AsharqNewsBrk": "الشرق",
+    "ajmubasher": "الجزيرة مباشر", "RTonline_ar": "RT العربية",
+    "NewsNow4USA": "نيوز ناو", "modgovksa": "وزارة الدفاع",
+    "SABQ_NEWS": "سبق", "AjelNews24": "عاجل"
 };
 
 function writeNewsJson() {
@@ -181,10 +113,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V74.0"
+            engine: "V75.0"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V74.0)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V75.0)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -195,17 +127,18 @@ function writeNewsJson() {
 // ═══════════════════════════════════════════════
 
 async function startScrapers() {
-    // Initial burst
-    await updateTwitter();
-    await updateTelegram();
+    // Zero-Wait Boot
+    console.log("🚀 Powering up V75.0 Engine...");
+    updateTelegram();
+    updateTwitter();
 
-    // V73.1: High-Frequency Cycles
-    setInterval(updateTelegram, 20 * 1000);    // 20 seconds
-    setInterval(updateTwitter, 120 * 1000);   // 2 minutes (Scrape-do)
+    // High-Frequency Intervals
+    setInterval(updateTelegram, 15 * 1000);    // 15 seconds (Direct)
+    setInterval(updateTwitter, 10 * 60 * 1000); // 10 minutes (Premium Headless)
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ENGINE V70 (Railway Ready)`);
-    console.log(`📍 Port: ${PORT} | Scrapers Active`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.0`);
+    console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

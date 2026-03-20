@@ -133,10 +133,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V75.6"
+            engine: "V75.7"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V75.6 IRON)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V75.7 NINE-HOUR)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -161,7 +161,7 @@ function loadExistingCache() {
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V75.6 IRON Engine...");
+    console.log("🚀 Powering up V75.7 NINE-HOUR Engine...");
     loadExistingCache();
     
     // Initial Sync
@@ -174,7 +174,7 @@ async function startScrapers() {
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.6 IRON`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.7 NINE-HOUR`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

@@ -9,23 +9,48 @@ const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "adb11bc4e66248e186ac5316a1
 const CHANNELS = ["ajanews", "alhadath_brk", "alarabiyaBr"];
 
 async function fetchTelegram(channel) {
-    process.stderr.write(`📡 [Telegram] V75.5: Direct Fetch (t.me/s/${channel})...\n`);
-    const targetUrl = `https://t.me/s/${channel}`;
+    process.stderr.write(`📡 [Telegram] V75.7: Multi-Fetch Recovery (${channel})...\n`);
+    const results = [];
     
+    // 1. Primary: Direct t.me/s/ (Web Preview)
     try {
+        const targetUrl = `https://t.me/s/${channel}`;
         const resp = await fetch(targetUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            },
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' },
             signal: AbortSignal.timeout(15000)
         });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const html = await resp.text();
-        return parseTelegramItems(html, channel);
-    } catch (e) {
-        process.stderr.write(`❌ [Telegram] Error fetching ${channel}: ${e.message}\n`);
-        return [];
-    }
+        if (resp.ok) {
+            const html = await resp.text();
+            results.push(...parseTelegramItems(html, channel));
+        }
+    } catch (e) { process.stderr.write(`⚠️ [Telegram] Web Preview failed: ${e.message}\n`); }
+
+    // 2. Secondary: RSS.app / RSSHub Fallback (Guarantees History)
+    // Using a known working RSS bridge for these specific channels if needed
+    try {
+        const rssUrls = {
+            'ajanews': 'https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json', // Already configured for user
+            'alhadath_brk': 'https://rss.app/feeds/v1.1/hM0862sY5N810N5K.json' 
+        };
+        if (rssUrls[channel]) {
+            const resp = await fetch(rssUrls[channel], { signal: AbortSignal.timeout(10000) });
+            if (resp.ok) {
+                const data = await resp.json();
+                const items = (data.items || []).map(it => ({
+                    title: it.title || it.description || "",
+                    link: it.url || it.link || `https://t.me/${channel}`,
+                    pubDate: it.date_published || it.pubDate || new Date().toISOString(),
+                    source: "telegram",
+                    sourceHandle: channel,
+                    sourceName: channel === 'ajanews' ? 'الجزيرة' : (channel === 'alarabiyaBr' ? 'العربية' : (channel === 'alhadath_brk' ? 'الحدث' : channel)),
+                    mediaUrl: it.image || it.thumbnail || (it.attachments?.[0]?.url) || null
+                }));
+                results.push(...items);
+            }
+        }
+    } catch (e) { process.stderr.write(`⚠️ [Telegram] RSS Recovery failed: ${e.message}\n`); }
+
+    return results;
 }
 
 function parseTelegramItems(html, channel) {

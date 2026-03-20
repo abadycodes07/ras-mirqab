@@ -318,7 +318,7 @@ var BreakingNewsWidget = (function () {
                             if (!key || seen.has(key)) return false;
                             seen.add(key);
                             return true;
-                        }).slice(0, 150);
+                        }).slice(0, 300);
 
                         localCache = unique;
                         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));

@@ -14,7 +14,7 @@ async function fetchTwitterBruteForce() {
 
     // 1. PRIMARY: Syndication LIST API (The Specific List requested)
     try {
-        process.stderr.write(`📡 [Twitter] V75.5: Syndication LIST Premium Scrape (List: ${LIST_ID})...\n`);
+        process.stderr.write(`📡 [Twitter] V75.6: Syndication LIST Premium Scrape (List: ${LIST_ID})...\n`);
         const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
         
@@ -31,7 +31,7 @@ async function fetchTwitterBruteForce() {
 
     // 2. SECONDARY: Direct Web UI List (Premium Headless)
     try {
-        process.stderr.write(`📡 [Twitter] V75.5: Direct List Scrape...\n`);
+        process.stderr.write(`📡 [Twitter] V75.6: Direct List Scrape...\n`);
         const listUrl = `https://twitter.com/i/lists/${LIST_ID}`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(listUrl)}&render=true&super=true&wait=8000`;
         
@@ -48,7 +48,7 @@ async function fetchTwitterBruteForce() {
 
     // 3. TERTIARY: Syndication Profile (Fallback)
     try {
-        process.stderr.write(`📡 [Twitter] V75.4: Syndication Profile Fallback...\n`);
+        process.stderr.write(`📡 [Twitter] V75.6: Syndication Profile Fallback...\n`);
         const synUrl = `https://syndication.twitter.com/srv/timeline-profile/screen-name/AlArabiya_Brk`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
         const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(60000) });
@@ -59,7 +59,7 @@ async function fetchTwitterBruteForce() {
         }
     } catch (e) {}
 
-    process.stderr.write(`📡 [Twitter] V75.5: Nitter Swarm DISABLED.\n`);
+    process.stderr.write(`📡 [Twitter] V75.6: Nitter Swarm DISABLED.\n`);
 
     return [];
 }

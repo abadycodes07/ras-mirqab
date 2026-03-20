@@ -327,9 +327,11 @@ var BreakingNewsWidget = (function () {
         for (let path of paths) {
             try {
                 const res = await fetch(path + '?nocache=' + Date.now(), { cache: 'no-store' });
+                console.log(`--- [${VERSION}] FETCH ${path} -> STATUS: ${res.status}`);
                 if (res.ok) {
                     const data = await res.json();
                     const items = Array.isArray(data) ? data : (data.items || []);
+                    console.log(`--- [${VERSION}] DATA RECV:`, data.engine || 'NO-ENGINE', 'ITEMS:', items.length);
                     if (items && items.length > 0) {
                         console.log('--- NEWS-ENGINE: SYNC SUCCESS FROM:', path, 'ITEMS:', items.length);
                         

@@ -12,7 +12,9 @@ const NITTER_MIRRORS = [
     'https://nitter.cz',
     'https://nitter.it',
     'https://nitter.privacydev.net',
-    'https://nitter.dafrary.com'
+    'https://nitter.dafrary.com',
+    'https://nitter.pussthecat.org',
+    'https://nitter.no-logs.com'
 ];
 const RSS_APP_FEED = 'https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json';
 
@@ -26,7 +28,7 @@ async function fetchTwitterBruteForce() {
         if (resp.ok) {
             const data = await resp.json();
             if (data && data.items && data.items.length > 0) {
-                process.stderr.write(`✅ [Twitter] Success via RSS.app\n`);
+                process.stderr.write(`✅ [Twitter] Success via RSS.app (${data.items.length} items)\n`);
                 return data.items.map(it => ({
                     title: it.title,
                     link: it.url || it.link,
@@ -43,7 +45,7 @@ async function fetchTwitterBruteForce() {
     }
 
     // 2. Hybrid: Nitter RSS Swarm via Scrape.do Proxy
-    process.stderr.write(`📡 [Twitter] Starting Nitter/Scrape.do Swarm...\n`);
+    process.stderr.write(`📡 [Twitter] Starting Nitter/Scrape.do Swarm (V72.0)...\n`);
     for (const mirror of NITTER_MIRRORS) {
         const targetUrl = `${mirror}/i/lists/${LIST_ID}/rss`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(targetUrl)}&follow_redirect=true`;
@@ -51,7 +53,7 @@ async function fetchTwitterBruteForce() {
         try {
             const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(12000) });
             if (resp.status === 401 || resp.status === 403) {
-                process.stderr.write(`❌ [Twitter] Scrape.do Auth Failed (Use Proxy Fallback)\n`);
+                process.stderr.write(`❌ [Twitter] Scrape.do Auth Failed\n`);
                 break;
             }
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
@@ -59,6 +61,7 @@ async function fetchTwitterBruteForce() {
             results = parseTwitterRSS(xml);
             if (results && results.length > 2) {
                 process.stderr.write(`✅ [Twitter] Success via Nitter (${mirror})\n`);
+                process.stderr.write(`--- Latest: ${results[0].title.substring(0, 50)}...\n`);
                 return results;
             }
         } catch (e) {

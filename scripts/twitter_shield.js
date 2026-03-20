@@ -12,10 +12,10 @@ const NITTER_MIRRORS = []; // DISABLED FOR CREDIT SHIELD
 async function fetchTwitterBruteForce() {
     let results = [];
 
-    // 1. PRIMARY: Syndication API (Premium Headless + Super Proxy)
+    // 1. PRIMARY: Syndication LIST API (The Specific List requested)
     try {
-        process.stderr.write(`📡 [Twitter] V75.2: Syndication Premium Scrape...\n`);
-        const synUrl = `https://syndication.twitter.com/srv/timeline-profile/screen-name/AlArabiya_Brk`;
+        process.stderr.write(`📡 [Twitter] V75.4: Syndication LIST Premium Scrape (List: ${LIST_ID})...\n`);
+        const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
         
         const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(90000) });
@@ -23,15 +23,15 @@ async function fetchTwitterBruteForce() {
             const html = await resp.text();
             results = parseTwitterSyndication(html);
             if (results && results.length > 5) {
-                process.stderr.write(`✅ [Twitter] Success via Syndication (${results.length} items)\n`);
+                process.stderr.write(`✅ [Twitter] Success via Syndication LIST (${results.length} items)\n`);
                 return results;
             }
         }
-    } catch (e) { process.stderr.write(`⚠️ [Twitter] Syndication Failed: ${e.message}\n`); }
+    } catch (e) { process.stderr.write(`⚠️ [Twitter] Syndication List Failed: ${e.message}\n`); }
 
-    // 2. SECONDARY: Direct List (Premium Headless)
+    // 2. SECONDARY: Direct Web UI List (Premium Headless)
     try {
-        process.stderr.write(`📡 [Twitter] V75.2: Direct List Scrape...\n`);
+        process.stderr.write(`📡 [Twitter] V75.4: Direct List Scrape...\n`);
         const listUrl = `https://twitter.com/i/lists/${LIST_ID}`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(listUrl)}&render=true&super=true&wait=8000`;
         
@@ -45,6 +45,19 @@ async function fetchTwitterBruteForce() {
             }
         }
     } catch (e) { process.stderr.write(`⚠️ [Twitter] Direct UI Failed: ${e.message}\n`); }
+
+    // 3. TERTIARY: Syndication Profile (Fallback)
+    try {
+        process.stderr.write(`📡 [Twitter] V75.4: Syndication Profile Fallback...\n`);
+        const synUrl = `https://syndication.twitter.com/srv/timeline-profile/screen-name/AlArabiya_Brk`;
+        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
+        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(60000) });
+        if (resp.ok) {
+            const html = await resp.text();
+            const fallback = parseTwitterSyndication(html);
+            if (fallback && fallback.length > 5) return fallback;
+        }
+    } catch (e) {}
 
     // 3. TERTIARY: DISABLED (Credit Shield)
     process.stderr.write(`📡 [Twitter] V75.3: Nitter Swarm DISABLED.\n`);

@@ -132,10 +132,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V75.3"
+            engine: "V75.4"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V75.3 SHIELD)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V75.4 UI-MAX)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -159,7 +159,7 @@ function loadExistingCache() {
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V75.3 Shield Engine...");
+    console.log("🚀 Powering up V75.4 UI-MAX Engine...");
     loadExistingCache();
     
     // Initial Sync
@@ -172,7 +172,7 @@ async function startScrapers() {
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.3 SHIELD`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.4 UI-MAX`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

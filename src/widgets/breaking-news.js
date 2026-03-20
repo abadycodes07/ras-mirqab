@@ -12,7 +12,7 @@ var BreakingNewsWidget = (function () {
                           ? 'http://localhost:3001' 
                           : 'https://ras-mirqab-production.up.railway.app';
 
-    var VERSION = "V72.1";
+    var VERSION = "V73.0";
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;
@@ -400,6 +400,8 @@ var BreakingNewsWidget = (function () {
             'alhadath':              'public/logos/alhadath.jpg',
             'alhadath_brk':          'public/logos/alhadath.jpg',
             'alarabiya_brk':         'public/logos/alarabiya.png',
+            'AlArabiya':             'public/logos/alarabiya.png',
+            'AlArabiya_Brk':         'public/logos/alarabiya.png',
             'alarabiyaBr':           'public/logos/alarabiya.png',
             'AlArabiyaBr':           'public/logos/alarabiya.png',
             'alarabiya':             'public/logos/alarabiya.png',
@@ -408,9 +410,12 @@ var BreakingNewsWidget = (function () {
             'skynews_ar':            'public/logos/skynewsarabia_b.jpg',
             'rt_arabic':             'public/logos/rt.png',
             'rtonline_ar':           'public/logos/rt.png',
+            'RTonline_ar':           'public/logos/rt.png',
             'arareuters':            'https://www.reuters.com/pf/resources/images/reuters/favicon.ico',
             'sabq_news':             'public/logos/kbsalsaud.png',
+            'SABQ_NEWS':             'public/logos/kbsalsaud.png',
             'ajelnews24':            'public/logos/ajelnews.jpg',
+            'AjelNews24':            'public/logos/ajelnews.jpg',
             'ajanews':               'public/logos/ajanews_new.png',
             'ajmubasher':            'public/logos/ajmubasher.jpg',
             // ─ Twitter/X sources — show Twitter bird or channel logo ─
@@ -419,6 +424,9 @@ var BreakingNewsWidget = (function () {
             'alekhbariyaNews':       'public/logos/alekhbariyanews.jpg',
             'skyNewsArabia_B':       'public/logos/skynewsarabia_b.jpg',
             'AJELNEWS2475':          'public/logos/ajelnews2475.jpg',
+            'AsharqNewsBrk':         'public/logos/asharqnewsbrk.jpg',
+            'modgovksa':             'public/logos/modgovksa.jpg',
+            'NewsNow4USA':           'public/logos/newsnow4usa.jpg',
             // ─ RSS fallbacks ─
             'alhadath2':             'public/logos/alhadath.jpg',
             'aljazeera':             'public/logos/aljazeera.png',
@@ -453,8 +461,8 @@ var BreakingNewsWidget = (function () {
                 '  <div class="item-v12-inner-ref">' +
                 '    <div class="v12-col-left">' +
                 '      <div class="v12-thumbnail">' +
-                (media ? '<img src="' + media + '" class="v12-media-img" onerror="this.src=\'' + avatar + '\'; this.className=\'v12-media-fallback\'">' : 
-                         '<img src="' + avatar + '" class="v12-media-fallback">') +
+                (media ? '<img src="' + media + '" class="v12-media-img" onerror="this.src=\'' + avatar + '\'; this.className=\'v12-media-fallback\'; this.style.opacity=\'0.8\';">' : 
+                         '<img src="' + avatar + '" class="v12-media-fallback" style="opacity:0.8; width:60%; height:60%;">') +
                 '      </div>' +
                 '    </div>' +
                 '    <div class="v12-col-center">' +

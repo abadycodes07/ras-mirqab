@@ -181,10 +181,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V73.1"
+            engine: "V74.0"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V73.1)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V74.0)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }

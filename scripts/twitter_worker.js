@@ -21,8 +21,28 @@ const RSS_APP_FEED = 'https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json';
 async function fetchTwitterBruteForce() {
     let results = [];
     
-    // 1. Primary: Nitter RSS Swarm via Scrape.do Proxy (V73.0 - Maximum Freshness)
-    process.stderr.write(`📡 [Twitter] Starting Nitter/Scrape.do Swarm (V73.0)...\n`);
+    // 1. Primary: Direct HTML Headless Scrape (V74.0 - Iron Grip)
+    try {
+        process.stderr.write(`📡 [Twitter] Trying Direct Headless Scrape via Scrape.do (V74.0)...\n`);
+        const targetUrl = `https://syndication.twitter.com/srv/timeline-profile/screen-name/AlArabiya_Brk`; // Example, or use List if possible
+        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(targetUrl)}&render=true`;
+        
+        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(25000) });
+        if (resp.ok) {
+            const html = await resp.text();
+            // Simple parsing for Syndication HTML
+            const items = parseTwitterSyndication(html);
+            if (items && items.length > 5) {
+                process.stderr.write(`✅ [Twitter] Success via Syndication Headless (${items.length} items)\n`);
+                return items;
+            }
+        }
+    } catch (e) {
+        process.stderr.write(`⚠️ [Twitter] Headless Failed: ${e.message}\n`);
+    }
+
+    // 2. Secondary: Nitter RSS Swarm via Scrape.do Proxy
+    process.stderr.write(`📡 [Twitter] Starting Nitter/Scrape.do Swarm (V74.0)...\n`);
     for (const mirror of NITTER_MIRRORS) {
         const targetUrl = `${mirror}/i/lists/${LIST_ID}/rss`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(targetUrl)}&follow_redirect=true`;
@@ -45,9 +65,9 @@ async function fetchTwitterBruteForce() {
         }
     }
 
-    // 2. Final Fallback: RSS.app Managed Feed (Often Stale but Consistent)
+    // 3. Final Fallback: RSS.app Managed Feed (Often Stale but Consistent)
     try {
-        process.stderr.write(`📡 [Twitter] Falling back to RSS.app (V73-Backup)...\n`);
+        process.stderr.write(`📡 [Twitter] Falling back to RSS.app (V74-Backup)...\n`);
         const resp = await fetch(RSS_APP_FEED, { signal: AbortSignal.timeout(8000) });
         if (resp.ok) {
             const data = await resp.json();
@@ -69,6 +89,30 @@ async function fetchTwitterBruteForce() {
     }
 
     return [];
+}
+
+function parseTwitterSyndication(html) {
+    const $ = cheerio.load(html);
+    const results = [];
+    const jsonMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+    if (!jsonMatch) return [];
+    try {
+        const data = JSON.parse(jsonMatch[1]);
+        const tweets = data.props.pageProps.timeline.entries;
+        return tweets.map(e => {
+            const t = e.content.tweet;
+            if (!t) return null;
+            return {
+                title: t.full_text || "",
+                link: `https://x.com/i/status/${t.id_str}`,
+                pubDate: new Date(t.created_at).toISOString(),
+                source: "twitter",
+                sourceHandle: t.user.screen_name,
+                sourceName: t.user.name,
+                mediaUrl: t.entities.media?.[0]?.media_url_https || null
+            };
+        }).filter(Boolean);
+    } catch (e) { return []; }
 }
 
 function parseTwitterRSS(xml) {

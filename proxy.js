@@ -79,7 +79,7 @@ async function updateTwitter() {
 }
 
 async function updateTelegram() {
-    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.6)...\n`);
+    process.stderr.write(`📡 [Telegram] Starting direct t.me cycle (V75.7)...\n`);
     const result = await runWorker('telegram_shield');
     if (result) {
         try {

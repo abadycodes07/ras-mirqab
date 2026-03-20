@@ -318,7 +318,7 @@ var BreakingNewsWidget = (function () {
                             if (!key || seen.has(key)) return false;
                             seen.add(key);
                             return true;
-                        }).slice(0, 300);
+                        }).slice(0, 500); // V75.7: NINE-HOUR Persistence Shield
 
                         localCache = unique;
                         localStorage.setItem('rasmirqab_bn_cache', JSON.stringify(localCache));

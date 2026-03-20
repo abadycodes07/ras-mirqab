@@ -12,54 +12,71 @@ const NITTER_MIRRORS = []; // DISABLED FOR CREDIT SHIELD
 async function fetchTwitterBruteForce() {
     let results = [];
 
-    // 1. PRIMARY: Syndication LIST API (The Specific List requested)
+    // 1. PRIMARY: Syndication LIST API
     try {
-        process.stderr.write(`📡 [Twitter] V75.6: Syndication LIST Premium Scrape (List: ${LIST_ID})...\n`);
+        process.stderr.write(`📡 [Twitter] V75.8: Syndication LIST Scrape (List: ${LIST_ID})...\n`);
         const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
         
         const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(90000) });
         if (resp.ok) {
             const html = await resp.text();
-            results = parseTwitterSyndication(html);
-            if (results && results.length > 5) {
-                process.stderr.write(`✅ [Twitter] Success via Syndication LIST (${results.length} items)\n`);
-                return results;
+            if (html.includes("auth_token") || html.includes("Login")) {
+                process.stderr.write(`⚠️ [Twitter] Syndication hit Auth Wall.\n`);
+            } else {
+                results = parseTwitterSyndication(html);
+                if (results && results.length > 3) {
+                    process.stderr.write(`✅ [Twitter] Success via Syndication LIST (${results.length} items)\n`);
+                    return results;
+                }
             }
         }
     } catch (e) { process.stderr.write(`⚠️ [Twitter] Syndication List Failed: ${e.message}\n`); }
 
-    // 2. SECONDARY: Direct Web UI List (Premium Headless)
+    // 2. SECONDARY: Direct Web UI List
     try {
-        process.stderr.write(`📡 [Twitter] V75.6: Direct List Scrape...\n`);
+        process.stderr.write(`📡 [Twitter] V75.8: Direct List Scrape...\n`);
         const listUrl = `https://twitter.com/i/lists/${LIST_ID}`;
         const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(listUrl)}&render=true&super=true&wait=8000`;
         
         const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(120000) });
         if (resp.ok) {
             const html = await resp.text();
-            results = parseTwitterWebUI(html);
-            if (results && results.length > 5) {
-                process.stderr.write(`✅ [Twitter] Success via Direct UI (${results.length} items)\n`);
-                return results;
+            if (html.includes("login-form") || html.includes("Sign in")) {
+                process.stderr.write(`⚠️ [Twitter] Direct UI hit Login Wall.\n`);
+            } else {
+                results = parseTwitterWebUI(html);
+                if (results && results.length > 3) {
+                    process.stderr.write(`✅ [Twitter] Success via Direct UI (${results.length} items)\n`);
+                    return results;
+                }
             }
         }
     } catch (e) { process.stderr.write(`⚠️ [Twitter] Direct UI Failed: ${e.message}\n`); }
 
-    // 3. TERTIARY: Syndication Profile (Fallback)
+    // 3. TERTIARY: High-Reliability RSS Recovery (ZERO CREDITS)
     try {
-        process.stderr.write(`📡 [Twitter] V75.6: Syndication Profile Fallback...\n`);
-        const synUrl = `https://syndication.twitter.com/srv/timeline-profile/screen-name/AlArabiya_Brk`;
-        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
-        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(60000) });
+        process.stderr.write(`📡 [Twitter] V75.8: RSS Recovery (Zero Credits)...\n`);
+        // Using a public RSS fallback for the list or key accounts
+        const rssUrl = `https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json`; // Re-using user's reliable RSS feed
+        const resp = await fetch(rssUrl, { signal: AbortSignal.timeout(30000) });
         if (resp.ok) {
-            const html = await resp.text();
-            const fallback = parseTwitterSyndication(html);
-            if (fallback && fallback.length > 5) return fallback;
+            const data = await resp.json();
+            const fallback = (data.items || []).filter(it => it.url?.includes('twitter.com') || it.url?.includes('x.com')).map(it => ({
+                title: it.title || it.description || "",
+                link: it.url || it.link,
+                pubDate: it.date_published || new Date().toISOString(),
+                source: "twitter",
+                sourceHandle: "News",
+                sourceName: "تويتر",
+                mediaUrl: it.image || it.thumbnail || null
+            }));
+            if (fallback && fallback.length > 0) {
+                process.stderr.write(`✅ [Twitter] Success via RSS Recovery (${fallback.length} items)\n`);
+                return fallback;
+            }
         }
-    } catch (e) {}
-
-    process.stderr.write(`📡 [Twitter] V75.6: Nitter Swarm DISABLED.\n`);
+    } catch (e) { process.stderr.write(`⚠️ [Twitter] RSS Recovery Failed: ${e.message}\n`); }
 
     return [];
 }

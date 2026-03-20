@@ -40,6 +40,17 @@ app.use((req, res, next) => {
     next();
 });
 
+// Direct News API
+app.get('/api/news', (req, res) => {
+    const targetPath = path.join(__dirname, 'public', 'news.json');
+    if (fs.existsSync(targetPath)) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.json(JSON.parse(fs.readFileSync(targetPath, 'utf8')));
+    } else {
+        res.status(404).json({ error: "No news cached yet" });
+    }
+});
+
 // ═══════════════════════════════════════════════
 // DIAGNOSTIC ENDPOINTS
 // ═══════════════════════════════════════════════

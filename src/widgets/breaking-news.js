@@ -316,9 +316,10 @@ var BreakingNewsWidget = (function () {
             }
         }
         console.log('--- NEWS-ENGINE: ATTEMPTING CACHE SYNC ---');
-        // V71.3: Railway First (Priority Sync)
+        // V71.4: Multi-Source Sync with API Fallback
         const origin = window.location.origin || '';
         const paths = [
+            'https://ras-mirqab-production.up.railway.app/api/news',
             'https://ras-mirqab-production.up.railway.app/news.json',
             origin + '/news.json',
             'news.json'

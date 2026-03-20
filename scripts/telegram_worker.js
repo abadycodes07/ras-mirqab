@@ -9,19 +9,17 @@ const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "adb11bc4e66248e186ac5316a1
 const CHANNELS = ["ajanews", "alhadath_brk", "alarabiyaBr"];
 
 async function fetchTelegram(channel) {
+    process.stderr.write(`📡 [Telegram] V75.1: Premium Scrape (t.me/s/${channel})...\n`);
     const targetUrl = `https://t.me/s/${channel}`;
+    const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(targetUrl)}&render=true&wait=2000`;
     
     try {
-        const resp = await fetch(targetUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-        });
+        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(30000) });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const html = await resp.text();
         return parseTelegramItems(html, channel);
     } catch (e) {
-        process.stderr.write(`[Telegram] Error fetching ${channel}: ${e.message}\n`);
+        process.stderr.write(`❌ [Telegram] Error fetching ${channel}: ${e.message}\n`);
         return [];
     }
 }
@@ -31,7 +29,7 @@ function parseTelegramItems(html, channel) {
     const results = [];
     
     $('.tgme_widget_message_wrap').each((i, el) => {
-        if (i >= 30) return; // Deeper look at the web view
+        if (i >= 50) return; 
         const $msg = $(el);
         
         const title = $msg.find('.tgme_widget_message_text').text().trim();
@@ -48,12 +46,12 @@ function parseTelegramItems(html, channel) {
         }
 
         results.push({
-            title: title.substring(0, 300) + (title.length > 300 ? '...' : ''),
+            title: title.substring(0, 500),
             link: link || `https://t.me/${channel}`,
             pubDate: timestamp || new Date().toISOString(),
             source: "telegram",
             sourceHandle: channel,
-            sourceName: channel === 'ajanews' ? 'الجزيرة' : (channel === 'alarabiyaBr' ? 'العربية' : 'الحدث'),
+            sourceName: channel === 'ajanews' ? 'الجزيرة' : (channel === 'alarabiyaBr' ? 'العربية' : (channel === 'alhadath_brk' ? 'الحدث' : channel)),
             mediaUrl: mediaUrl
         });
     });

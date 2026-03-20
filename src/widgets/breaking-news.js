@@ -297,6 +297,11 @@ var BreakingNewsWidget = (function () {
                 '  <i class="fas fa-circle-notch fa-spin" style="font-size:32px; margin-bottom:15px;"></i>' +
                 '  <div style="font-family:var(--font-ar); font-size:14px; font-weight:700;">جاري تحديث الأخبار العالمية...</div>' +
                 '</div>';
+            // V71.3: Turbo 10s Polling (Almost Instant)
+            // This setInterval is redundant as it's already set in init().
+            // Keeping it here as per instruction, but it will overwrite the one from init()
+            // if this condition is met.
+            refreshTimer = setInterval(fetchServerCache, 10000); 
             return;
         }
 
@@ -316,21 +321,31 @@ var BreakingNewsWidget = (function () {
             }
         }
         console.log('--- NEWS-ENGINE: ATTEMPTING CACHE SYNC ---');
-        // V71.2: Unified Source Sync
+        // V71.3: Railway First (Priority Sync)
         const origin = window.location.origin || '';
         const paths = [
+            'https://ras-mirqab-production.up.railway.app/news.json',
             origin + '/news.json',
-            'news.json', 
-            'https://ras-mirqab-production.up.railway.app/news.json'
+            'news.json'
         ];
         for (let path of paths) {
             try {
-                const res = await fetch(path + '?nocache=' + Date.now());
+                const res = await fetch(path + '?nocache=' + Date.now(), { cache: 'no-store' });
                 if (res.ok) {
                     const data = await res.json();
                     const items = Array.isArray(data) ? data : (data.items || []);
                     if (items && items.length > 0) {
                         console.log('--- NEWS-ENGINE: SYNC SUCCESS FROM:', path, 'ITEMS:', items.length);
+                        
+                        // Only update if the content has changed or we are forced
+                        const firstItemLink = items[0].link + items[0].title;
+                        const cachedFirstItemLink = localCache[0] ? (localCache[0].link + localCache[0].title) : '';
+                        
+                        if (!force && firstItemLink === cachedFirstItemLink && localCache.length > 0) {
+                            console.log('--- NEWS-ENGINE: NO NEW DATA, SKIPPING RENDER ---');
+                            return;
+                        }
+
                         const newItems = items.filter(it => !seenIds.has((it.link || '') + (it.title || '').substring(0,20)));
                         if (!isFirstLoad && newItems.length > 0) {
                             newItems.forEach(it => it.isNew = true);

@@ -240,7 +240,7 @@
         }
         // Then fetch fresh data from server
         fetchNewsCache();
-        setInterval(fetchNewsCache, 10000);
+        setInterval(fetchNewsCache, 5000);
         document.getElementById('sync-btn')?.addEventListener('click', () => {
             const ico = document.querySelector('#sync-btn i');
             if (ico) { ico.style.animation='spin 0.6s linear'; setTimeout(()=>ico.style.animation='',700); }

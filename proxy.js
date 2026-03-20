@@ -129,14 +129,13 @@ function writeNewsJson() {
 
         if (combined.length === 0) return;
 
-        const targetPath = path.join(__dirname, 'public', 'news.json');
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V76.0"
+            engine: "V76.1"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V76.0 ULTIMATE)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V76.1 PROTECTOR)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -156,13 +155,13 @@ function loadExistingCache() {
             // V75.6: Case-insensitive source check + default source fallback
             telegramCache = items.filter(it => (it.source || "").toLowerCase() === 'telegram').slice(0, 500);
             twitterCache  = items.filter(it => (it.source || "").toLowerCase() === 'twitter').slice(0, 500);
-            console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW. (V76.0)`);
+            console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW. (V76.1)`);
         }
     } catch (e) { console.error("Cache load failed:", e.message); }
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V76.0 ULTIMATE Engine...");
+    console.log("🚀 Powering up V76.1 PROTECTOR Engine...");
     loadExistingCache();
     
     // Initial Sync
@@ -175,7 +174,7 @@ async function startScrapers() {
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V76.0`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V76.1`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

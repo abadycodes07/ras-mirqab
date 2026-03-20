@@ -449,7 +449,7 @@ var BreakingNewsWidget = (function () {
                 '      </div>' +
                 '    </div>' +
                 '    <div class="v12-col-center">' +
-                '      <div class="v12-title-text">' + (item.title || '') + '</div>' +
+                '      <div class="v12-title-text">' + cleanTitle(item.title || '') + '</div>' +
                 '    </div>' +
                 '    <div class="v12-col-right">' +
                 '      <div class="v12-source-logo-container">' +

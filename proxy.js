@@ -146,10 +146,11 @@ async function startScrapers() {
     // Initial burst
     await updateTwitter();
     await updateTelegram();
-    
-    // Interval cycles
-    setInterval(updateTwitter, 300000); // 5 mins
-    setInterval(updateTelegram, 120000); // 2 mins (almost instant)
+    updateTwitter();
+
+    // V71: Optimized Intervals
+    setInterval(updateTelegram, 1 * 60 * 1000); // 1 minute (Direct - Save credits)
+    setInterval(updateTwitter, 5 * 60 * 1000);  // 5 minutes (Scrape-do)
 }
 
 app.listen(PORT, () => {

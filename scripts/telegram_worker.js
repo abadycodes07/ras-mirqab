@@ -10,10 +10,13 @@ const CHANNELS = ["ajanews", "alhadath_brk", "alarabiyaBr"];
 
 async function fetchTelegram(channel) {
     const targetUrl = `https://t.me/s/${channel}`;
-    const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(targetUrl)}&follow_redirect=true`;
     
     try {
-        const resp = await fetch(apiUrl);
+        const resp = await fetch(targetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const html = await resp.text();
         return parseTelegramItems(html, channel);

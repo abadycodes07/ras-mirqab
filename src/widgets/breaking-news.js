@@ -12,7 +12,13 @@ var BreakingNewsWidget = (function () {
                           ? 'http://localhost:3001' 
                           : 'https://ras-mirqab-production.up.railway.app';
 
-    var VERSION = "V75.8";
+    var VERSION = "V75.9";
+    // V75.9: Emergency Sync Reset
+    if (localStorage.getItem('rasmirqab_bn_v') !== VERSION) {
+        localStorage.removeItem('rasmirqab_bn_cache');
+        localStorage.setItem('rasmirqab_bn_v', VERSION);
+        console.log("🧨 V75.9: Cache Purged for Sync Recovery");
+    }
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;
@@ -392,6 +398,8 @@ var BreakingNewsWidget = (function () {
             // ─ RSS fallbacks ─
             'alhadath2':             'public/logos/alhadath.jpg',
             'aljazeera':             'public/logos/aljazeera.png',
+            'News':                  'public/logos/alarabiya.png',
+            'news':                  'public/logos/alarabiya.png',
         };
 
         items.forEach(function (item) {

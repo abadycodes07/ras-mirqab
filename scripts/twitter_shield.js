@@ -12,53 +12,11 @@ const NITTER_MIRRORS = []; // DISABLED FOR CREDIT SHIELD
 async function fetchTwitterBruteForce() {
     let results = [];
 
-    // 1. PRIMARY: Syndication LIST API
+    // 1. PRIMARY: RSS Recovery (ZERO CREDITS)
+    // Promoted to primary for V75.9 to stop credit burn while we investigate walls
     try {
-        process.stderr.write(`📡 [Twitter] V75.8: Syndication LIST Scrape (List: ${LIST_ID})...\n`);
-        const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
-        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}&render=true&super=true&wait=5000`;
-        
-        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(90000) });
-        if (resp.ok) {
-            const html = await resp.text();
-            if (html.includes("auth_token") || html.includes("Login")) {
-                process.stderr.write(`⚠️ [Twitter] Syndication hit Auth Wall.\n`);
-            } else {
-                results = parseTwitterSyndication(html);
-                if (results && results.length > 3) {
-                    process.stderr.write(`✅ [Twitter] Success via Syndication LIST (${results.length} items)\n`);
-                    return results;
-                }
-            }
-        }
-    } catch (e) { process.stderr.write(`⚠️ [Twitter] Syndication List Failed: ${e.message}\n`); }
-
-    // 2. SECONDARY: Direct Web UI List
-    try {
-        process.stderr.write(`📡 [Twitter] V75.8: Direct List Scrape...\n`);
-        const listUrl = `https://twitter.com/i/lists/${LIST_ID}`;
-        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(listUrl)}&render=true&super=true&wait=8000`;
-        
-        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(120000) });
-        if (resp.ok) {
-            const html = await resp.text();
-            if (html.includes("login-form") || html.includes("Sign in")) {
-                process.stderr.write(`⚠️ [Twitter] Direct UI hit Login Wall.\n`);
-            } else {
-                results = parseTwitterWebUI(html);
-                if (results && results.length > 3) {
-                    process.stderr.write(`✅ [Twitter] Success via Direct UI (${results.length} items)\n`);
-                    return results;
-                }
-            }
-        }
-    } catch (e) { process.stderr.write(`⚠️ [Twitter] Direct UI Failed: ${e.message}\n`); }
-
-    // 3. TERTIARY: High-Reliability RSS Recovery (ZERO CREDITS)
-    try {
-        process.stderr.write(`📡 [Twitter] V75.8: RSS Recovery (Zero Credits)...\n`);
-        // Using a public RSS fallback for the list or key accounts
-        const rssUrl = `https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json`; // Re-using user's reliable RSS feed
+        process.stderr.write(`📡 [Twitter] V75.9: RSS Shield Primary (List Recovery)...\n`);
+        const rssUrl = `https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json`; 
         const resp = await fetch(rssUrl, { signal: AbortSignal.timeout(30000) });
         if (resp.ok) {
             const data = await resp.json();
@@ -72,11 +30,29 @@ async function fetchTwitterBruteForce() {
                 mediaUrl: it.image || it.thumbnail || null
             }));
             if (fallback && fallback.length > 0) {
-                process.stderr.write(`✅ [Twitter] Success via RSS Recovery (${fallback.length} items)\n`);
+                process.stderr.write(`✅ [Twitter] RSS Primary Success (${fallback.length} items)\n`);
                 return fallback;
             }
         }
-    } catch (e) { process.stderr.write(`⚠️ [Twitter] RSS Recovery Failed: ${e.message}\n`); }
+    } catch (e) { process.stderr.write(`⚠️ [Twitter] RSS Primary Failed: ${e.message}\n`); }
+
+    // 2. SECONDARY: Syndication LIST API (Reduced Frequency)
+    try {
+        process.stderr.write(`📡 [Twitter] V75.9: Syndication LIST Fallback...\n`);
+        const synUrl = `https://syndication.twitter.com/srv/timeline-list/list-id/${LIST_ID}`;
+        // V75.9: DON'T USE SUPER/RENDER FOR FALLBACK (SAVE CREDITS)
+        const apiUrl = `https://api.scrape.do?token=${SCRAPEDO_KEY}&url=${encodeURIComponent(synUrl)}`;
+        
+        const resp = await fetch(apiUrl, { signal: AbortSignal.timeout(60000) });
+        if (resp.ok) {
+            const html = await resp.text();
+            results = parseTwitterSyndication(html);
+            if (results && results.length > 3) {
+                process.stderr.write(`✅ [Twitter] Success via Syndication (${results.length} items)\n`);
+                return results;
+            }
+        }
+    } catch (e) {}
 
     return [];
 }

@@ -129,7 +129,7 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V70"
+            engine: "V71.3"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
         console.log(`💾 news.json updated: ${combined.length} items (V70)`);

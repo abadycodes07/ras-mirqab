@@ -8,10 +8,12 @@ const cheerio = require('cheerio');
 const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf";
 const LIST_ID = "2031445708524421549";
 const RSSHUB_BRIDGES = [
+    'https://rsshub.app',
     'https://rsshub.rssforever.com', 
     'https://rsshub.moeyy.cn',
     'https://rss.shab.fun',
-    'https://rss.owo.nz'
+    'https://rss.owo.nz',
+    'https://rsshub.izit.io'
 ];
 const RSS_APP_FEED = 'https://rss.app/feeds/v1.1/wkS1m06mHt2j7163.json';
 

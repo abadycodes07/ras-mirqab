@@ -297,11 +297,6 @@ var BreakingNewsWidget = (function () {
                 '  <i class="fas fa-circle-notch fa-spin" style="font-size:32px; margin-bottom:15px;"></i>' +
                 '  <div style="font-family:var(--font-ar); font-size:14px; font-weight:700;">جاري تحديث الأخبار العالمية...</div>' +
                 '</div>';
-            // V71.3: Turbo 10s Polling (Almost Instant)
-            // This setInterval is redundant as it's already set in init().
-            // Keeping it here as per instruction, but it will overwrite the one from init()
-            // if this condition is met.
-            refreshTimer = setInterval(fetchServerCache, 10000); 
             return;
         }
 

@@ -92,28 +92,36 @@ function parseTwitterWebUI(html) {
         const jsonMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
         if (jsonMatch) {
             const data = JSON.parse(jsonMatch[1]);
-            const instructions = data.props?.pageProps?.timeline?.instructions || [];
+            // Search deeper for entries (Twitter UI often nests these differently for Lists)
+            let entries = [];
+            const instructions = data.props?.pageProps?.timeline?.instructions || 
+                               data.props?.pageProps?.initialTimeline?.instructions || [];
+            
             instructions.forEach(inst => {
-                if (inst.type === 'TimelineAddEntries') {
-                    inst.entries.forEach(e => {
-                        const t = e.content?.itemContent?.tweet_results?.result?.legacy;
-                        const u = e.content?.itemContent?.tweet_results?.result?.core?.user_results?.result?.legacy;
-                        if (t) {
-                            results.push({
-                                title: t.full_text || "",
-                                link: `https://x.com/${u?.screen_name || 'i'}/status/${t.id_str}`,
-                                pubDate: new Date(t.created_at).toISOString(),
-                                source: "twitter",
-                                sourceHandle: u?.screen_name || "News",
-                                sourceName: u?.name || "News",
-                                mediaUrl: t.entities?.media?.[0]?.media_url_https || null
-                            });
-                        }
+                if (inst.type === 'TimelineAddEntries' || inst.type === 'TimelinePinEntry') {
+                    entries = entries.concat(inst.entries || [inst.entry].filter(Boolean));
+                }
+            });
+
+            entries.forEach(e => {
+                const result = e.content?.itemContent?.tweet_results?.result;
+                const t = result?.legacy || result?.tweet?.legacy;
+                const u = result?.core?.user_results?.result?.legacy || result?.tweet?.core?.user_results?.result?.legacy;
+                
+                if (t) {
+                    results.push({
+                        title: t.full_text || "",
+                        link: `https://x.com/${u?.screen_name || 'i'}/status/${t.id_str}`,
+                        pubDate: new Date(t.created_at).toISOString(),
+                        source: "twitter",
+                        sourceHandle: u?.screen_name || "News",
+                        sourceName: u?.name || "News",
+                        mediaUrl: t.entities?.media?.[0]?.media_url_https || null
                     });
                 }
             });
         }
-    } catch (e) {}
+    } catch (e) { process.stderr.write(`⚠️ [Twitter] UI Parse Exception: ${e.message}\n`); }
     return results;
 }
 

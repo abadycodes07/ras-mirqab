@@ -54,22 +54,22 @@ function runWorker(workerName) {
 }
 
 async function updateTwitter() {
-    process.stderr.write(`📡 [Twitter] Starting PREMIUM Shield Cycle (V75.5)...\n`);
+    process.stderr.write(`📡 [Twitter] Starting PREMIUM Shield Cycle (V75.6)...\n`);
     const result = await runWorker('twitter_shield');
     if (result) {
         try {
             const data = JSON.parse(result);
             if (data && data.length > 0) {
-                // V75.3: Deduplicate and Prepend
+                // V75.6: Non-Destructive Merge (Prepend)
                 const newItems = data.map(it => ({ ...it, source: "twitter" }));
                 const combined = [...newItems, ...twitterCache];
                 const seen = new Set();
                 twitterCache = combined.filter(it => {
-                    const key = it.link || it.title;
-                    if (seen.has(key)) return false;
+                    const key = (it.link || it.title || "").substring(0, 100);
+                    if (!key || seen.has(key)) return false;
                     seen.add(key);
                     return true;
-                }).slice(0, 100);
+                }).slice(0, 200); // Increased to 200
 
                 console.log(`✅ [Twitter] Shield Sync Success. Cache: ${twitterCache.length}`);
                 writeNewsJson();
@@ -132,10 +132,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V75.5"
+            engine: "V75.6"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V75.5 SUPER-SYNC)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V75.6 IRON)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -150,16 +150,17 @@ function loadExistingCache() {
         const targetPath = path.join(__dirname, 'public', 'news.json');
         if (fs.existsSync(targetPath)) {
             const data = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
-            const items = data.items || [];
-            telegramCache = items.filter(it => it.source === 'telegram').slice(0, 100);
-            twitterCache  = items.filter(it => it.source === 'twitter').slice(0, 100);
-            console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW.`);
+            const items = data.items || Array.isArray(data) ? data : [];
+            // V75.6: Case-insensitive source check + default source fallback
+            telegramCache = items.filter(it => (it.source || "").toLowerCase() === 'telegram').slice(0, 200);
+            twitterCache  = items.filter(it => (it.source || "").toLowerCase() === 'twitter').slice(0, 200);
+            console.log(`📡 [Boot] Cache Loaded: ${telegramCache.length} TG, ${twitterCache.length} TW. (V75.6 IRON)`);
         }
     } catch (e) { console.error("Cache load failed:", e.message); }
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V75.5 SUPER-SYNC Engine...");
+    console.log("🚀 Powering up V75.6 IRON Engine...");
     loadExistingCache();
     
     // Initial Sync
@@ -172,7 +173,7 @@ async function startScrapers() {
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.5 SUPER-SYNC`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.6 IRON`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

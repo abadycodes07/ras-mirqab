@@ -12,7 +12,7 @@ var BreakingNewsWidget = (function () {
                           ? 'http://localhost:3001' 
                           : 'https://ras-mirqab-production.up.railway.app';
 
-    var VERSION = "V75.5";
+    var VERSION = "V75.6";
     var hoverEnabled = localStorage.getItem('rasmirqab_bn_hover') !== 'false';
     var popupEl = null;
     var refreshTimer = null;

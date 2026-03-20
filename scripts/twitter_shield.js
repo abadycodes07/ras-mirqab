@@ -5,7 +5,7 @@ const cheerio = require('cheerio');
  * Targeting Syndication API (Primary) and Web UI (Secondary)
  */
 
-const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf";
+const SCRAPEDO_KEY = process.env.SCRAPEDO_API_KEY || "76445d6feeb2455f80f40a3e27b1dcb9d6e3a545b0c";
 const LIST_ID = "2031445708524421549";
 const NITTER_MIRRORS = []; // DISABLED FOR CREDIT SHIELD
 

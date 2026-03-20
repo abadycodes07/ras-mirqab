@@ -44,7 +44,7 @@ function runWorker(workerName) {
     return new Promise((resolve) => {
         exec(`node scripts/${workerName}.js`, { 
             timeout: 240000, // 4 mins max for premium headless
-            env: { ...process.env, SCRAPEDO_API_KEY: "adb11bc4e66248e186ac5316a1d4cf83a3bf18168cf" }
+            env: { ...process.env, SCRAPEDO_API_KEY: "76445d6feeb2455f80f40a3e27b1dcb9d6e3a545b0c" }
         }, (error, stdout, stderr) => {
             if (error && error.killed) console.error(`⚠️ [${workerName}] Timeout killed.`);
             if (stderr) console.error(`⚠️ [${workerName}] stderr: ${stderr}`);
@@ -132,10 +132,10 @@ function writeNewsJson() {
         const output = {
             items: combined,
             lastUpdated: new Date().toISOString(),
-            engine: "V75.4"
+            engine: "V75.5"
         };
         fs.writeFileSync(targetPath, JSON.stringify(output, null, 2));
-        console.log(`💾 news.json updated: ${combined.length} items (V75.4 UI-MAX)`);
+        console.log(`💾 news.json updated: ${combined.length} items (V75.5 SUPER-SYNC)`);
     } catch (err) {
         console.error(`❌ [IO] Write failed: ${err.message}`);
     }
@@ -159,7 +159,7 @@ function loadExistingCache() {
 }
 
 async function startScrapers() {
-    console.log("🚀 Powering up V75.4 UI-MAX Engine...");
+    console.log("🚀 Powering up V75.5 SUPER-SYNC Engine...");
     loadExistingCache();
     
     // Initial Sync
@@ -168,11 +168,11 @@ async function startScrapers() {
 
     // High-Frequency Intervals
     setInterval(updateTelegram, 60 * 1000);    // 1 minute (Solid)
-    setInterval(updateTwitter, 15 * 60 * 1000); // 15 minutes (Premium)
+    setInterval(updateTwitter, 5 * 60 * 1000); // 5 minutes (Turbo)
 }
 
 app.listen(PORT, () => {
-    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.4 UI-MAX`);
+    console.log(`🚀 RAS MIRQAB ULTIMATE ENGINE V75.5 SUPER-SYNC`);
     console.log(`📍 Serving static cache at /api/news`);
     startScrapers();
 });

@@ -400,6 +400,8 @@ var BreakingNewsWidget = (function () {
             'alhadath':              'public/logos/alhadath.jpg',
             'alhadath_brk':          'public/logos/alhadath.jpg',
             'alarabiya_brk':         'public/logos/alarabiya.png',
+            'alarabiyaBr':           'public/logos/alarabiya.png',
+            'AlArabiyaBr':           'public/logos/alarabiya.png',
             'alarabiya':             'public/logos/alarabiya.png',
             'skynewsarabia_b':       'public/logos/skynewsarabia_b.jpg',
             'skynewsarabia_breaking':'public/logos/skynewsarabia_b.jpg',
